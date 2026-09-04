@@ -2,6 +2,15 @@
 
 > **GovTech & PropTech Platform** for Anti-Tamper Document Verification, AI Legal Due Diligence, Geospatial (GIS) Land Validation, and Policy & Zoning Compliance.
 
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/mrparthpanchal007-art/Bhoomi-Nexus)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Demo-black?logo=vercel)](https://bhoomi-nexus-git-main-mrparthpanchal007-arts-projects.vercel.app)
+
+---
+
+### 🌐 Live Links
+- **GitHub Repository**: [https://github.com/mrparthpanchal007-art/Bhoomi-Nexus](https://github.com/mrparthpanchal007-art/Bhoomi-Nexus)
+- **Live Vercel Web App**: [https://bhoomi-nexus-git-main-mrparthpanchal007-arts-projects.vercel.app](https://bhoomi-nexus-git-main-mrparthpanchal007-arts-projects.vercel.app)
+
 ---
 
 ## 🚀 Quick Start Guide (How to Run the Code)
