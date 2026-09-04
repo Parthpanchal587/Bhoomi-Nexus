@@ -1,15 +1,9 @@
 {
   "version": 2,
-  "public": true,
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/index.py"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/Bhoomi-Nexus/frontend/$1"
     }
   ]
 }
