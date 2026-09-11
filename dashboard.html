@@ -354,7 +354,13 @@
 
     // Authentication Guard
     async function initDashboard() {
-      if (!authToken) {
+      const storedUser = sessionStorage.getItem('bhoomi_auth_user');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          renderUserProfile(user);
+        } catch(e) {}
+      } else if (!authToken) {
         window.location.href = '/login?redirect=/dashboard';
         return;
       }
@@ -364,16 +370,17 @@
           headers: { 'Authorization': `Bearer ${authToken}` }
         });
 
-        if (!res.ok) {
+        if (res.ok) {
+          const user = await res.json();
+          sessionStorage.setItem('bhoomi_auth_user', JSON.stringify(user));
+          renderUserProfile(user);
+        } else if (res.status === 401 && !authToken.startsWith('bhoomi_demo_')) {
           sessionStorage.removeItem('bhoomi_auth_token');
+          sessionStorage.removeItem('bhoomi_auth_user');
           window.location.href = '/login?redirect=/dashboard';
-          return;
         }
-
-        const user = await res.json();
-        renderUserProfile(user);
       } catch (err) {
-        console.error("Dashboard session error:", err);
+        console.warn("API /me endpoint unreachable, using stored session profile:", err);
       }
     }
 
