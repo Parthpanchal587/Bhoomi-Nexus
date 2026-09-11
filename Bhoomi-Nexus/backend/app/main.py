@@ -25,6 +25,8 @@ from app.routers import (
     ai,
     gis,
     policy,
+    enclave,
+    osint,
 )
 
 
@@ -34,17 +36,23 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description=(
-        "GovTech Cadastral Geospatial & Soil Intelligence API for "
-        "Document Verification, AI Intelligence, GIS Analysis, "
-        "Policy Analytics, and Blockchain Verification."
+        "Land Intelligence API with Trusted Execution Environment (TEE)-inspired "
+        "Secure Execution Architecture for Document Verification, Policy Analytics, "
+        "and Cryptographic Integrity."
     ),
 )
 
-# Enable CORS for local frontend GIS clients
+# Enable CORS safely for frontend clients
+origins = settings.CORS_ORIGINS
+use_credentials = True
+if "*" in origins:
+    # RFC 6454 / W3C: allow_credentials cannot be True when allow_origins is ["*"]
+    use_credentials = False
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=use_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -61,11 +69,17 @@ app.include_router(blockchain.router)
 app.include_router(datasets.router)
 app.include_router(insights.router)
 
-# New v1 module endpoints
+# V1 module endpoints
 app.include_router(documents.router)
 app.include_router(ai.router)
 app.include_router(gis.router)
 app.include_router(policy.router)
+
+# Secure Enclave (TEE Layer)
+app.include_router(enclave.router)
+
+# Public-Source Land Intelligence (OSINT Layer)
+app.include_router(osint.router)
 
 
 # ── Static Frontend Serving ──────────────────────────────────────────────

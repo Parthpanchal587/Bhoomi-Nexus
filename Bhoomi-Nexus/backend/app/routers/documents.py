@@ -19,6 +19,9 @@ from app.services.document_verification import register_document, verify_documen
 router = APIRouter(prefix="/api/v1/documents", tags=["Document Verification (v1)"])
 
 
+MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB security limit
+
+
 @router.post("/upload", response_model=DocumentUploadResponse)
 async def upload_document(
     file: UploadFile = File(..., description="PDF document to register in the verification ledger"),
@@ -38,6 +41,14 @@ async def upload_document(
     already registered, returns the existing record.
     """
     file_bytes = await file.read()
+
+    # Enforce maximum file size limit (Denial of Service protection)
+    if len(file_bytes) > MAX_DOCUMENT_SIZE_BYTES:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File exceeds maximum allowed size of 10 MB (received {len(file_bytes)} bytes).",
+        )
 
     record = register_document(
         file_bytes=file_bytes,
@@ -81,6 +92,15 @@ async def verify_document_endpoint(
     - VERIFICATION_FAILED: if the document is NOT REAL or has been tampered with.
     """
     file_bytes = await file.read()
+
+    # Enforce maximum file size limit (Denial of Service protection)
+    if len(file_bytes) > MAX_DOCUMENT_SIZE_BYTES:
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File exceeds maximum allowed size of 10 MB (received {len(file_bytes)} bytes).",
+        )
+
     filename = file.filename or "unknown.pdf"
 
     result = verify_document(file_bytes=file_bytes, filename=filename)

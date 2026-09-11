@@ -54,20 +54,43 @@ class InMemoryLedger:
 ledger = InMemoryLedger()
 
 
-# ── Hashing ───────────────────────────────────────────────────────────────
+# ── Hashing (Enclave-Secured) ──────────────────────────────────────────────
 
 def compute_binary_hash(file_bytes: bytes) -> str:
-    """Compute SHA-256 hex digest of raw file bytes."""
+    """Compute SHA-256 hex digest of raw file bytes through the secure enclave."""
+    try:
+        import base64
+        from app.secure_enclave.service import enclave_gateway
+        res = enclave_gateway.dispatch(
+            operation="document.verify_integrity",
+            payload={"file_bytes_base64": base64.b64encode(file_bytes).decode("utf-8")},
+            caller_id="document-service",
+        )
+        if res.status == "SUCCESS" and res.data and "binary_hash_sha256" in res.data:
+            return res.data["binary_hash_sha256"]
+    except Exception:
+        pass
     return hashlib.sha256(file_bytes).hexdigest()
 
 
 def compute_text_fingerprint(text: str) -> str:
     """
-    Compute SHA-256 of normalized text content.
+    Compute SHA-256 of normalized text content through the secure enclave.
 
     Catches re-saves, edits, or reconstructions that preserve
     text content but change the underlying binary stream.
     """
+    try:
+        from app.secure_enclave.service import enclave_gateway
+        res = enclave_gateway.dispatch(
+            operation="document.verify_integrity",
+            payload={"extracted_text": text},
+            caller_id="document-service",
+        )
+        if res.status == "SUCCESS" and res.data and "text_fingerprint_sha256" in res.data:
+            return res.data["text_fingerprint_sha256"]
+    except Exception:
+        pass
     normalized = normalize_text(text)
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 

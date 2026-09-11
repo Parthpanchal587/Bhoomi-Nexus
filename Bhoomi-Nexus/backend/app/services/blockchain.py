@@ -32,6 +32,28 @@ class BlockchainLedger:
         previous_hash: str,
         nonce: int,
     ) -> str:
+        try:
+            from app.secure_enclave.service import enclave_gateway
+            from app.secure_enclave.schemas import EnclaveRole
+            res = enclave_gateway.dispatch(
+                operation="notary.sign_record",
+                payload={
+                    "index": index,
+                    "timestamp": timestamp,
+                    "parcel_id": parcel_id,
+                    "data": data,
+                    "previous_hash": previous_hash,
+                    "nonce": nonce,
+                },
+                caller_id="blockchain-service",
+                caller_role=EnclaveRole.OPERATOR,
+                auth_token=enclave_gateway.system_token,
+            )
+            if res.status == "SUCCESS" and res.data and "block_hash" in res.data:
+                return res.data["block_hash"]
+        except Exception:
+            pass
+
         serialized_data = json.dumps(data, sort_keys=True)
         block_string = f"{index}|{timestamp}|{parcel_id}|{serialized_data}|{previous_hash}|{nonce}"
         return hashlib.sha256(block_string.encode("utf-8")).hexdigest()

@@ -1225,9 +1225,169 @@
       animation: fadeIn 0.2s ease;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* ============================================================
+       OSINT & PUBLIC-SOURCE LAND INTELLIGENCE DASHBOARD STYLES
+       ============================================================ */
+    .osint-modal-card {
+      max-width: 1080px !important;
+      width: 95vw !important;
+      max-height: 90vh !important;
+      background: #FFFFFF;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .osint-tabs-nav {
+      display: flex;
+      gap: 6px;
+      background: #F1F5F9;
+      padding: 6px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .osint-tab-btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: transparent;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.18s ease;
+      font-family: inherit;
+    }
+
+    .osint-tab-btn:hover {
+      background: #E2E8F0;
+      color: var(--color-gov-blue);
+    }
+
+    .osint-tab-btn.active {
+      background: var(--color-gov-blue);
+      color: #FFFFFF;
+      box-shadow: 0 2px 4px rgba(12, 50, 88, 0.25);
+    }
+
+    .osint-disclaimer-banner {
+      background: #FFFBEB;
+      border-left: 4px solid #F59E0B;
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #78350F;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .osint-preset-chip {
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: 14px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #1E293B;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .osint-preset-chip:hover {
+      background: #0C3258;
+      color: #FFFFFF;
+      border-color: #0C3258;
+    }
+
+    .osint-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .osint-risk-meter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 10px 0;
+    }
+
+    .osint-risk-bar {
+      flex: 1;
+      height: 12px;
+      background: #E2E8F0;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .osint-risk-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.6s ease;
+    }
+
+    .osint-badge-low { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
+    .osint-badge-med { background: #FEF3C7; color: #B45309; border: 1px solid #FCD34D; }
+    .osint-badge-high { background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; }
+    .osint-badge-crit { background: #7F1D1D; color: #FFFFFF; }
+
+    .osint-conflict-item {
+      background: #FFF5F5;
+      border-left: 4px solid #EF4444;
+      border-radius: 0 6px 6px 0;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .osint-restriction-item {
+      background: #FEF9C3;
+      border-left: 4px solid #CA8A04;
+      border-radius: 0 6px 6px 0;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .osint-timeline-node {
+      position: relative;
+      padding-left: 24px;
+      margin-bottom: 14px;
+      border-left: 2px solid #CBD5E1;
+    }
+
+    .osint-timeline-node::before {
+      content: '';
+      position: absolute;
+      left: -6px;
+      top: 3px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-gov-blue);
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 0 0 1px #94A3B8;
+    }
+
+    .osint-timeline-node.anomaly::before {
+      background: #EF4444;
+      box-shadow: 0 0 0 2px #FECACA;
     }
   </style>
 </head>
@@ -1306,6 +1466,11 @@
       <!-- New Document Upload & Verification Tab -->
       <button class="nav-tab-link nav-tab-highlight" id="tab-btn-doc-verify" onclick="openModal('modal-doc-verify')">
         <span>📑</span> <span data-i18n="tab_doc_verify">दस्तावेज़ सत्यापन (Verify Document)</span>
+      </button>
+
+      <!-- OSINT Public-Source Land Intelligence Tab -->
+      <button class="nav-tab-link" id="tab-btn-osint" onclick="openModal('modal-osint-intelligence')" style="background: rgba(255, 103, 31, 0.25); border: 1px solid #FF671F; border-radius: 4px; color: #FFFFFF;" title="सार्वजनिक भू-आसूचना एवं क्रॉस-वेरिफिकेशन (OSINT Land Intelligence)">
+        <span>🔍</span> <span data-i18n="tab_osint">सार्वजनिक भू-आसूचना (OSINT Intelligence)</span>
       </button>
 
       <button class="nav-tab-link" onclick="openModal('modal-verify-ds')">
@@ -1983,6 +2148,277 @@
         <div style="background: #F1F5F9; border-radius: 6px; padding: 10px 12px; font-size: 11px; color: #475569;">
           <strong style="color: #1E293B;">📚 प्रामाणिक विधिक एवं भू-स्थानिक स्रोत (Cited Authorities):</strong>
           <span id="ai-modal-sources" style="margin-left: 5px;">State Land Revenue Acts, DILRMP Cadastral RoR, NGT Environmental Directives, Registration Act 1908 & ISRO Remote Sensing</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: OSINT Public-Source Land Intelligence Dashboard -->
+  <div class="app-modal-overlay" id="modal-osint-intelligence">
+    <div class="app-modal-card osint-modal-card">
+      <div class="modal-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">🔍</span>
+            <h3 style="font-size: 17px; font-weight: 800; color: var(--color-gov-blue);">
+              सार्वजनिक भू-आसूचना एवं क्रॉस-वेरिफिकेशन (Public-Source Land Intelligence & OSINT)
+            </h3>
+            <span style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">
+              PROTOTYPE TRIAGE ENGINE
+            </span>
+          </div>
+          <span style="font-size: 12px; color: var(--color-text-muted); font-weight: 500;">
+            राज्य भू-अभिलेख पोर्टल (Apna Khata, MP Bhulekh, AnyRoR) • OpenStreetMap • Sentinel-2 उपग्रह • ई-राजपत्र अधिसूचनाएं
+          </span>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-osint-intelligence')">✕</button>
+      </div>
+
+      <!-- Mandatory Legal & Prototype Notice Banner -->
+      <div class="osint-disclaimer-banner">
+        <span style="font-size: 16px;">⚠️</span>
+        <div>
+          <strong>अनुसंधान एवं ड्यू-डिलिजेंस सूचना (Automated Intelligence Notice):</strong>
+          यह प्रणाली केवल सार्वजनिक रूप से सुलभ वेब पोर्टलों, ओपन उपग्रह डेटा एवं राजपत्रों के क्रॉस-सत्यापन द्वारा विसंगतियां चिह्नित करती है। यह आधिकारिक राजस्व प्रमाण-पत्र या कानूनी डिक्री का विकल्प नहीं है। उपग्रह प्रेक्षण केवल भौतिक स्थिति दर्शाते हैं, स्वामित्व का कानूनी प्रमाण नहीं हैं।
+        </div>
+      </div>
+
+      <!-- OSINT Workflow Tabs -->
+      <div class="osint-tabs-nav">
+        <button class="osint-tab-btn active" id="btn-osint-tab-search" onclick="switchOsintTab('search')">
+          <span>🔍</span> <span>खोज एवं क्रॉस-चेक</span>
+        </button>
+        <button class="osint-tab-btn" id="btn-osint-tab-graph" onclick="switchOsintTab('graph')">
+          <span>🕸️</span> <span>साक्ष्य संबंध ग्राफ (Knowledge Graph)</span>
+        </button>
+        <button class="osint-tab-btn" id="btn-osint-tab-timeline" onclick="switchOsintTab('timeline')">
+          <span>⏱️</span> <span>बहु-वर्षीय कालक्रम (Timeline)</span>
+        </button>
+        <button class="osint-tab-btn" id="btn-osint-tab-doc" onclick="switchOsintTab('doc')">
+          <span>📑</span> <span>दस्तावेज़ तुलना (Doc Intelligence)</span>
+        </button>
+        <button class="osint-tab-btn" id="btn-osint-tab-dossier" onclick="switchOsintTab('dossier')">
+          <span>📊</span> <span>आधिकारिक रिपोर्ट (Evidence Dossier)</span>
+        </button>
+        <button class="osint-tab-btn" id="btn-osint-tab-providers" onclick="switchOsintTab('providers')">
+          <span>🌐</span> <span>सक्रिय डेटा स्रोत (Providers)</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: SEARCH & CROSS-CHECK -->
+      <div id="osint-view-search">
+        <!-- Search Query Form -->
+        <div class="osint-card" style="background: #F8FAFC;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--color-gov-blue); margin-bottom: 8px;">
+            🎯 पार्सल खोज पैरामीटर (Search Target Land Parcel Across Public Registries)
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px;">
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #334155; display: block; margin-bottom: 3px;">राज्य (State):</label>
+              <select class="gov-select" id="osint-input-state" style="width: 100%; padding: 6px 8px; font-size: 12px;" onchange="updateOsintPresets()">
+                <option value="Rajasthan">Rajasthan (राजस्थान - Apna Khata)</option>
+                <option value="Madhya Pradesh">Madhya Pradesh (मध्य प्रदेश - MP Bhulekh)</option>
+                <option value="Gujarat">Gujarat (गुजरात - AnyRoR / e-Dhara)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #334155; display: block; margin-bottom: 3px;">जिला (District):</label>
+              <input type="text" id="osint-input-district" class="locate-input" style="width: 100%; padding: 6px 8px; font-size: 12px;" value="Jaipur" />
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #334155; display: block; margin-bottom: 3px;">तहसील (Tehsil):</label>
+              <input type="text" id="osint-input-tehsil" class="locate-input" style="width: 100%; padding: 6px 8px; font-size: 12px;" value="Amer" />
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #334155; display: block; margin-bottom: 3px;">ग्राम (Village):</label>
+              <input type="text" id="osint-input-village" class="locate-input" style="width: 100%; padding: 6px 8px; font-size: 12px;" value="Kukas" />
+            </div>
+            <div>
+              <label style="font-size: 11px; font-weight: 700; color: #334155; display: block; margin-bottom: 3px;">खसरा संख्या (Khasra No):</label>
+              <input type="text" id="osint-input-khasra" class="locate-input" style="width: 100%; padding: 6px 8px; font-size: 12px; font-weight: 700;" value="241/1" />
+            </div>
+          </div>
+
+          <!-- Preset Quick Demonstration Chips -->
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+            <span style="font-size: 11px; font-weight: 700; color: #64748B;">⚡ त्वरित डेमो उदाहरण:</span>
+            <button type="button" class="osint-preset-chip" onclick="applyOsintPreset('Rajasthan', 'Jaipur', 'Amer', 'Kukas', '241/1')">
+              📍 राजस्थान (Jaipur / Khasra 241/1)
+            </button>
+            <button type="button" class="osint-preset-chip" onclick="applyOsintPreset('Madhya Pradesh', 'Indore', 'Sanwer', 'Dharampuri', '104')">
+              📍 मध्य प्रदेश (Indore / Khasra 104)
+            </button>
+            <button type="button" class="osint-preset-chip" onclick="applyOsintPreset('Gujarat', 'Ahmedabad', 'Sanand', 'Shela', '512')">
+              📍 गुजरात (Ahmedabad / Survey 512)
+            </button>
+          </div>
+
+          <button type="button" class="btn-notarize-blockchain" id="btn-osint-run-search" style="padding: 10px 16px; font-size: 13px; justify-content: center;" onclick="runOsintSearch()">
+            <span>🔍</span> <span>सार्वजनिक स्रोतों से डेटा प्राप्त व मिलान करें (Run OSINT Intelligence Query)</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="osint-search-loading" style="display: none; text-align: center; padding: 24px;">
+          <div style="font-size: 28px; margin-bottom: 6px;">📡 🛰️ ⚖️</div>
+          <strong style="color: var(--color-gov-blue); font-size: 14px;">सार्वजनिक अभिलेखों, OSM बहुभुजों एवं उपग्रह अवलोकनों का मिलान जारी...</strong>
+          <div style="color: #64748B; font-size: 11.5px; margin-top: 4px;">State RoR • OpenStreetMap • Sentinel-2 NDVI • Gazette Notifications Cross-Checking</div>
+        </div>
+
+        <!-- Search Results View -->
+        <div id="osint-search-results" style="display: none;">
+          <!-- Top Row: Canonical Parcel + Risk Gauge -->
+          <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <!-- Canonical Parcel Card -->
+            <div class="osint-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 8px; margin-bottom: 10px;">
+                <strong style="color: var(--color-gov-blue); font-size: 13px;">📋 मानकीकृत पार्सल (Canonical Land Parcel)</strong>
+                <span id="osint-parcel-id-badge" style="background: #EFF6FF; color: #1D4ED8; font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                  RJ-JAI-241_1
+                </span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                <div><span style="color: #64748B;">खसरा संख्या:</span> <strong id="osint-disp-khasra">241/1</strong></div>
+                <div><span style="color: #64748B;">खाता संख्या:</span> <strong id="osint-disp-khata">48 / 112</strong></div>
+                <div><span style="color: #64748B;">रकबा (क्षेत्रफल):</span> <strong id="osint-disp-area">1.2500 Ha (3.09 एकड़)</strong></div>
+                <div><span style="color: #64748B;">भूमि वर्गीकरण:</span> <strong id="osint-disp-class">कृषि (चाही-1)</strong></div>
+                <div><span style="color: #64748B;">स्थानिक संदर्भ:</span> <strong id="osint-disp-location">Kukas, Amer, Jaipur</strong></div>
+                <div><span style="color: #64748B;">सत्यापन स्रोत:</span> <strong id="osint-disp-source">Apna Khata (RJ DLRS)</strong></div>
+              </div>
+
+              <!-- Field Provenance Strip -->
+              <div style="margin-top: 10px; background: #F8FAFC; border-radius: 4px; padding: 8px; font-size: 11px;">
+                <span style="font-weight: 700; color: #334155;">🛡️ डेटा प्रामाणिकता (Provenance):</span>
+                <span id="osint-disp-provenance-stars" style="color: #F59E0B; margin-left: 4px;">★★★★★</span>
+                <span id="osint-disp-provenance-tier" style="margin-left: 4px; font-weight: 600; color: #15803D;">VERIFIED_OFFICIAL_DATA</span>
+                <div id="osint-disp-provenance-disclaimer" style="color: #64748B; margin-top: 4px; font-size: 10.5px;">
+                  Official public land record extract. Certified as published on state portal.
+                </div>
+              </div>
+            </div>
+
+            <!-- Risk Score Gauge Card -->
+            <div class="osint-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 8px; margin-bottom: 8px;">
+                <strong style="color: var(--color-gov-blue); font-size: 13px;">⚖️ समग्र विसंगति जोखिम सूचकांक</strong>
+                <span id="osint-risk-badge" class="osint-badge-med" style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800;">
+                  MEDIUM (40/100)
+                </span>
+              </div>
+              <div class="osint-risk-meter-wrap">
+                <div class="osint-risk-bar">
+                  <div class="osint-risk-bar-fill" id="osint-risk-bar-fill" style="width: 40%; background: #F59E0B;"></div>
+                </div>
+                <strong id="osint-risk-score-text" style="font-size: 14px; font-family: var(--font-mono); color: #B45309;">40/100</strong>
+              </div>
+              <p id="osint-risk-summary-text" style="font-size: 11.5px; color: #475569; margin-bottom: 8px; line-height: 1.4;">
+                मध्यम जोखिम: सीमा बहुभुज और राजस्व रकबे में 8.5% विचलन पाया गया।
+              </p>
+              <div id="osint-risk-factors-list" style="font-size: 11px; color: #334155;">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Conflicts & Restrictions -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <!-- Conflicts Matrix -->
+            <div class="osint-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="color: #DC2626; font-size: 12.5px;">⚠️ स्रोत विसंगति मैट्रिक्स (Cross-Source Conflicts)</strong>
+                <span id="osint-conflicts-count-badge" style="background: #FEE2E2; color: #991B1B; padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 700;">
+                  1 Identified
+                </span>
+              </div>
+              <div id="osint-conflicts-container" style="max-height: 180px; overflow-y: auto;">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Statutory & Environmental Restrictions -->
+            <div class="osint-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="color: #B45309; font-size: 12.5px;">📜 वैधानिक एवं पर्यावरणीय प्रतिबंध (Statutory Restrictions)</strong>
+                <span id="osint-restrictions-count-badge" style="background: #FEF9C3; color: #854D0E; padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 700;">
+                  2 Applicable
+                </span>
+              </div>
+              <div id="osint-restrictions-container" style="max-height: 180px; overflow-y: auto;">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: EVIDENCE GRAPH -->
+      <div id="osint-view-graph" style="display: none;">
+        <div class="osint-card" style="background: #F8FAFC; text-align: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong style="color: var(--color-gov-blue); font-size: 13px;">🕸️ भूमि आसूचना साक्ष्य संबंध ग्राफ (Knowledge Topology)</strong>
+            <span style="font-size: 11px; color: #64748B;">पार्सल, म्यूटेशन, उपग्रह प्रेक्षण एवं वैधानिक अधिसूचनाओं का नेटवर्क</span>
+          </div>
+          <div id="osint-graph-canvas" style="background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 6px; padding: 16px; min-height: 320px; position: relative;">
+            <!-- SVG / Canvas Graph injected via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: TIMELINE -->
+      <div id="osint-view-timeline" style="display: none;">
+        <div class="osint-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <strong style="color: var(--color-gov-blue); font-size: 13px;">⏱️ बहु-वर्षीय कालक्रम एवं विसंगति जांच (Chronological Audit 2018–2026)</strong>
+            <span style="font-size: 11px; color: #64748B;">राजस्व नामांतरण एवं उपग्रह रिमोट-सेंसिंग का ऐतिहासिक संरेखण</span>
+          </div>
+          <div id="osint-timeline-container" style="padding-left: 8px; max-height: 360px; overflow-y: auto;">
+            <!-- Timeline nodes injected via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: DOCUMENT CROSS-CHECK -->
+      <div id="osint-view-doc" style="display: none;">
+        <div class="osint-card">
+          <div style="font-size: 13px; font-weight: 800; color: var(--color-gov-blue); margin-bottom: 6px;">
+            📑 दस्तावेज़ टेक्स्ट एवं ओसीआर सत्यापन (Deed Text vs Public Records Cross-Check)
+          </div>
+          <p style="font-size: 11.5px; color: #64748B; margin-bottom: 10px;">
+            सेल डीड, जमाबंदी या पट्टा टेक्स्ट इनपुट करें। प्रणाली इसका क्रिप्टोग्राफिक SHA-256 हैश बनाएगी और सार्वजनिक रिकॉर्ड से तुलना करेगी।
+          </p>
+          <textarea id="osint-doc-input-text" style="width: 100%; height: 100px; padding: 8px; font-size: 12px; font-family: var(--font-mono); border: 1px solid #CBD5E1; border-radius: 4px; margin-bottom: 10px;" placeholder="उदा. SALE DEED REGISTRATION: State of Rajasthan, District Jaipur, Tehsil Amer, Khasra 241/1, Area 1.25 Hectares..."></textarea>
+          <button type="button" class="btn-locate" style="border-radius: 4px; padding: 8px 16px; font-size: 12px;" onclick="runOsintDocCrossCheck()">
+            <span>🔍</span> <span>दस्तावेज़ का सार्वजनिक रिकॉर्ड से मिलान करें</span>
+          </button>
+          <div id="osint-doc-check-result" style="margin-top: 14px; display: none;">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: EVIDENCE DOSSIER -->
+      <div id="osint-view-dossier" style="display: none;">
+        <div class="osint-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong style="color: var(--color-gov-blue); font-size: 13px;">📊 आधिकारिक भू-आसूचना साक्ष्य रिपोर्ट (Evidence Dossier)</strong>
+            <button type="button" class="btn-locate" style="padding: 6px 12px; font-size: 11.5px; border-radius: 4px;" onclick="copyOsintDossier()">
+              <span>📋</span> <span>कॉपी करें (Copy Markdown)</span>
+            </button>
+          </div>
+          <pre id="osint-dossier-markdown" style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 4px; padding: 14px; font-size: 11px; font-family: var(--font-mono); max-height: 360px; overflow: auto; white-space: pre-wrap; line-height: 1.5;"></pre>
+        </div>
+      </div>
+
+      <!-- TAB 6: REGISTERED PROVIDERS -->
+      <div id="osint-view-providers" style="display: none;">
+        <div class="osint-card">
+          <div style="font-size: 13px; font-weight: 800; color: var(--color-gov-blue); margin-bottom: 10px;">
+            🌐 पंजीकृत सार्वजनिक डेटा स्रोत (Registered OSINT Data Connectors)
+          </div>
+          <div id="osint-providers-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">
+            <!-- Injected via JS -->
+          </div>
         </div>
       </div>
     </div>
@@ -3914,6 +4350,397 @@
         }
       } catch (e) {
         loader.style.display = "none";
+      }
+    }
+
+    // ============================================================
+    // OSINT PUBLIC-SOURCE LAND INTELLIGENCE CONTROLLER
+    // ============================================================
+    let latestOsintData = null;
+
+    function switchOsintTab(tabKey) {
+      document.querySelectorAll(".osint-tab-btn").forEach(b => b.classList.remove("active"));
+      const activeBtn = document.getElementById(`btn-osint-tab-${tabKey}`);
+      if (activeBtn) activeBtn.classList.add("active");
+
+      const views = ["search", "graph", "timeline", "doc", "dossier", "providers"];
+      views.forEach(v => {
+        const el = document.getElementById(`osint-view-${v}`);
+        if (el) el.style.display = (v === tabKey) ? "block" : "none";
+      });
+
+      if (tabKey === "providers") {
+        loadOsintProviders();
+      } else if (tabKey === "graph" && latestOsintData && latestOsintData.graph) {
+        renderOsintGraph(latestOsintData.graph);
+      }
+    }
+
+    function applyOsintPreset(state, district, tehsil, village, khasra) {
+      document.getElementById("osint-input-state").value = state;
+      document.getElementById("osint-input-district").value = district;
+      document.getElementById("osint-input-tehsil").value = tehsil;
+      document.getElementById("osint-input-village").value = village;
+      document.getElementById("osint-input-khasra").value = khasra;
+      runOsintSearch();
+    }
+
+    function updateOsintPresets() {
+      const state = document.getElementById("osint-input-state").value;
+      if (state === "Rajasthan") {
+        document.getElementById("osint-input-district").value = "Jaipur";
+        document.getElementById("osint-input-tehsil").value = "Amer";
+        document.getElementById("osint-input-village").value = "Kukas";
+        document.getElementById("osint-input-khasra").value = "241/1";
+      } else if (state === "Madhya Pradesh") {
+        document.getElementById("osint-input-district").value = "Indore";
+        document.getElementById("osint-input-tehsil").value = "Sanwer";
+        document.getElementById("osint-input-village").value = "Dharampuri";
+        document.getElementById("osint-input-khasra").value = "104";
+      } else if (state === "Gujarat") {
+        document.getElementById("osint-input-district").value = "Ahmedabad";
+        document.getElementById("osint-input-tehsil").value = "Sanand";
+        document.getElementById("osint-input-village").value = "Shela";
+        document.getElementById("osint-input-khasra").value = "512";
+      }
+    }
+
+    async function runOsintSearch() {
+      const state = document.getElementById("osint-input-state").value;
+      const district = document.getElementById("osint-input-district").value.trim();
+      const tehsil = document.getElementById("osint-input-tehsil").value.trim();
+      const village = document.getElementById("osint-input-village").value.trim();
+      const khasra = document.getElementById("osint-input-khasra").value.trim();
+
+      const loader = document.getElementById("osint-search-loading");
+      const resultsContainer = document.getElementById("osint-search-results");
+      const runBtn = document.getElementById("btn-osint-run-search");
+
+      if (loader) loader.style.display = "block";
+      if (resultsContainer) resultsContainer.style.display = "none";
+      if (runBtn) runBtn.disabled = true;
+
+      try {
+        const payload = {
+          state: state,
+          district: district,
+          tehsil: tehsil,
+          village: village,
+          khasra_number: khasra,
+          use_demo_fallback: true
+        };
+
+        const res = await fetch(`${API_BASE}/api/v1/osint/search`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        latestOsintData = data;
+
+        // 1. Populate Canonical Parcel
+        const p = data.parcel;
+        document.getElementById("osint-parcel-id-badge").innerText = p.parcel_id;
+        document.getElementById("osint-disp-khasra").innerText = p.primary_khasra;
+        document.getElementById("osint-disp-khata").innerText = p.khata_number || "48 / 112";
+        document.getElementById("osint-disp-area").innerText = `${p.normalized_area_ha.toFixed(4)} Ha (${p.normalized_area_acres.toFixed(2)} Acres)`;
+        document.getElementById("osint-disp-class").innerText = p.land_classification;
+        document.getElementById("osint-disp-location").innerText = `${p.village}, ${p.tehsil}, ${p.district}`;
+        document.getElementById("osint-disp-source").innerText = p.provenance.source_name;
+
+        // Provenance metadata
+        document.getElementById("osint-disp-provenance-stars").innerText = "★".repeat(p.provenance.confidence_stars) + "☆".repeat(5 - p.provenance.confidence_stars);
+        document.getElementById("osint-disp-provenance-tier").innerText = p.provenance.provenance_level;
+        document.getElementById("osint-disp-provenance-disclaimer").innerText = p.provenance.disclaimer || "Verified public record.";
+
+        // 2. Populate Risk Gauge
+        const risk = data.risk_assessment;
+        const rBadge = document.getElementById("osint-risk-badge");
+        rBadge.className = "";
+        if (risk.category === "LOW") rBadge.classList.add("osint-badge-low");
+        else if (risk.category === "MEDIUM") rBadge.classList.add("osint-badge-med");
+        else if (risk.category === "HIGH") rBadge.classList.add("osint-badge-high");
+        else rBadge.classList.add("osint-badge-crit");
+        rBadge.innerText = `${risk.category} (${risk.score}/100)`;
+
+        document.getElementById("osint-risk-score-text").innerText = `${risk.score}/100`;
+        const fill = document.getElementById("osint-risk-bar-fill");
+        fill.style.width = `${Math.min(100, Math.max(5, risk.score))}%`;
+        fill.style.background = risk.score > 70 ? "#DC2626" : (risk.score > 35 ? "#F59E0B" : "#16A34A");
+        document.getElementById("osint-risk-summary-text").innerText = risk.summary;
+
+        const factorsList = document.getElementById("osint-risk-factors-list");
+        factorsList.innerHTML = "";
+        if (risk.risk_factors && risk.risk_factors.length > 0) {
+          risk.risk_factors.forEach(f => {
+            const div = document.createElement("div");
+            div.style.marginBottom = "4px";
+            div.innerHTML = `<strong>• [${f.category}]</strong> (+${f.points_added} pts): ${f.description}`;
+            factorsList.appendChild(div);
+          });
+        } else {
+          factorsList.innerHTML = `<span style="color: #16A34A;">✓ कोई गंभीर जोखिम कारक नहीं पाया गया। (No Critical Risk Factors)</span>`;
+        }
+
+        // 3. Populate Conflicts Matrix
+        const cContainer = document.getElementById("osint-conflicts-container");
+        cContainer.innerHTML = "";
+        document.getElementById("osint-conflicts-count-badge").innerText = `${data.conflicts.length} Identified`;
+        if (data.conflicts && data.conflicts.length > 0) {
+          data.conflicts.forEach(c => {
+            const cDiv = document.createElement("div");
+            cDiv.className = "osint-conflict-item";
+            cDiv.innerHTML = `
+              <div style="display: flex; justify-content: space-between; font-weight: 700;">
+                <span style="color: #991B1B;">⚠️ ${c.field_name} Mismatch</span>
+                <span style="font-size: 10px; background: #FEE2E2; color: #991B1B; padding: 1px 5px; border-radius: 3px;">${c.severity}</span>
+              </div>
+              <div style="margin-top: 3px; color: #334155;">${c.description}</div>
+              <div style="font-size: 10.5px; color: #64748B; margin-top: 2px;"><em>Guidance: ${c.investigative_guidance}</em></div>
+            `;
+            cContainer.appendChild(cDiv);
+          });
+        } else {
+          cContainer.innerHTML = `<div style="padding: 12px; color: #16A34A; font-size: 12px;">✅ विभिन्न सार्वजनिक स्रोतों में कोई असंगति नहीं मिली। (All public sources aligned)</div>`;
+        }
+
+        // 4. Populate Restrictions
+        const rContainer = document.getElementById("osint-restrictions-container");
+        rContainer.innerHTML = "";
+        document.getElementById("osint-restrictions-count-badge").innerText = `${data.restrictions.length} Applicable`;
+        if (data.restrictions && data.restrictions.length > 0) {
+          data.restrictions.forEach(r => {
+            const rDiv = document.createElement("div");
+            rDiv.className = "osint-restriction-item";
+            rDiv.innerHTML = `
+              <div style="font-weight: 700; color: #854D0E;">📜 ${r.statutory_reference}</div>
+              <div style="font-size: 11.5px; font-weight: 600; color: #1E293B; margin-top: 2px;">${r.title}</div>
+              <div style="font-size: 11px; color: #475569; margin-top: 2px;">${r.explanation}</div>
+            `;
+            rContainer.appendChild(rDiv);
+          });
+        } else {
+          rContainer.innerHTML = `<div style="padding: 12px; color: #16A34A; font-size: 12px;">✅ कोई विशेष धारा प्रतिबंध लागू नहीं। (No immediate statutory restrictions)</div>`;
+        }
+
+        // 5. Pre-render Graph, Timeline and Markdown Dossier
+        renderOsintGraph(data.graph);
+        renderOsintTimeline(data.timeline, data.temporal_anomalies);
+        document.getElementById("osint-dossier-markdown").innerText = data.markdown_dossier || "Report generated.";
+
+        if (resultsContainer) resultsContainer.style.display = "block";
+        showToast(currentLang === 'hi' ? "🔍 सार्वजनिक भू-आसूचना डेटा सफलता से लोड हुआ।" : "🔍 OSINT Land Intelligence Query Succeeded.");
+      } catch (err) {
+        showToast(currentLang === 'hi' ? "डेटा लोड करने में असमर्थ, पुनः प्रयास करें।" : "Failed to load OSINT data, try again.");
+      } finally {
+        if (loader) loader.style.display = "none";
+        if (runBtn) runBtn.disabled = false;
+      }
+    }
+
+    function renderOsintGraph(graph) {
+      const container = document.getElementById("osint-graph-canvas");
+      if (!container || !graph || !graph.nodes) return;
+
+      const nodes = graph.nodes;
+      const edges = graph.edges || [];
+
+      // Generate clean SVG representation
+      const width = 800;
+      const height = 300;
+      const cx = width / 2;
+      const cy = height / 2;
+
+      // Position nodes in a radial layout around parcel
+      const nodePositions = {};
+      const otherNodes = nodes.filter(n => n.node_type !== "PARCEL");
+      const parcelNode = nodes.find(n => n.node_type === "PARCEL") || nodes[0];
+      if (parcelNode) nodePositions[parcelNode.id] = { x: cx, y: cy, color: "#1D4ED8", label: parcelNode.label };
+
+      const radius = 110;
+      otherNodes.forEach((n, idx) => {
+        const angle = (idx / Math.max(1, otherNodes.length)) * 2 * Math.PI - (Math.PI / 2);
+        let color = "#10B981"; // State/Official
+        if (n.node_type === "SATELLITE_EVIDENCE") color = "#8B5CF6";
+        if (n.node_type === "NOTIFICATION") color = "#F59E0B";
+        if (n.node_type === "MUTATION") color = "#0284C7";
+        if (n.node_type === "CONFLICT") color = "#EF4444";
+        nodePositions[n.id] = {
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle),
+          color: color,
+          label: n.label
+        };
+      });
+
+      let svgLines = "";
+      edges.forEach(e => {
+        const p1 = nodePositions[e.source];
+        const p2 = nodePositions[e.target];
+        if (p1 && p2) {
+          svgLines += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="${e.relationship.includes('CONFLICT') ? '4,4' : 'none'}" />`;
+          const mx = (p1.x + p2.x) / 2;
+          const my = (p1.y + p2.y) / 2;
+          svgLines += `<text x="${mx}" y="${my}" fill="#64748B" font-size="9" font-family="sans-serif" text-anchor="middle">${e.relationship}</text>`;
+        }
+      });
+
+      let svgNodes = "";
+      Object.entries(nodePositions).forEach(([id, np]) => {
+        svgNodes += `
+          <g style="cursor: pointer;" onclick="showToast('Entity: ${np.label}')">
+            <circle cx="${np.x}" cy="${np.y}" r="22" fill="${np.color}" stroke="#FFFFFF" stroke-width="3" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
+            <text x="${np.x}" y="${np.y + 4}" fill="#FFFFFF" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">${np.label.slice(0, 7)}</text>
+            <text x="${np.x}" y="${np.y + 36}" fill="#1E293B" font-size="10" font-weight="600" font-family="sans-serif" text-anchor="middle">${np.label.length > 18 ? np.label.slice(0, 16) + '...' : np.label}</text>
+          </g>
+        `;
+      });
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${width} ${height}" style="width: 100%; max-height: 320px;">
+          ${svgLines}
+          ${svgNodes}
+        </svg>
+        <div style="font-size: 11px; color: #64748B; margin-top: 8px;">
+          🔵 मानकीकृत पार्सल &nbsp;•&nbsp; 🟢 राजस्व रिकॉर्ड &nbsp;•&nbsp; 🟣 उपग्रह अवलोकन &nbsp;•&nbsp; 🟡 राजपत्र अधिसूचना
+        </div>
+      `;
+    }
+
+    function renderOsintTimeline(timeline, anomalies) {
+      const container = document.getElementById("osint-timeline-container");
+      if (!container) return;
+
+      container.innerHTML = "";
+
+      // Anomaly banner
+      if (anomalies && anomalies.length > 0) {
+        const aBox = document.createElement("div");
+        aBox.style.background = "#FEF2F2";
+        aBox.style.border = "1px solid #FECACA";
+        aBox.style.borderRadius = "6px";
+        aBox.style.padding = "10px 12px";
+        aBox.style.marginBottom = "14px";
+        aBox.innerHTML = `
+          <strong style="color: #991B1B; font-size: 12px;">🚨 कालक्रम विसंगति चेतावनी (Temporal Anomaly Alert):</strong>
+          <div style="font-size: 11.5px; color: #7F1D1D; margin-top: 3px;">${anomalies[0].description}</div>
+        `;
+        container.appendChild(aBox);
+      }
+
+      if (!timeline || timeline.length === 0) {
+        container.innerHTML += `<div style="padding: 12px; color: #64748B; font-size: 12px;">कोई कालक्रम डेटा उपलब्ध नहीं। (No timeline events found)</div>`;
+        return;
+      }
+
+      timeline.forEach(ev => {
+        const node = document.createElement("div");
+        node.className = `osint-timeline-node ${ev.significant_change_flag ? 'anomaly' : ''}`;
+        node.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <strong style="color: var(--color-gov-blue); font-size: 12.5px;">${ev.title}</strong>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: #64748B;">📅 ${ev.event_date}</span>
+          </div>
+          <div style="font-size: 11.5px; color: #334155; margin-top: 2px;">${ev.description}</div>
+          <div style="font-size: 10.5px; color: #64748B; margin-top: 2px;">
+            <span>स्रोत: ${ev.source}</span> &nbsp;|&nbsp; 
+            <span style="color: #15803D; font-weight: 600;">${ev.provenance}</span>
+          </div>
+        `;
+        container.appendChild(node);
+      });
+    }
+
+    async function runOsintDocCrossCheck() {
+      const text = document.getElementById("osint-doc-input-text").value.trim();
+      const resContainer = document.getElementById("osint-doc-check-result");
+      if (!text) {
+        showToast("कृपया दस्तावेज़ टेक्स्ट दर्ज करें (Please enter document text)");
+        return;
+      }
+
+      resContainer.style.display = "block";
+      resContainer.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--color-gov-blue);">दस्तावेज़ हैश जनरेट कर सार्वजनिक रिकॉर्ड से मिलान किया जा रहा है...</div>`;
+
+      try {
+        const payload = {
+          document_text: text,
+          filename: "uploaded_deed.txt",
+        };
+
+        const res = await fetch(`${API_BASE}/api/v1/osint/cross-check`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        resContainer.innerHTML = `
+          <div class="osint-card" style="background: ${data.public_record_match ? '#F0FDF4' : '#FFFBEB'}; border-color: ${data.public_record_match ? '#86EFAC' : '#FCD34D'};">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <strong style="color: ${data.public_record_match ? '#15803D' : '#B45309'}; font-size: 13px;">
+                ${data.public_record_match ? '✓ सार्वजनिक रिकॉर्ड से मिलान सफल' : '⚠️ आंशिक मिलान / विसंगति पाई गई'}
+              </strong>
+              <span style="font-family: var(--font-mono); font-size: 10px; background: #E2E8F0; padding: 2px 6px; border-radius: 4px;">
+                SHA-256: ${data.document_hash_sha256.slice(0, 12)}...
+              </span>
+            </div>
+            <div style="font-size: 11.5px; color: #334155; margin-bottom: 6px;">
+              <strong>निकाले गए मुख्य क्षेत्र (Extracted Fields):</strong> Khasra: ${data.extracted_fields.khasra_number || 'N/A'}, District: ${data.extracted_fields.district || 'N/A'}, Area: ${data.extracted_fields.area_hectares || 'N/A'} Ha
+            </div>
+            <div style="font-size: 10.5px; color: #78350F; background: rgba(245, 158, 11, 0.1); padding: 6px; border-radius: 4px;">
+              ⚖️ <em>${data.hash_disclaimer}</em>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        resContainer.innerHTML = `<div style="color: #DC2626; padding: 8px;">सत्यापन असफल, कृपया पुनः प्रयास करें।</div>`;
+      }
+    }
+
+    async function loadOsintProviders() {
+      const grid = document.getElementById("osint-providers-grid");
+      if (!grid) return;
+
+      grid.innerHTML = `<div style="padding: 12px; color: #64748B;">कनेक्टर स्थिति जांची जा रही है...</div>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/osint/providers`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        grid.innerHTML = "";
+        data.providers.forEach(p => {
+          const card = document.createElement("div");
+          card.style.background = "#FFFFFF";
+          card.style.border = "1px solid #CBD5E1";
+          card.style.borderRadius = "6px";
+          card.style.padding = "10px 12px";
+          card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong style="color: var(--color-gov-blue); font-size: 12px;">${p.display_name}</strong>
+              <span style="font-size: 10px; background: #DCFCE7; color: #15803D; padding: 2px 6px; border-radius: 4px; font-weight: 700;">ONLINE</span>
+            </div>
+            <div style="font-size: 11px; color: #64748B;">श्रेणी: <strong>${p.category}</strong></div>
+            <div style="font-size: 11px; color: #64748B; margin-top: 2px;">प्रामाणिकता: <span style="color: #F59E0B;">${'★'.repeat(p.confidence_stars)}</span> (${p.provenance_level})</div>
+            <div style="font-size: 10px; color: #94A3B8; margin-top: 4px;">लाइसेंस: ${p.license}</div>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (err) {
+        grid.innerHTML = `<div style="padding: 12px; color: #DC2626;">प्रदाता सूची लोड नहीं हो सकी।</div>`;
+      }
+    }
+
+    function copyOsintDossier() {
+      const el = document.getElementById("osint-dossier-markdown");
+      if (el && el.innerText) {
+        navigator.clipboard.writeText(el.innerText);
+        showToast("✓ साक्ष्य रिपोर्ट क्लिपबोर्ड में कॉपी की गई। (Report Copied)");
       }
     }
 

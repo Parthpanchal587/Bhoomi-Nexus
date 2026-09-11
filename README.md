@@ -117,7 +117,18 @@ Both test scripts will output:
 - **`POST /api/v1/policy/evaluate`**:
   - Checks proposed use against zones (Agricultural, Commercial, Residential, Industrial, Green Belt).
   - Evaluates maximum Floor Area Ratio (FAR), Ground Coverage %, and setbacks.
-  - Evaluates Section 90-A land conversion diversion criteria and expected approval timelines.
+### 6. 🔍 OSINT & Public-Source Land Intelligence Subsystem
+- **`POST /api/v1/osint/search`**: Cross-references target land parcels across State Land Records (*Apna Khata*, *MP Bhulekh*, *AnyRoR*), OpenStreetMap cadastral boundaries, Sentinel-2 multispectral satellite observations, and statutory e-Gazette notifications.
+- **`POST /api/v1/osint/cross-check`**: Ingests deed text/files, computes cryptographic SHA-256 fingerprint (with legal disclaimers), and matches extracted fields with public registries.
+- **`GET /api/v1/osint/graph/{parcel_id}`**: Synthesizes topological Evidence Knowledge Graph connecting parcels, mutations, satellite passes, and notifications.
+- **`GET /api/v1/osint/timeline/{parcel_id}`**: Multi-year chronological audit (2018–2026) detecting rapid successive flips (<90 days) and physical vs administrative inversions.
+- **`POST /api/v1/osint/report`**: Compiles an official Land Intelligence Evidence Dossier with SHA-256 integrity hash and statutory disclaimers.
+- **`GET /api/v1/osint/restrictions`**: Evaluates state tribal protection bars (Section 42 RJ / Section 165 MP / Section 73AA GJ), NHAI 60m highway ROW, and Eco-Sensitive Zone buffers.
+
+### 7. 🔒 Trusted Execution Environment (TEE)-Inspired Secure Enclave
+- **`POST /api/v1/enclave/execute`**: Executes sensitive document verification and policy analytics inside an isolated execution boundary with environment scrubbing, HMAC-SHA256 signed IPC, and execution timeouts.
+- **`GET /api/v1/enclave/attestation`**: Generates verifiable software attestation reports with cryptographic hash of enclave codebase and runtime configuration.
+- **`GET /api/v1/enclave/audit/verify`**: Verifies SHA-256 chained audit logs with forward integrity protection.
 
 ---
 
