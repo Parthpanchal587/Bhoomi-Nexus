@@ -2644,12 +2644,15 @@
 
       // Map Click Handler: Live Internet Cadastral & House Inspection
       map.on("click", (e) => {
-        // Enforce clicks only within India bounding box
-        if (indiaBounds.contains(e.latlng)) {
-          inspectLocation(e.latlng.lat, e.latlng.lng, null, null, true);
-        } else {
-          showToast(currentLang === 'hi' ? "⚠️ केवल भारत की भौगोलिक सीमा ही मान्य है。" : "⚠️ Only Indian territory is accessible.");
+        // Enforce clicks only within India sovereign landmass (strictly reject water/oceans/non-India)
+        if (window.isPointInIndiaLand && !window.isPointInIndiaLand(e.latlng.lat, e.latlng.lng)) {
+          showToast(currentLang === 'hi'
+            ? "🌊 जलीय क्षेत्र / बाहर: यहाँ कोई कैडस्ट्रल भूमि अथवा भूखंड पंजीकृत नहीं है।"
+            : "🌊 Water Body / Sea: No cadastral land plot registered in water or outside territory.");
+          if (inspectionMarker) inspectionMarker.closePopup();
+          return;
         }
+        inspectLocation(e.latlng.lat, e.latlng.lng, null, null, true);
       });
 
       // Initial inspection at default location (Jaipur/Amer)
@@ -2810,6 +2813,32 @@
     // REAL-TIME INTERNET LAND & HOUSE DETAILS INSPECTOR
     // ============================================================
     async function inspectLocation(lat, lon, customTitle = null, targetZoom = null, shouldSyncDropdowns = false) {
+      // 1. Strict Land Verification: Reject water bodies, sea, and outside-India coordinates
+      if (window.isPointInIndiaLand && !window.isPointInIndiaLand(lat, lon)) {
+        showToast(currentLang === 'hi' 
+          ? "🌊 जलीय क्षेत्र / बाहर: यहाँ कोई कैडस्ट्रल भूमि अथवा भूखंड पंजीकृत नहीं है।" 
+          : "🌊 Water Body / Outside Boundary: No cadastral land plot registered here.");
+        
+        // Remove or close marker & popup
+        if (inspectionMarker) {
+          inspectionMarker.closePopup();
+        }
+        if (parcelPolygon && map) map.removeLayer(parcelPolygon);
+        if (sec90aPolygon && map) map.removeLayer(sec90aPolygon);
+
+        // Update left sidebar panel to indicate Water Body
+        const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+        setEl("disp-plot-no", currentLang === 'hi' ? "🌊 जलीय क्षेत्र (Water Body)" : "🌊 Water / Sea Area");
+        setEl("disp-road-name", currentLang === 'hi' ? "समुद्र / जल निकाय (Maritime Zone)" : "Sea / Open Water Body");
+        setEl("disp-village-name", currentLang === 'hi' ? "कोई राजस्व ग्राम नहीं (No Revenue Village)" : "No Cadastral Village");
+        setEl("disp-khasra-no", currentLang === 'hi' ? "गैर-कैडस्ट्रल (Unsurveyed Sea)" : "Non-Cadastral");
+        setEl("disp-tehsil-dist", currentLang === 'hi' ? "भारतीय प्रादेशिक जल (Territorial Waters)" : "Indian Territorial Waters");
+        setEl("disp-cadastral-area", "0.00 Ha (0.0 Acres)");
+        setEl("disp-land-class", currentLang === 'hi' ? "जल निकाय / समुद्र (Open Water)" : "Water Body / Sea");
+        setEl("disp-boundary-status", currentLang === 'hi' ? "❌ कोई भूमि भूखंड नहीं (No Land Parcel)" : "❌ No Land Parcel");
+        setEl("disp-buffer-status", currentLang === 'hi' ? "⚠️ समुद्री क्षेत्र (Maritime Zone)" : "⚠️ Maritime Zone");
+        return;
+      }
       currentLat = lat;
       currentLon = lon;
 
