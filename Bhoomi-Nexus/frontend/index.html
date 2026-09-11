@@ -1623,7 +1623,6 @@
             <div style="font-size: 10.5px; color: #64748B;" id="menu-user-role-label">Government Officer</div>
           </div>
           <a href="/dashboard" class="header-menu-item"><span>📊</span> <span>My Dashboard</span></a>
-          <a href="javascript:void(0)" onclick="openSecurityCenterModal()" class="header-menu-item"><span>🛡️</span> <span>Security Center</span></a>
           <div style="border-top: 1px solid #E2E8F0; margin: 4px 0;"></div>
           <a href="javascript:void(0)" onclick="submitSecurityLogout()" class="header-menu-item" style="color: #DC2626;"><span>🚪</span> <span>Sign Out (लॉग आउट)</span></a>
         </div>
@@ -1635,10 +1634,7 @@
         <span class="live-dot"></span>
         <span data-i18n="node_status">NIC Meghraj Node: ONLINE</span>
       </div>
-            <div class="badge-blockchain-pill" onclick="openSecurityCenterModal()" title="View System Security Center" style="border-color: #10B981; background: #ECFDF5; color: #065F46;">
-        <span id="top-sec-badge">🛡️ SIH Demonstration Environment | <strong id="top-sec-score" style="color:#059669;">Hardened RBAC</strong></span>
-      </div>
-      <div class="badge-blockchain-pill" onclick="openModal('modal-ledger')" title="सॉवरेन ब्लॉकचेन लेज़र देखें">
+            <div class="badge-blockchain-pill" onclick="openModal('modal-ledger')" title="सॉवरेन ब्लॉकचेन लेज़र देखें">
         <span data-i18n="blockchain_pill">🛡️ सॉवरेन ब्लॉकचेन लेज़र (Blocks: <strong id="top-block-count">4</strong>)</span>
       </div>
     </div>
@@ -1670,10 +1666,7 @@
         <span>🧠</span> <span data-i18n="tab_ai_ask">एआई भूमि खोज (Ask BHOOMI)</span>
       </button>
 
-      <button class="nav-tab-link" id="tab-btn-security-center" onclick="openSecurityCenterModal()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 4px; color: #FFFFFF;" title="राष्ट्रीय साइबर एवं भू-डेटा सुरक्षा केंद्र">
-        <span>🔐</span> <span data-i18n="tab_security_center">सुरक्षा केंद्र (Security Center)</span>
-      </button>
-    </div>
+      </div>
 
     <div class="ticker-right">
       <span class="ticker-badge" data-i18n="ticker_badge">सूचना</span>
@@ -2493,176 +2486,6 @@
   </div>
 
   <!-- Toast Notification -->
-    <!-- ============================================================
-       MODAL: NATIONAL CYBER & GEO-DATA SECURITY CENTER
-  ============================================================ -->
-  <div class="app-modal-overlay" id="modal-security-center">
-    <div class="app-modal-card" style="max-width: 860px;">
-      <div class="modal-header" style="border-bottom: 2px solid #E2E8F0; padding-bottom: 14px;">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 22px;">🔐</span>
-            <h3 style="font-size: 18px; font-weight: 800; color: var(--color-gov-blue); margin: 0;">
-              राष्ट्रीय साइबर एवं भू-डेटा सुरक्षा केंद्र (National Cyber & Security Center)
-            </h3>
-          </div>
-          <span style="font-size: 12px; color: var(--color-text-muted); font-weight: 500; margin-top: 4px; display: block;">
-            End-to-End Cryptographic Defense, PBKDF2 Authentication, RBAC Authorization, Rate Limiting & Live Defensive Telemetry
-          </span>
-        </div>
-        <button class="modal-close-btn" onclick="closeModal('modal-security-center')">✕</button>
-      </div>
-
-      <!-- Top Metric Cards -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px;">
-        <div style="background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 8px; padding: 14px; text-align: center;">
-          <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Overall Security Score</div>
-          <div id="sec-score-val" style="font-size: 28px; font-weight: 900; color: #15803D; margin: 4px 0;">100 / 100</div>
-          <div id="sec-grade-val" style="font-size: 11px; font-weight: 700; color: #166534; background: #DCFCE7; padding: 2px 8px; border-radius: 12px; display: inline-block;">Grade: A+ Hardened</div>
-        </div>
-
-        <div style="background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; padding: 14px; text-align: center;">
-          <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Defensive Status</div>
-          <div id="sec-status-badge" style="font-size: 20px; font-weight: 800; color: #059669; margin: 8px 0;">🟢 SECURE</div>
-          <div style="font-size: 11px; color: #64748B;">8 of 8 Controls Active</div>
-        </div>
-
-        <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 14px; text-align: center;">
-          <div style="font-size: 11px; font-weight: 700; color: #1E40AF; text-transform: uppercase; letter-spacing: 0.5px;">Active Session Role</div>
-          <div id="sec-current-role" style="font-size: 17px; font-weight: 800; color: #1D4ED8; margin: 8px 0;">GUEST / ANONYMOUS</div>
-          <div id="sec-session-status" style="font-size: 11px; color: #3B82F6;">Public Read-Only Access</div>
-        </div>
-
-        <div style="background: #FAF5FF; border: 1px solid #E9D5FF; border-radius: 8px; padding: 14px; text-align: center;">
-          <div style="font-size: 11px; font-weight: 700; color: #6B21A8; text-transform: uppercase; letter-spacing: 0.5px;">Cryptographic Ledger</div>
-          <div style="font-size: 18px; font-weight: 800; color: #7E22CE; margin: 8px 0;">SHA-256 + PoA</div>
-          <div style="font-size: 11px; color: #9333EA;">Zero-Tamper Chain Valid</div>
-        </div>
-      </div>
-
-      <!-- Live Defense Status Matrix Table -->
-      <div style="margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <h4 style="font-size: 13.5px; font-weight: 800; color: var(--color-gov-blue); margin: 0;">
-            🛡️ सक्रिय सुरक्षा रक्षा मैट्रिक्स (Active Defensive Subsystem Verification)
-          </h4>
-          <button type="button" class="btn-quick-sample" onclick="runAutonomousSecurityDiagnostics()" style="padding: 4px 10px; font-size: 11.5px; background: #EFF6FF; color: #1D4ED8; border-color: #93C5FD;">
-            ⚡ स्वचालित डायग्नोस्टिक्स चलाएं (Run Live Self-Test)
-          </button>
-        </div>
-
-        <div style="border: 1px solid #E2E8F0; border-radius: 6px; overflow: hidden;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-            <thead style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0; color: #334155; font-weight: 700;">
-              <tr>
-                <th style="padding: 9px 12px;">Defensive Subsystem</th>
-                <th style="padding: 9px 12px;">Security Control Specification</th>
-                <th style="padding: 9px 12px; text-align: center;">Status</th>
-                <th style="padding: 9px 12px; text-align: right;">Live Test</th>
-              </tr>
-            </thead>
-            <tbody id="sec-matrix-body" style="color: #334155;">
-              <tr style="border-bottom: 1px solid #F1F5F9;">
-                <td style="padding: 9px 12px; font-weight: 700;">🔑 Authentication Security</td>
-                <td style="padding: 9px 12px;">PBKDF2-HMAC-SHA256 (600,000 rounds) + 32B Salt + 5-Attempt Lockout</td>
-                <td style="padding: 9px 12px; text-align: center;"><span style="background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 11px;">PROTECTED</span></td>
-                <td style="padding: 9px 12px; text-align: right;" id="test-cell-auth"><span style="color: #10B981; font-weight: 700;">✓ Pass</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #F1F5F9; background: #FAFAFA;">
-                <td style="padding: 9px 12px; font-weight: 700;">👤 Authorization & RBAC</td>
-                <td style="padding: 9px 12px;">Role-Based Access Control: GUEST, USER, ANALYST, OFFICIAL, ADMIN</td>
-                <td style="padding: 9px 12px; text-align: center;"><span style="background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 11px;">ENFORCED</span></td>
-                <td style="padding: 9px 12px; text-align: right;" id="test-cell-rbac"><span style="color: #10B981; font-weight: 700;">✓ Pass</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #F1F5F9;">
-                <td style="padding: 9px 12px; font-weight: 700;">🔒 Transport Security & Headers</td>
-                <td style="padding: 9px 12px;">HSTS (max-age=31536000), CSP, X-Frame-Options: DENY, nosniff</td>
-                <td style="padding: 9px 12px; text-align: center;"><span style="background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 11px;">ENFORCED</span></td>
-                <td style="padding: 9px 12px; text-align: right;" id="test-cell-headers"><span style="color: #10B981; font-weight: 700;">✓ Pass</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #F1F5F9; background: #FAFAFA;">
-                <td style="padding: 9px 12px; font-weight: 700;">🛡️ Input Validation & Bounds</td>
-                <td style="padding: 9px 12px;">Pydantic V2 strict schemas, India bounds filter, HTML entity escaping</td>
-                <td style="padding: 9px 12px; text-align: center;"><span style="background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 11px;">ACTIVE</span></td>
-                <td style="padding: 9px 12px; text-align: right;" id="test-cell-input"><span style="color: #10B981; font-weight: 700;">✓ Pass</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #F1F5F9;">
-                <td style="padding: 9px 12px; font-weight: 700;">📄 File Upload Magic-Bytes Guard</td>
-                <td style="padding: 9px 12px;">%PDF magic signature check, 10MB limit, safe basename sanitization</td>
-                <td style="padding: 9px 12px; text-align: center;"><span style="background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 11px;">HARDENED</span></td>
-                <td style="padding: 9px 12px; text-align: right;" id="test-cell-upload"><span style="color: #10B981; font-weight: 700;">✓ Pass</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #F1F5F9; background: #FAFAFA;">
-                <td style="padding: 9px 12px; font-weight: 700;">⛓️ Blockchain Tamper-Proofing</td>
-                <td style="padding: 9px 12px;">SHA-256 Proof-of-Authority ledger with client/enclave integrity checks</td>
-                <td style="padding: 9px 12px; text-align: center;"><span style="background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 11px;">ACTIVE</span></td>
-                <td style="padding: 9px 12px; text-align: right;" id="test-cell-blockchain"><span style="color: #10B981; font-weight: 700;">✓ Pass</span></td>
-              </tr>
-              <tr style="border-bottom: 1px solid #F1F5F9;">
-                <td style="padding: 9px 12px; font-weight: 700;">⏱️ Rate Limiting & DoS Shield</td>
-                <td style="padding: 9px 12px;">Token Bucket sliding window per client IP (10/min auth, 30/min upload)</td>
-                <td style="padding: 9px 12px; text-align: center;"><span style="background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 11px;">ACTIVE</span></td>
-                <td style="padding: 9px 12px; text-align: right;" id="test-cell-ratelimit"><span style="color: #10B981; font-weight: 700;">✓ Pass</span></td>
-              </tr>
-              <tr style="background: #FAFAFA;">
-                <td style="padding: 9px 12px; font-weight: 700;">📜 Cryptographic Audit Logging</td>
-                <td style="padding: 9px 12px;">In-memory immutable event trace for security events & admin operations</td>
-                <td style="padding: 9px 12px; text-align: center;"><span style="background: #DCFCE7; color: #15803D; padding: 2px 8px; border-radius: 10px; font-weight: 700; font-size: 11px;">OPERATIONAL</span></td>
-                <td style="padding: 9px 12px; text-align: right;" id="test-cell-audit"><span style="color: #10B981; font-weight: 700;">✓ Pass</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Authentication & Session Control Box -->
-      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px; margin-bottom: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h4 style="font-size: 13.5px; font-weight: 800; color: var(--color-gov-blue); margin: 0;">
-            🔐 सत्र प्रमाणीकरण एवं भूमिका नियंत्रण (Session Authentication & RBAC Switcher)
-          </h4>
-          <span style="font-size: 11px; color: #64748B;">Test Pre-Configured Government Roles</span>
-        </div>
-
-        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px;">
-          <input type="text" id="sec-input-username" placeholder="Username (e.g. admin, official, analyst)" style="padding: 7px 10px; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 12px; width: 180px;" />
-          <input type="password" id="sec-input-password" placeholder="Password" style="padding: 7px 10px; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 12px; width: 180px;" />
-          <button type="button" class="btn-notarize-blockchain" onclick="submitSecurityLogin()" style="padding: 7px 14px; font-size: 12px;">
-            लॉग इन करें (Login)
-          </button>
-          <button type="button" class="btn-quick-sample" onclick="submitSecurityLogout()" style="padding: 7px 12px; font-size: 12px; color: #DC2626; border-color: #FCA5A5;">
-            लॉग आउट (Logout)
-          </button>
-        </div>
-
-        <!-- Quick Credentials Hint -->
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; color: #475569;">
-          <span>त्वरित भूमिका परीक्षण (Quick Sample Logins):</span>
-          <a href="javascript:void(0)" onclick="fillSecurityCreds('admin', 'BhoomiAdmin#2026!')" style="color: #1D4ED8; font-weight: 700; text-decoration: underline;">Admin</a> •
-          <a href="javascript:void(0)" onclick="fillSecurityCreds('official', 'OfficialGov#2026!')" style="color: #1D4ED8; font-weight: 700; text-decoration: underline;">Official</a> •
-          <a href="javascript:void(0)" onclick="fillSecurityCreds('analyst', 'AnalystSec#2026!')" style="color: #1D4ED8; font-weight: 700; text-decoration: underline;">Analyst</a> •
-          <a href="javascript:void(0)" onclick="fillSecurityCreds('user', 'PublicUser#2026!')" style="color: #1D4ED8; font-weight: 700; text-decoration: underline;">Citizen User</a>
-        </div>
-
-        <!-- Current Session Feedback -->
-        <div id="sec-auth-feedback" style="margin-top: 10px; font-size: 12px; padding: 8px 12px; border-radius: 5px; display: none;"></div>
-      </div>
-
-      <!-- Recent Security Events Log -->
-      <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <h4 style="font-size: 13.5px; font-weight: 800; color: var(--color-gov-blue); margin: 0;">
-            📜 सुरक्षा ऑडिट लॉग (Live Cryptographic Security Event Trace)
-          </h4>
-          <span style="font-size: 11px; color: #64748B;">Latest Audit Events in Memory</span>
-        </div>
-        <div id="sec-audit-log-container" style="background: #0F172A; color: #F8FAFC; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 11px; max-height: 140px; overflow-y: auto; line-height: 1.5;">
-          <div style="color: #94A3B8;">[SYSTEM] Initializing Bhoomi Nexus Defense Console...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
     <!-- ============================================================
        MODAL: AUTHENTICATION & PERMISSION REQUIRED PROMPT
   ============================================================ -->
@@ -5178,250 +5001,42 @@
       openModal("modal-auth-required");
     }
 
-    async function quickLoginAs(user, pass) {
+        async function quickLoginAs(roleKey, pass) {
+      closeModal('modal-auth-required');
       try {
         const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: user, password: pass })
+          body: JSON.stringify({ username: roleKey, password: pass })
         });
-        const data = await res.json();
         if (res.ok) {
+          const data = await res.json();
           activeAuthToken = data.token;
           sessionStorage.setItem("bhoomi_auth_token", data.token);
-          activeAuthUser = {
-            user_id: data.user_id,
-            email: data.email,
-            full_name: data.full_name,
-            role: data.role,
-            permissions: data.permissions
-          };
-          updateTopNavAuthUI(activeAuthUser);
-          closeModal("modal-auth-required");
-          showToast(`सफल लॉगिन: ${data.full_name} (${data.role})`);
-          if (pendingTargetFeature && typeof pendingTargetFeature === "function") {
-            pendingTargetFeature();
-          }
-          loadSecurityCenterData();
-        } else {
-          alert(`Login failed: ${data.detail}`);
+          activeAuthUser = data.user;
+          showToast(`सुरक्षा सत्र सक्रिय: ${data.user.role}`);
         }
-      } catch (err) {
-        alert(`Connection error: ${err.message}`);
+      } catch (e) {}
+
+      // If triggered from Document Verification, resume verification flow seamlessly
+      if (window._pendingDocVerificationFile) {
+        selectedVerifyFile = window._pendingDocVerificationFile;
+        window._pendingDocVerificationFile = null;
+        openModal('modal-doc-verify');
+        const nameEl = document.getElementById("verify-file-name");
+        if (nameEl && selectedVerifyFile) {
+          nameEl.innerText = `📄 ${selectedVerifyFile.name} (${(selectedVerifyFile.size / 1024).toFixed(1)} KB)`;
+        }
+        const infoEl = document.getElementById("verify-file-info");
+        if (infoEl) infoEl.style.display = "flex";
+        submitDocumentVerification();
       }
     }
 
     // Attach token automatically to document register uploads
     const originalRegisterSubmit = window.submitDocumentRegistration;
 
-    function openSecurityCenterModal() {
-      openModal('modal-security-center');
-      loadSecurityCenterData();
-      verifyCurrentSession();
-    }
-
-    function fillSecurityCreds(user, pass) {
-      document.getElementById("sec-input-username").value = user;
-      document.getElementById("sec-input-password").value = pass;
-    }
-
-    async function loadSecurityCenterData() {
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/auth/security-status`);
-        if (!res.ok) return;
-        const data = await res.json();
-        
-        // Update top metrics
-        const scoreEl = document.getElementById("sec-score-val");
-        if (scoreEl) scoreEl.innerText = `${data.security_score} / 100`;
-        
-        const gradeEl = document.getElementById("sec-grade-val");
-        if (gradeEl) gradeEl.innerText = `Grade: ${data.security_grade.split(' ')[0]}`;
-
-        const statusEl = document.getElementById("sec-status-badge");
-        if (statusEl) statusEl.innerText = data.system_status;
-
-        const topBadge = document.getElementById("top-sec-score");
-        if (topBadge) topBadge.innerText = `${data.security_score}/100 🟢`;
-
-        // Render audit events
-        const logContainer = document.getElementById("sec-audit-log-container");
-        if (logContainer && data.audit_summary && data.audit_summary.recent_events) {
-          if (data.audit_summary.recent_events.length === 0) {
-            logContainer.innerHTML = `<div style="color: #10B981;">[STATUS] System hardened. No anomalous events detected. Total events: ${data.audit_summary.total_audit_events}</div>`;
-          } else {
-            logContainer.innerHTML = data.audit_summary.recent_events.map(ev => {
-              const color = ev.event_type.includes('FAIL') || ev.event_type.includes('LOCKOUT') ? '#EF4444' : '#38BDF8';
-              return `<div style="margin-bottom: 3px;"><span style="color: #64748B;">[${ev.timestamp.substring(11, 19)}]</span> <span style="color: ${color}; font-weight: 700;">[${ev.event_type}]</span> ${ev.details || ''}</div>`;
-            }).join('');
-          }
-        }
-      } catch (err) {
-        console.warn("Could not load security status:", err);
-      }
-    }
-
-    async function verifyCurrentSession() {
-      if (!activeAuthToken) {
-        updateSessionUI(null);
-        return;
-      }
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
-          headers: { 'Authorization': `Bearer ${activeAuthToken}` }
-        });
-        if (res.ok) {
-          const user = await res.json();
-          activeAuthUser = user;
-          updateSessionUI(user);
-          updateTopNavAuthUI(user);
-        } else {
-          sessionStorage.removeItem("bhoomi_auth_token");
-          activeAuthToken = null;
-          updateSessionUI(null);
-          updateTopNavAuthUI(null);
-        }
-      } catch (e) {
-        updateSessionUI(null);
-      }
-    }
-
-    function updateSessionUI(user) {
-      const roleEl = document.getElementById("sec-current-role");
-      const statusEl = document.getElementById("sec-session-status");
-      if (user) {
-        if (roleEl) roleEl.innerText = `${user.role} (${user.username})`;
-        if (statusEl) statusEl.innerText = `Token Entropy: 256-bit | Permissions: ${user.permissions ? user.permissions.join(', ') : 'Default'}`;
-      } else {
-        if (roleEl) roleEl.innerText = "GUEST / ANONYMOUS";
-        if (statusEl) statusEl.innerText = "Public Read-Only Access";
-      }
-    }
-
-    async function submitSecurityLogin() {
-      const username = document.getElementById("sec-input-username").value.trim();
-      const password = document.getElementById("sec-input-password").value;
-      const feedback = document.getElementById("sec-auth-feedback");
-
-      if (!username || !password) {
-        feedback.style.display = "block";
-        feedback.style.background = "#FEF2F2";
-        feedback.style.color = "#991B1B";
-        feedback.innerText = "⚠️ कृपया यूज़रनेम एवं पासवर्ड दोनों दर्ज करें।";
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        feedback.style.display = "block";
-        if (res.ok) {
-          activeAuthToken = data.token;
-          sessionStorage.setItem("bhoomi_auth_token", data.token);
-          activeAuthUser = data.user;
-          updateSessionUI(data.user);
-          feedback.style.background = "#DCFCE7";
-          feedback.style.color = "#166534";
-          feedback.innerText = `✓ प्रमाणीकरण सफल: ${data.user.full_name} (${data.user.role}) के रूप में लॉग इन।`;
-          showToast(`सुरक्षा सत्र सक्रिय: ${data.user.role}`);
-          loadSecurityCenterData();
-        } else {
-          feedback.style.background = "#FEF2F2";
-          feedback.style.color = "#991B1B";
-          feedback.innerText = `✕ प्रमाणीकरण अस्वीकृत: ${data.detail || "अमान्य क्रेडेंशियल्स"}`;
-          loadSecurityCenterData();
-        }
-      } catch (err) {
-        feedback.style.display = "block";
-        feedback.style.background = "#FEF2F2";
-        feedback.style.color = "#991B1B";
-        feedback.innerText = `✕ सर्वर से संपर्क नहीं हो सका: ${err.message}`;
-      }
-    }
-
-    async function submitSecurityLogout() {
-      const feedback = document.getElementById("sec-auth-feedback");
-      if (activeAuthToken) {
-        try {
-          await fetch(`${API_BASE}/api/v1/auth/logout`, {
-            method: "POST",
-            headers: { 'Authorization': `Bearer ${activeAuthToken}` }
-          });
-        } catch (e) {}
-      }
-      activeAuthToken = null;
-      activeAuthUser = null;
-      sessionStorage.removeItem("bhoomi_auth_token");
-      updateSessionUI(null);
-      if (feedback) {
-        feedback.style.display = "block";
-        feedback.style.background = "#F1F5F9";
-        feedback.style.color = "#334155";
-        feedback.innerText = "✓ सत्र सुरक्षित रूप से समाप्त किया गया (Logged out).";
-      }
-      showToast("सत्र समाप्त");
-      loadSecurityCenterData();
-    }
-
-    async function runAutonomousSecurityDiagnostics() {
-      const logContainer = document.getElementById("sec-audit-log-container");
-      if (logContainer) {
-        logContainer.innerHTML = '<div style="color: #F59E0B;">[DIAGNOSTICS] Autonomous Defensive Suite executing...</div>';
-      }
-
-      // Test 1: Security Headers on /api/v1/health
-      try {
-        const t0 = performance.now();
-        const res = await fetch(`${API_BASE}/api/v1/health`);
-        const t1 = performance.now();
-        document.getElementById("test-cell-headers").innerHTML = `<span style="color: #10B981; font-weight: 700;">✓ Pass (${Math.round(t1 - t0)}ms)</span>`;
-      } catch (e) {
-        document.getElementById("test-cell-headers").innerHTML = '<span style="color: #EF4444; font-weight: 700;">✕ Fail</span>';
-      }
-
-      // Test 2: Document upload magic-bytes rejection on non-PDF
-      try {
-        const t0 = performance.now();
-        const fakeBlob = new Blob(["MALICIOUS_SCRIPT_CONTENT"], { type: "application/pdf" });
-        const fd = new FormData();
-        fd.append("file", fakeBlob, "fake_doc.pdf");
-        const res = await fetch(`${API_BASE}/api/v1/documents/upload`, { method: "POST", body: fd });
-        const t1 = performance.now();
-        // Should be rejected with 400 Bad Request
-        if (res.status === 400) {
-          document.getElementById("test-cell-upload").innerHTML = `<span style="color: #10B981; font-weight: 700;">✓ Pass (${Math.round(t1 - t0)}ms)</span>`;
-        } else {
-          document.getElementById("test-cell-upload").innerHTML = `<span style="color: #EF4444; font-weight: 700;">✕ Fail (${res.status})</span>`;
-        }
-      } catch (e) {
-        document.getElementById("test-cell-upload").innerHTML = '<span style="color: #EF4444; font-weight: 700;">✕ Error</span>';
-      }
-
-      // Test 3: PBKDF2 Authentication with invalid password
-      try {
-        const t0 = performance.now();
-        const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: "admin", password: "WrongPassword999!" })
-        });
-        const t1 = performance.now();
-        if (res.status === 401) {
-          document.getElementById("test-cell-auth").innerHTML = `<span style="color: #10B981; font-weight: 700;">✓ Pass (${Math.round(t1 - t0)}ms)</span>`;
-        } else {
-          document.getElementById("test-cell-auth").innerHTML = `<span style="color: #EF4444; font-weight: 700;">✕ Fail (${res.status})</span>`;
-        }
-      } catch (e) {
-        document.getElementById("test-cell-auth").innerHTML = '<span style="color: #EF4444; font-weight: 700;">✕ Error</span>';
-      }
-
-      await loadSecurityCenterData();
-      showToast("स्वचालित सुरक्षा जांच पूर्ण: 8/8 पास");
-    }
+    // Security Center & Diagnostic Matrix removed per requirement
 
     function openModal(id) {
       document.getElementById(id).classList.add("active");
