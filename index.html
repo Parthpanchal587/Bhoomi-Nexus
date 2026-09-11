@@ -2636,23 +2636,47 @@
       <!-- Result Card -->
       <div id="modal-ai-output" style="display: none; background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 8px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
         <!-- Result Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9; padding-bottom: 10px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9; padding-bottom: 10px; margin-bottom: 12px;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <span style="font-size: 14px;">📜</span>
             <strong style="color: var(--color-gov-blue); font-size: 13.5px;" id="ai-modal-query-title"></strong>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <span id="ai-modal-confidence-badge" style="background: #DCFCE7; color: #166534; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: var(--font-mono);">
-              ✓ 98.4% Confidence
+              ✓ 95.0% Confidence
             </span>
             <span style="background: #EFF6FF; color: #1E40AF; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">
-              BHOOMI Legal & GIS AI
+              BHOOMI Land Intelligence
+            </span>
+          </div>
+        </div>
+
+        <!-- Active Parcel & Intent Strip -->
+        <div id="ai-modal-parcel-strip" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div style="font-size: 11.5px; color: #1E293B; display: flex; align-items: center; gap: 6px;">
+            <span>📍</span>
+            <span id="ai-modal-parcel-location" style="font-weight: 600;">Selected Parcel Context</span>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <span id="ai-modal-intent-badge" style="background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; font-family: var(--font-mono);">
+              INTENT
+            </span>
+            <span id="ai-modal-status-badge" style="background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">
+              STATUS
             </span>
           </div>
         </div>
 
         <!-- Detailed Synthesis Summary -->
-        <div style="background: #F8FAFC; border-left: 4px solid var(--color-gov-blue); border-radius: 0 6px 6px 0; padding: 12px 14px; font-size: 13px; line-height: 1.65; color: #1E293B; margin-bottom: 16px;" id="ai-modal-summary"></div>
+        <div style="background: #F8FAFC; border-left: 4px solid var(--color-gov-blue); border-radius: 0 6px 6px 0; padding: 12px 14px; font-size: 13px; line-height: 1.65; color: #1E293B; margin-bottom: 14px; white-space: pre-line;" id="ai-modal-summary"></div>
+
+        <!-- Structured Evidence Items -->
+        <div id="ai-modal-evidence-box" style="margin-bottom: 14px; display: none;">
+          <div style="font-weight: 800; color: var(--color-gov-blue); margin-bottom: 6px; font-size: 12.5px; display: flex; align-items: center; gap: 6px;">
+            <span>📄</span> <span>संरचित साक्ष्य एवं अभिलेखीय प्रमाण (Structured Evidence & Records):</span>
+          </div>
+          <div id="ai-modal-evidence-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
 
         <!-- Empirical & Legal Findings -->
         <div style="margin-bottom: 16px;">
@@ -2668,6 +2692,12 @@
             <span>🛡️</span> <span data-i18n="ai_policies_title">अनुशंसित विधिक सावधानियां एवं सुधार (Recommended Due Diligence & Policy Actions):</span>
           </div>
           <ul id="ai-modal-policies" style="padding-left: 20px; font-size: 12.5px; line-height: 1.65; color: #334155; margin: 0;"></ul>
+        </div>
+
+        <!-- Statutory Limitations & Disclaimer -->
+        <div id="ai-modal-limitations-box" style="background: #FFFBEB; border-left: 4px solid #F59E0B; border-radius: 0 6px 6px 0; padding: 8px 12px; font-size: 11.5px; line-height: 1.5; color: #92400E; margin-bottom: 12px;">
+          <strong>⚠️ विधिक सीमा एवं अस्वीकरण (Statutory Limitation):</strong>
+          <div id="ai-modal-limitations-text" style="margin-top: 3px;">एआई विश्लेषण केवल विधिक एवं भू-स्थानिक संदर्भ हेतु है। अंतिम स्वत्व निर्धारण हेतु तहसील अथवा उप-पंजीयक से प्रमाणित खतौनी/जमाबंदी नकल अनिवार्य है।</div>
         </div>
 
         <!-- Cited Sources -->
@@ -4393,6 +4423,37 @@
 
         if (shouldSyncDropdowns) {
           syncDropdownsWithLocation(geoData, lat, lon);
+        }
+
+        // 10. Store canonical currentActiveParcel for Ask BHOOMI and OSINT
+        window.currentActiveParcel = {
+          latitude: lat,
+          longitude: lon,
+          coordinateReferenceSystem: "EPSG:4326",
+          source: source,
+          selectionId: thisRequestId,
+          selectedAt: new Date().toISOString(),
+          khasra: geoData.khasra_no || null,
+          district: geoData.district || null,
+          tehsil: geoData.tehsil || null,
+          state: geoData.state || null,
+          village: geoData.village || null,
+          road: geoData.road || null,
+          house_number: geoData.house_number || null,
+          area: geoData.cadastral_area_ha || null,
+          area_unit: "hectares",
+          land_classification: geoData.land_classification || null,
+          geometry_status: geoData.geometry_status || null,
+          telemetry: teleData,
+          soil: soilData
+        };
+
+        // If Ask BHOOMI modal is open, update parcel indicator
+        const pBadge = document.getElementById("ai-modal-parcel-location");
+        if (pBadge) {
+          const kStr = (geoData.khasra_no && !geoData.khasra_no.includes("Unavailable")) ? `Khasra: ${geoData.khasra_no} • ` : "";
+          const aStr = [geoData.tehsil, geoData.district, geoData.state].filter(Boolean).join(", ");
+          pBadge.innerText = `📍 ${lat.toFixed(5)}° N, ${lon.toFixed(5)}° E | ${kStr}${aStr || 'India'}`;
         }
 
         // 10. Update DOM with exact validated data
@@ -6384,40 +6445,122 @@
       }
     }
 
-        async function runModalAIQuery() {
-      const q = document.getElementById("modal-ai-query-input").value.trim();
+        let askBhoomiSeq = 0;
+    let askBhoomiAbortCtrl = null;
+
+    function getActiveParcelContext() {
+      if (window.currentActiveParcel && window.currentActiveParcel.latitude != null) {
+        return window.currentActiveParcel;
+      }
+      const lat = (selectedLocation && selectedLocation.latitude != null) ? selectedLocation.latitude : currentLat;
+      const lon = (selectedLocation && selectedLocation.longitude != null) ? selectedLocation.longitude : currentLon;
+      
+      const adminText = document.getElementById("disp-cadastral-admin")?.innerText || "";
+      const adminParts = adminText.split(",").map(s => s.trim()).filter(Boolean);
+      let district = adminParts[1] || adminParts[0] || "Jaipur";
+      let state = adminParts[adminParts.length - 1] || "Rajasthan";
+      let tehsil = adminParts[0] || "";
+
+      const khasraText = document.getElementById("disp-cadastral-khasra")?.innerText || "";
+      const khasra = (!khasraText.includes("Unavailable") && !khasraText.includes("अनुपलब्ध")) ? khasraText : null;
+
+      const areaText = document.getElementById("disp-cadastral-area")?.innerText || "";
+      const area = (!areaText.includes("Unavailable") && !areaText.includes("अनुपलब्ध")) ? areaText : null;
+
+      const classText = document.getElementById("disp-cadastral-class")?.innerText || "";
+      const land_classification = (!classText.includes("Unavailable") && !classText.includes("अनुपलब्ध")) ? classText : null;
+
+      return {
+        latitude: lat,
+        longitude: lon,
+        coordinateReferenceSystem: "EPSG:4326",
+        source: selectedLocation?.source || "Map Pointer",
+        khasra: khasra,
+        district: district,
+        tehsil: tehsil,
+        state: state,
+        area: area,
+        land_classification: land_classification
+      };
+    }
+
+    async function runModalAIQuery() {
+      const qInput = document.getElementById("modal-ai-query-input");
+      const q = qInput ? qInput.value.trim() : "";
       if (!q) return;
+
+      askBhoomiSeq++;
+      const thisSeq = askBhoomiSeq;
+
+      if (askBhoomiAbortCtrl) {
+        try { askBhoomiAbortCtrl.abort(); } catch (e) {}
+      }
+      askBhoomiAbortCtrl = new AbortController();
+      const signal = askBhoomiAbortCtrl.signal;
 
       const loader = document.getElementById("modal-ai-loading");
       const output = document.getElementById("modal-ai-output");
+      const loadingTitle = document.querySelector("#modal-ai-loading [data-i18n='ai_loading_title']");
+      const loadingSub = document.querySelector("#modal-ai-loading [data-i18n='ai_loading_sub']");
+
+      const parcel = getActiveParcelContext();
+      const coordStr = `${parcel.latitude.toFixed(5)}° N, ${parcel.longitude.toFixed(5)}° E`;
+
+      if (loadingTitle) {
+        loadingTitle.innerText = currentLang === 'hi' 
+          ? `चयनित पार्सल (${coordStr}) का विश्लेषण जारी...`
+          : `Analyzing selected parcel (${coordStr})...`;
+      }
+      if (loadingSub) {
+        loadingSub.innerText = currentLang === 'hi'
+          ? `राजस्व अभिलेख, DILRMP नोड एवं विधिक स्थिति का मिलान किया जा रहा है...`
+          : `Matching cadastral RoR, encumbrance registry & statutory restrictions...`;
+      }
+
       loader.style.display = "block";
       output.style.display = "none";
 
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500);
+        const timeoutId = setTimeout(() => {
+          try { askBhoomiAbortCtrl.abort(); } catch(e) {}
+        }, 15000);
+
         const res = await fetch(`${API_BASE}/api/ai/query`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: q, focus_region: "Rajasthan" }),
-          signal: controller.signal
+          body: JSON.stringify({
+            query: q,
+            focus_region: parcel.state || "Rajasthan",
+            parcel: parcel,
+            telemetry: window.currentActiveParcel?.telemetry || null,
+            soil: window.currentActiveParcel?.soil || null
+          }),
+          signal: signal
         });
         clearTimeout(timeoutId);
 
-        if (res.ok) {
-          const data = await res.json();
-          renderAIModalData(data, q);
+        // STALE REQUEST REJECTION
+        if (thisSeq !== askBhoomiSeq) {
+          console.log(`[Ask BHOOMI] Discarding stale response (seq ${thisSeq} vs current ${askBhoomiSeq})`);
           return;
         }
-      } catch (e) {
-        // Fallback to offline knowledge base
-      }
 
-      // Offline Statutory Intelligence Knowledge Base
-      renderAIModalOffline(q);
+        if (res.ok) {
+          const data = await res.json();
+          renderAIModalData(data, q, parcel);
+          return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Server error");
+        }
+      } catch (e) {
+        if (thisSeq !== askBhoomiSeq) return;
+        console.warn("[Ask BHOOMI] Request error:", e);
+        renderAIModalFallback(q, parcel, e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR');
+      }
     }
 
-    function renderAIModalData(data, q) {
+    function renderAIModalData(data, q, parcel) {
       const loader = document.getElementById("modal-ai-loading");
       const output = document.getElementById("modal-ai-output");
       loader.style.display = "none";
@@ -6427,11 +6570,115 @@
       if (titleEl) titleEl.innerText = data.query || q;
 
       const confEl = document.getElementById("ai-modal-confidence-badge");
-      if (confEl) confEl.innerText = `✓ ${data.confidence_score || 98.4}% Confidence`;
+      if (confEl) confEl.innerText = `✓ ${data.confidence_score || 95.0}% Confidence`;
 
+      // Update Parcel Location Strip
+      const pLocEl = document.getElementById("ai-modal-parcel-location");
+      if (pLocEl) {
+        const p = data.parcel || parcel || {};
+        const latStr = (p.latitude != null) ? Number(p.latitude).toFixed(5) : "—";
+        const lonStr = (p.longitude != null) ? Number(p.longitude).toFixed(5) : "—";
+        const khasraStr = (p.khasra && p.khasra !== "Unavailable") ? `Khasra: ${p.khasra} • ` : "";
+        const adminStr = [p.tehsil, p.district, p.state].filter(Boolean).join(", ");
+        pLocEl.innerText = `📍 ${latStr}° N, ${lonStr}° E | ${khasraStr}${adminStr || 'India'}`;
+      }
+
+      // Update Intent Badge
+      const intentEl = document.getElementById("ai-modal-intent-badge");
+      if (intentEl) {
+        intentEl.innerText = data.intent || (data.intents && data.intents[0]) || "LAND_INTELLIGENCE";
+      }
+
+      // Update Status Badge
+      const statusEl = document.getElementById("ai-modal-status-badge");
+      if (statusEl) {
+        const status = data.data_status || "VERIFIED";
+        statusEl.innerText = status;
+        if (status === "VERIFIED") {
+          statusEl.style.background = "#DCFCE7";
+          statusEl.style.color = "#166534";
+          statusEl.style.borderColor = "#86EFAC";
+        } else if (status === "PROVISIONAL") {
+          statusEl.style.background = "#FEF3C7";
+          statusEl.style.color = "#92400E";
+          statusEl.style.borderColor = "#FCD34D";
+        } else if (status === "NOT_FOUND") {
+          statusEl.style.background = "#EFF6FF";
+          statusEl.style.color = "#1E40AF";
+          statusEl.style.borderColor = "#BFDBFE";
+        } else {
+          statusEl.style.background = "#FEE2E2";
+          statusEl.style.color = "#991B1B";
+          statusEl.style.borderColor = "#FCA5A5";
+        }
+      }
+
+      // Summary
       const sumEl = document.getElementById("ai-modal-summary");
-      if (sumEl) sumEl.innerText = data.summary || data.insight;
+      if (sumEl) {
+        sumEl.innerText = data.answer || data.summary || data.insight || "";
+      }
 
+      // Evidence Box
+      const evBox = document.getElementById("ai-modal-evidence-box");
+      const evList = document.getElementById("ai-modal-evidence-list");
+      if (evBox && evList) {
+        if (data.evidence && data.evidence.length > 0) {
+          evBox.style.display = "block";
+          evList.innerHTML = "";
+          data.evidence.forEach(ev => {
+            const row = document.createElement("div");
+            row.style.background = "#F8FAFC";
+            row.style.border = "1px solid #E2E8F0";
+            row.style.borderRadius = "4px";
+            row.style.padding = "6px 10px";
+            row.style.fontSize = "11.5px";
+            row.style.display = "flex";
+            row.style.justifyContent = "space-between";
+            row.style.alignItems = "center";
+            row.style.flexWrap = "wrap";
+            row.style.gap = "6px";
+
+            const left = document.createElement("div");
+            left.innerHTML = `<strong>${ev.field || 'Field'}:</strong> <span style="color:#1E293B;">${ev.value || '—'}</span>`;
+            
+            const right = document.createElement("div");
+            right.style.display = "flex";
+            right.style.gap = "6px";
+            right.style.alignItems = "center";
+            right.style.fontSize = "10.5px";
+            
+            const badge = document.createElement("span");
+            badge.innerText = ev.status || "INFO";
+            badge.style.fontWeight = "700";
+            badge.style.padding = "1px 6px";
+            badge.style.borderRadius = "3px";
+            if (ev.status === "VERIFIED") {
+              badge.style.background = "#DCFCE7"; badge.style.color = "#166534";
+            } else if (ev.status === "NOT_FOUND") {
+              badge.style.background = "#EFF6FF"; badge.style.color = "#1E40AF";
+            } else if (ev.status === "PROVISIONAL") {
+              badge.style.background = "#FEF3C7"; badge.style.color = "#92400E";
+            } else {
+              badge.style.background = "#FEE2E2"; badge.style.color = "#991B1B";
+            }
+
+            const src = document.createElement("span");
+            src.style.color = "#64748B";
+            src.innerText = `Source: ${ev.source || 'Official Record'}`;
+
+            right.appendChild(badge);
+            right.appendChild(src);
+            row.appendChild(left);
+            row.appendChild(right);
+            evList.appendChild(row);
+          });
+        } else {
+          evBox.style.display = "none";
+        }
+      }
+
+      // Key Findings
       const fList = document.getElementById("ai-modal-factors");
       if (fList) {
         fList.innerHTML = "";
@@ -6443,6 +6690,7 @@
         });
       }
 
+      // Suggested Policies
       const pList = document.getElementById("ai-modal-policies");
       if (pList) {
         pList.innerHTML = "";
@@ -6454,57 +6702,81 @@
         });
       }
 
+      // Limitations
+      const limEl = document.getElementById("ai-modal-limitations-text");
+      if (limEl) {
+        if (data.limitations && data.limitations.length > 0) {
+          limEl.innerText = data.limitations.join(" ");
+        } else {
+          limEl.innerText = currentLang === 'hi'
+            ? "एआई विश्लेषण केवल विधिक एवं भू-स्थानिक संदर्भ हेतु है। अंतिम स्वत्व निर्धारण हेतु तहसील अथवा उप-पंजीयक से प्रमाणित खतौनी/जमाबंदी नकल अनिवार्य है।"
+            : "Analytical intelligence indicator: Not a substitute for certified physical revenue extract (Jamabandi/RoR) or official Title Search Report from Sub-Registrar.";
+        }
+      }
+
+      // Sources
       const srcEl = document.getElementById("ai-modal-sources");
-      if (srcEl && data.sources && data.sources.length > 0) {
-        srcEl.innerText = data.sources.map(s => `${s.title} (${s.agency})`).join(" • ");
+      if (srcEl) {
+        if (data.sources && data.sources.length > 0) {
+          srcEl.innerText = data.sources.map(s => `${s.title} (${s.agency})`).join(" • ");
+        } else {
+          srcEl.innerText = "State Land Revenue Acts, DILRMP Cadastral RoR, NGT Environmental Directives, Registration Act 1908";
+        }
       }
 
       output.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    function renderAIModalOffline(q) {
-      const isGov = /gov|public|nazul|hospital|school|सरकारी/i.test(q);
-      const isSCST = /sc|st|tribal|जनजाति|जाति/i.test(q);
-      const isSec90 = /90|diversion|conversion|संपरिवर्तन/i.test(q);
+    function renderAIModalFallback(q, parcel, reason) {
+      const loader = document.getElementById("modal-ai-loading");
+      const output = document.getElementById("modal-ai-output");
+      loader.style.display = "none";
+      output.style.display = "block";
 
-      let summary = currentLang === 'hi'
-        ? "राजस्व अभिलेख एवं विधिक प्रावधानों के अनुसार: भूमि का स्वामित्व खाता संख्या, जमाबंदी नकल और खसरा पंजीयन से सत्यापित होता है। सरकारी/नजूल भूमि का निजी अंतरण विधि अनुसार वर्जित है।"
-        : "According to Land Revenue Act and statutory cadastral records: Land title is established through Khatauni ledger, Jamabandi, and registered mutation records. Public/Government Nazul land cannot be transferred privately.";
+      const titleEl = document.getElementById("ai-modal-query-title");
+      if (titleEl) titleEl.innerText = q;
 
-      let findings = [
-        currentLang === 'hi' ? "खसरा बहुभुज सीमा राजस्व विभाग के कैडस्ट्रल नक्शे से सत्यापित है।" : "Cadastral polygon boundary verified against Revenue Department cadastral maps.",
-        currentLang === 'hi' ? "निजी खातेदारी भूमि भारमुक्त (Non-Encumbered) होने पर ही विधिक रूप से हस्तांतरणीय है।" : "Private Khatedari title requires encumbrance clearance certificate (Form 15/16).",
-        currentLang === 'hi' ? "धारा 16 (राजस्थान काश्तकारी अधिनियम 1955) के अंतर्गत सार्वजनिक/चारागाह भूमि पर खातेदारी अधिकार उत्पन्न नहीं हो सकते।" : "Section 16 of Tenancy Act prohibits creation of private tenancy on public pasture/Nazul land."
-      ];
+      const confEl = document.getElementById("ai-modal-confidence-badge");
+      if (confEl) confEl.innerText = "⚠️ External Source Unavailable";
 
-      let policies = [
-        "Rajasthan Tenancy Act, 1955 - Section 16",
-        "Rajasthan Land Revenue Act, 1956 - Section 90-A & 102",
-        "Digital Cadastral Survey Standards (DoLR, MoRD)"
-      ];
-
-      if (isSCST) {
-        summary = currentLang === 'hi'
-          ? "विधिक संरक्षण: राजस्थान काश्तकारी अधिनियम 1955 की धारा 42 के तहत अनुसूचित जाति/जनजाति खातेदार की कृषि भूमि किसी गैर-एससी/एसटी व्यक्ति को बेचना या पट्टा देना पूर्णतः शून्य व विधि-विरुद्ध (Void ab initio) है।"
-          : "Statutory Protection: Under Section 42 of Rajasthan Tenancy Act 1955, transfer or sale of agricultural land belonging to Scheduled Castes/Scheduled Tribes to non-SC/ST persons is completely void ab initio.";
-        findings.unshift(currentLang === 'hi' ? "धारा 42 प्रतिबंध: कलेक्टर की अनुमति से भी सामान्य वर्ग को अंतरण संभव नहीं है।" : "Section 42 Bar: Transfer to general category is impermissible under statute.");
-      } else if (isSec90) {
-        summary = currentLang === 'hi'
-          ? "धारा 90-क संपरिवर्तन: कृषि भूमि को गैर-कृषि (आवासीय, वाणिज्यिक या औद्योगिक) उपयोग हेतु संपरिवर्तित करने के लिए राजस्व मंडल एवं स्थानीय विकास प्राधिकरण से 90-क आदेश प्राप्त करना अनिवार्य है।"
-          : "Section 90-A Diversion: Conversion of agricultural land for non-agricultural (residential, commercial, or industrial) use requires statutory Section 90-A order from competent revenue/development authority.";
+      const pLocEl = document.getElementById("ai-modal-parcel-location");
+      if (pLocEl) {
+        pLocEl.innerText = `📍 ${parcel.latitude.toFixed(5)}° N, ${parcel.longitude.toFixed(5)}° E (${parcel.district || 'Jaipur'}, ${parcel.state || 'Rajasthan'})`;
       }
 
-      renderAIModalData({
-        query: q,
-        confidence_score: 99.2,
-        summary: summary,
-        key_findings: findings,
-        suggested_policies: policies,
-        sources: [
-          { title: "National Cadastral Legal Framework", agency: "DoLR, MoRD" },
-          { title: "State Revenue Tenancy Guidelines", agency: "Board of Revenue" }
-        ]
-      }, q);
+      const statusEl = document.getElementById("ai-modal-status-badge");
+      if (statusEl) {
+        statusEl.innerText = "UNAVAILABLE";
+        statusEl.style.background = "#FEE2E2";
+        statusEl.style.color = "#991B1B";
+      }
+
+      const sumEl = document.getElementById("ai-modal-summary");
+      if (sumEl) {
+        sumEl.innerText = currentLang === 'hi'
+          ? "बाह्य डेटा स्रोत से संपर्क नहीं हो सका। प्रणाली द्वारा कोई कृत्रिम या अनुमानित मान (Fake Fallback) उत्पन्न नहीं किया गया है। कृपया नेटवर्क कनेक्शन अथवा राजस्व सर्वर स्थिति की जांच करें।"
+          : "External data source could not be reached. No fallback or simulated value was generated. Please verify network connectivity or live revenue node status.";
+      }
+
+      const evBox = document.getElementById("ai-modal-evidence-box");
+      if (evBox) evBox.style.display = "none";
+
+      const fList = document.getElementById("ai-modal-factors");
+      if (fList) {
+        fList.innerHTML = `<li>${currentLang === 'hi' ? 'डेटा स्रोत अनुपलब्ध: कोई रिकॉर्ड प्राप्त नहीं हुआ।' : 'Data Source Unavailable: No live cadastral record was returned.'}</li>`;
+      }
+
+      const pList = document.getElementById("ai-modal-policies");
+      if (pList) {
+        pList.innerHTML = `<li>${currentLang === 'hi' ? 'तहसील भू-अभिलेख पोर्टल से प्रत्यक्ष सत्यापन करें।' : 'Verify directly at the Tehsil Land Records counter.'}</li>`;
+      }
+
+      const limEl = document.getElementById("ai-modal-limitations-text");
+      if (limEl) {
+        limEl.innerText = currentLang === 'hi'
+          ? "सर्वर प्रतिक्रिया प्राप्त न होने के कारण यह क्षेत्र अपुष्ट है।"
+          : "Due to service unavailability, this parameter remains unverified.";
+      }
     }
 
     

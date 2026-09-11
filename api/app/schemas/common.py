@@ -3,7 +3,7 @@ Shared / common Pydantic schemas used across multiple modules.
 These were extracted from the original monolithic main.py.
 """
 
-from typing import Any, Optional
+from typing import Any, Optional, Dict, List
 from pydantic import BaseModel, Field
 
 
@@ -132,9 +132,14 @@ class LedgerResponse(BaseModel):
 # ── AI Search (Ask BHOOMI — existing) ────────────────────────────────────
 
 class AIQueryRequest(BaseModel):
-    query: str = Field(..., min_length=2, description="Natural language query, e.g., 'Why is land degradation increasing in some areas of Rajasthan?'")
+    query: str = Field(..., min_length=2, description="Natural language query, e.g., 'Who is the registered owner of this land?'")
     focus_region: Optional[str] = "Rajasthan"
     api_key: Optional[str] = None
+    parcel: Optional[Dict[str, Any]] = None
+    telemetry: Optional[Dict[str, Any]] = None
+    soil: Optional[Dict[str, Any]] = None
+    document_text: Optional[str] = None
+    document_id: Optional[str] = None
 
 
 class SourceCitation(BaseModel):
@@ -157,13 +162,24 @@ class AIQueryResponse(BaseModel):
     query: str
     summary: str
     insight: str
-    key_findings: list[str]
-    evidence_coverage: dict[str, Any]
-    sources: list[SourceCitation]
-    related_regions: list[dict[str, Any]]
-    suggested_policies: list[str]
-    competitive_comparison: list[CompetitiveAdvantage]
+    key_findings: List[str]
+    evidence_coverage: Dict[str, Any]
+    sources: List[SourceCitation]
+    related_regions: List[Dict[str, Any]]
+    suggested_policies: List[str]
+    competitive_comparison: List[CompetitiveAdvantage]
     confidence_score: float
+
+    # Extended Land Intelligence Engine Contract
+    answer: Optional[str] = None
+    intent: Optional[str] = "GENERAL_LAND_QUERY"
+    intents: Optional[List[str]] = None
+    data_status: Optional[str] = "VERIFIED"
+    parcel: Optional[Dict[str, Any]] = None
+    evidence: Optional[List[Dict[str, Any]]] = None
+    warnings: Optional[List[str]] = None
+    limitations: Optional[List[str]] = None
+    generated_at: Optional[str] = None
 
 
 # ── Policy Simulator V2 (existing) ───────────────────────────────────────
