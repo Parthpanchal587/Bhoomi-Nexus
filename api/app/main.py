@@ -103,6 +103,24 @@ def root_index():
     return {"title": settings.APP_NAME, "status": "OPERATIONAL"}
 
 
+@app.get("/login", include_in_schema=False)
+def login_route():
+    if frontend_path.exists() and (frontend_path / "login.html").exists():
+        return FileResponse(frontend_path / "login.html")
+    if frontend_path.exists() and (frontend_path / "index.html").exists():
+        return FileResponse(frontend_path / "index.html")
+    return {"title": "Bhoomi Nexus Login", "status": "LOGIN_PAGE"}
+
+
+@app.get("/dashboard", include_in_schema=False)
+def dashboard_route():
+    if frontend_path.exists() and (frontend_path / "dashboard.html").exists():
+        return FileResponse(frontend_path / "dashboard.html")
+    if frontend_path.exists() and (frontend_path / "index.html").exists():
+        return FileResponse(frontend_path / "index.html")
+    return {"title": "Bhoomi Nexus Dashboard", "status": "DASHBOARD"}
+
+
 @app.get("/ashoka_stambh.png", include_in_schema=False)
 def get_ashoka_stambh():
     img_path = frontend_path / "ashoka_stambh.png"

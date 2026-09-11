@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>लॉग इन | BHOOMI-NEXUS भूमि-नेक्सस — राष्ट्रीय भू-आसूचना पोर्टल</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --color-gov-blue: #0C3258;
+      --color-gov-navy: #071C33;
+      --color-saffron: #FF671F;
+      --color-india-green: #046A38;
+      --color-chakra-blue: #06038D;
+      --color-bg: #F4F6F9;
+      --color-card-bg: #FFFFFF;
+      --color-border: #D1D5DB;
+      --font-main: 'Plus Jakarta Sans', 'Mukta', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-main);
+      background: var(--color-bg);
+      color: #1E293B;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-tricolor-bar {
+      height: 4px;
+      background: linear-gradient(90deg, #FF671F 0%, #FF671F 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #046A38 66.66%, #046A38 100%);
+      flex-shrink: 0;
+    }
+
+    .top-accessibility-strip {
+      background: #E2E8F0;
+      color: #334155;
+      font-size: 11.5px;
+      padding: 4px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #CBD5E1;
+    }
+
+    .top-accessibility-strip a {
+      color: #475569;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px 20px;
+    }
+
+    .login-card-split {
+      background: #FFFFFF;
+      border-radius: 12px;
+      border: 1px solid #CBD5E1;
+      box-shadow: 0 16px 40px rgba(12, 50, 88, 0.12);
+      width: 100%;
+      max-width: 980px;
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      overflow: hidden;
+    }
+
+    @media (max-width: 820px) {
+      .login-card-split { grid-template-columns: 1fr; }
+      .login-brand-side { display: none; }
+    }
+
+    /* Left Brand Side */
+    .login-brand-side {
+      background: linear-gradient(145deg, var(--color-gov-navy), var(--color-gov-blue));
+      color: #FFFFFF;
+      padding: 44px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .login-brand-side::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.15), transparent 60%);
+      pointer-events: none;
+    }
+
+    .brand-header-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .brand-emblem {
+      height: 64px;
+      width: auto;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .portal-heading {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+
+    .portal-heading span {
+      color: #FDBA74;
+    }
+
+    .portal-dept {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-top: 2px;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin: 28px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12.5px;
+      line-height: 1.4;
+      color: #E2E8F0;
+    }
+
+    .feature-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .security-badge-footer {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 11.5px;
+      color: #CBD5E1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Right Form Side */
+    .login-form-side {
+      padding: 40px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .form-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--color-gov-blue);
+      margin-bottom: 4px;
+    }
+
+    .form-subtitle {
+      font-size: 12px;
+      color: #64748B;
+      margin-bottom: 18px;
+    }
+
+    .demo-disclaimer-pill {
+      background: #FEF3C7;
+      border: 1px solid #FCD34D;
+      color: #92400E;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.35;
+    }
+
+    .role-quick-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .role-tab-btn {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      border-radius: 4px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .role-tab-btn:hover {
+      background: #E2E8F0;
+      border-color: #94A3B8;
+    }
+
+    .role-tab-btn.active {
+      background: var(--color-gov-blue);
+      color: #FFFFFF;
+      border-color: var(--color-gov-blue);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 13px;
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      font-family: inherit;
+      color: #0F172A;
+      background: #FFFFFF;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-gov-blue);
+      box-shadow: 0 0 0 3px rgba(12, 50, 88, 0.1);
+    }
+
+    .btn-submit-signin {
+      background: var(--color-gov-blue);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 18px;
+      font-size: 13.5px;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(12, 50, 88, 0.25);
+      transition: all 0.15s;
+      margin-top: 8px;
+    }
+
+    .btn-submit-signin:hover {
+      background: #082442;
+      transform: translateY(-1px);
+    }
+
+    .auth-alert {
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 14px;
+      display: none;
+      line-height: 1.4;
+    }
+
+    .auth-alert.error {
+      background: #FEF2F2;
+      border: 1px solid #FCA5A5;
+      color: #991B1B;
+      display: block;
+    }
+
+    .auth-alert.success {
+      background: #DCFCE7;
+      border: 1px solid #86EFAC;
+      color: #166534;
+      display: block;
+    }
+
+    .back-home-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--color-gov-blue);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 20px;
+    }
+
+    .back-home-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Top Tricolor & Gov Strip -->
+  <div class="top-tricolor-bar"></div>
+  <div class="top-accessibility-strip">
+    <div>
+      <strong>भारत सरकार</strong> | Government of India &nbsp;•&nbsp; <strong>ग्रामीण विकास मंत्रालय</strong> | Ministry of Rural Development
+    </div>
+    <div>
+      <a href="/">← Return to Public GIS Portal</a>
+    </div>
+  </div>
+
+  <!-- 2. Main Login Card Container -->
+  <div class="login-container">
+    <div class="login-card-split">
+      
+      <!-- Left Side: Brand & Identity -->
+      <div class="login-brand-side">
+        <div>
+          <div class="brand-header-group">
+            <img src="ashoka_stambh.png" alt="Ashoka Stambh" class="brand-emblem" />
+            <div>
+              <div class="portal-heading">BHOOMI-NEXUS <span>भूमि-नेक्सस</span></div>
+              <div class="portal-dept">National Land Intelligence & Cadastral Engine</div>
+            </div>
+          </div>
+
+          <p style="font-size: 13px; color: #CBD5E1; line-height: 1.5; margin-bottom: 20px;">
+            Secure Role-Based Access Control (RBAC) portal for verified cadastral verification, Section 90-A policy assessment, and sovereign anti-tamper land deed operations.
+          </p>
+
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-icon">🛡️</span>
+              <div><strong>Government Officers:</strong> Full parcel due diligence, deed verification, and official ledger registry.</div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">⚖️</span>
+              <div><strong>Policymakers:</strong> Statutory Section 90-A agricultural diversion tariff simulation & aquifer stress analysis.</div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">🔬</span>
+              <div><strong>Researchers:</strong> High-resolution satellite soil telemetry, ISRO remote sensing, and cadastral datasets.</div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-icon">📑</span>
+              <div><strong>Legal Verifiers:</strong> SHA-256 cryptographic anti-tamper verification & title deed ledger checks.</div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="security-badge-footer">
+          <span>🔐</span>
+          <div>
+            <strong>Zero-Trust Security Architecture:</strong> PBKDF2-HMAC-SHA256 (600,000 rounds) • Token Bucket DoS Shield
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side: Login Form -->
+      <div class="login-form-side">
+        <h2 class="form-title">सुरक्षित पोर्टल प्रवेश / Secure Portal Sign In</h2>
+        <div class="form-subtitle">Enter your official credentials or select a role to test</div>
+
+        <!-- SIH Prototype Disclaimer -->
+        <div class="demo-disclaimer-pill">
+          <span>ℹ️</span>
+          <div>
+            <strong>DEMO / PROTOTYPE AUTHENTICATION:</strong> Demonstrates GovTech RBAC security architecture. (Not connected to production DigiLocker or Aadhaar SSO).
+          </div>
+        </div>
+
+        <!-- 1-Click Role Fill Tabs -->
+        <div style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px;">
+          त्वरित परीक्षण हेतु भूमिका चुनें (Select Role to Test):
+        </div>
+        <div class="role-quick-tabs">
+          <button type="button" class="role-tab-btn active" onclick="selectRolePreset('officer', 'OfficerGov#2026!')">🏛️ Govt Officer</button>
+          <button type="button" class="role-tab-btn" onclick="selectRolePreset('policymaker', 'PolicyMaker#2026!')">⚖️ Policymaker</button>
+          <button type="button" class="role-tab-btn" onclick="selectRolePreset('researcher', 'Researcher#2026!')">🔬 Researcher</button>
+          <button type="button" class="role-tab-btn" onclick="selectRolePreset('verifier', 'LegalVerifier#2026!')">📑 Legal Verifier</button>
+          <button type="button" class="role-tab-btn" onclick="selectRolePreset('admin', 'BhoomiAdmin#2026!')">🛡️ Admin</button>
+        </div>
+
+        <!-- Form -->
+        <form id="login-form" onsubmit="handleFormLogin(event)">
+          <div class="form-group">
+            <label class="form-label" for="input-identifier">यूज़रनेम अथवा पंजीकृत ईमेल (Username or Official Email):</label>
+            <input type="text" id="input-identifier" class="form-input" required autocomplete="username" placeholder="e.g. officer, policymaker, admin" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-password">पासवर्ड (Password):</label>
+            <input type="password" id="input-password" class="form-input" required autocomplete="current-password" placeholder="••••••••••••" />
+          </div>
+
+          <button type="submit" class="btn-submit-signin" id="btn-submit">
+            <span>🔐</span> <span>साइन इन करें (Sign In)</span>
+          </button>
+        </form>
+
+        <div id="auth-alert-box" class="auth-alert"></div>
+
+        <a href="/" class="back-home-link">
+          <span>←</span> <span>सार्वजनिक भू-मानचित्र पर वापस जाएं (Explore Public GIS)</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = (window.location.protocol === 'file:' || (window.location.hostname === '127.0.0.1' && window.location.port !== '8000') || (window.location.hostname === 'localhost' && window.location.port !== '8000'))
+      ? 'http://127.0.0.1:8000'
+      : '';
+
+    // URL Redirect Parameter Handling
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawRedirect = urlParams.get('redirect') || '/dashboard';
+    // Validate redirect to prevent Open Redirect attacks
+    const safeRedirect = (rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.includes('\\'))
+      ? rawRedirect
+      : '/dashboard';
+
+    // Preset Role Selectors
+    function selectRolePreset(user, pass) {
+      document.getElementById('input-identifier').value = user;
+      document.getElementById('input-password').value = pass;
+      
+      // Update active tab style
+      document.querySelectorAll('.role-tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    // Default to Officer
+    selectRolePreset('officer', 'OfficerGov#2026!');
+
+    async function handleFormLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('input-identifier').value.trim();
+      const password = document.getElementById('input-password').value;
+      const alertBox = document.getElementById('auth-alert-box');
+      const submitBtn = document.getElementById('btn-submit');
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'प्रमाणीकरण जारी... (Authenticating...)';
+      alertBox.className = 'auth-alert';
+      alertBox.style.display = 'none';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: identifier, password: password })
+        });
+        
+        const data = await res.json();
+
+        if (res.ok) {
+          // Store session token and profile in sessionStorage
+          sessionStorage.setItem('bhoomi_auth_token', data.token);
+          sessionStorage.setItem('bhoomi_auth_user', JSON.stringify({
+            user_id: data.user_id,
+            email: data.email,
+            full_name: data.full_name,
+            role: data.role,
+            permissions: data.permissions
+          }));
+
+          alertBox.className = 'auth-alert success';
+          alertBox.innerHTML = `✓ <strong>प्रमाणीकरण सफल:</strong> ${data.full_name} (${data.role}) के रूप में लॉगिन। पुनः निर्देशित किया जा रहा है...`;
+
+          setTimeout(() => {
+            window.location.href = safeRedirect;
+          }, 700);
+        } else {
+          alertBox.className = 'auth-alert error';
+          alertBox.innerHTML = `✕ <strong>प्रमाणीकरण अस्वीकृत:</strong> ${data.detail || 'अमान्य क्रेडेंशियल्स'}`;
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>🔐</span> <span>साइन इन करें (Sign In)</span>';
+        }
+      } catch (err) {
+        alertBox.className = 'auth-alert error';
+        alertBox.innerHTML = `✕ सर्वर से संपर्क नहीं हो सका: ${err.message}`;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>🔐</span> <span>साइन इन करें (Sign In)</span>';
+      }
+    }
+  </script>
+</body>
+</html>

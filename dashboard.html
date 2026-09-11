@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>कार्यक्षेत्र (Dashboard) | BHOOMI-NEXUS — राष्ट्रीय भू-आसूचना पोर्टल</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --color-gov-blue: #0C3258;
+      --color-gov-navy: #071C33;
+      --color-saffron: #FF671F;
+      --color-india-green: #046A38;
+      --color-bg: #F8FAFC;
+      --color-border: #CBD5E1;
+      --font-main: 'Plus Jakarta Sans', 'Mukta', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-main);
+      background: var(--color-bg);
+      color: #0F172A;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-tricolor-bar {
+      height: 4px;
+      background: linear-gradient(90deg, #FF671F 0%, #FF671F 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #046A38 66.66%, #046A38 100%);
+    }
+
+    .dash-header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--color-border);
+      padding: 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .dash-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .dash-emblem {
+      height: 50px;
+      width: auto;
+    }
+
+    .dash-titles h1 {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--color-gov-blue);
+      line-height: 1.2;
+    }
+
+    .dash-titles span.hindi {
+      color: var(--color-saffron);
+    }
+
+    .dash-titles p {
+      font-size: 11.5px;
+      color: #64748B;
+      font-weight: 600;
+    }
+
+    .dash-user-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .user-badge-pill {
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      border-radius: 20px;
+      padding: 5px 14px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .role-tag {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 12px;
+      color: #FFFFFF;
+      background: var(--color-gov-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-nav-action {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-nav-action:hover {
+      background: #F8FAFC;
+      border-color: #94A3B8;
+      color: var(--color-gov-blue);
+    }
+
+    .btn-nav-action.logout {
+      color: #DC2626;
+      border-color: #FCA5A5;
+      background: #FEF2F2;
+    }
+
+    .btn-nav-action.logout:hover {
+      background: #FEE2E2;
+    }
+
+    /* Main Dashboard Layout */
+    .dash-content {
+      max-width: 1200px;
+      width: 100%;
+      margin: 24px auto;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    .welcome-banner {
+      background: linear-gradient(135deg, #0C3258, #1E40AF);
+      color: #FFFFFF;
+      border-radius: 10px;
+      padding: 24px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 14px rgba(12, 50, 88, 0.15);
+    }
+
+    .welcome-banner h2 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .welcome-banner p {
+      font-size: 13px;
+      color: #E2E8F0;
+      max-width: 700px;
+      line-height: 1.5;
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .module-card {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s ease;
+    }
+
+    .module-card:hover {
+      border-color: var(--color-gov-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(12, 50, 88, 0.08);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-icon {
+      font-size: 26px;
+      background: #EFF6FF;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: #475569;
+      line-height: 1.45;
+      margin-bottom: 18px;
+      flex: 1;
+    }
+
+    .btn-launch-module {
+      background: var(--color-gov-blue);
+      color: #FFFFFF;
+      border: none;
+      padding: 9px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+
+    .btn-launch-module:hover {
+      background: #082442;
+    }
+
+    /* Permissions Section */
+    .permissions-box {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .perm-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .perm-chip {
+      background: #F0FDF4;
+      border: 1px solid #86EFAC;
+      color: #166534;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Tricolor Bar -->
+  <div class="top-tricolor-bar"></div>
+
+  <!-- Header -->
+  <header class="dash-header">
+    <div class="dash-brand-wrap">
+      <img src="ashoka_stambh.png" alt="Ashoka Stambh" class="dash-emblem" />
+      <div class="dash-titles">
+        <h1>BHOOMI-NEXUS <span class="hindi">भूमि-नेक्सस</span></h1>
+        <p>National Cadastral Land Intelligence & Due Diligence Workspace</p>
+      </div>
+    </div>
+
+    <div class="dash-user-controls">
+      <div class="user-badge-pill">
+        <span style="font-size: 16px;">👤</span>
+        <div>
+          <div style="font-size: 12px; font-weight: 800; color: #0F172A;" id="user-display-name">Loading...</div>
+          <div style="font-size: 10.5px; color: #64748B;" id="user-display-email">...</div>
+        </div>
+        <span class="role-tag" id="user-role-badge">OFFICER</span>
+      </div>
+
+      <a href="/" class="btn-nav-action" title="Go to Public GIS Map">
+        <span>🗺️</span> <span>Public GIS Map</span>
+      </a>
+
+      <button type="button" class="btn-nav-action logout" onclick="handleDashboardLogout()">
+        <span>🚪</span> <span>Sign Out (लॉग आउट)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dash-content">
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+      <div>
+        <h2 id="welcome-header">Welcome to your Workspace</h2>
+        <p id="welcome-sub">Authorized National Land Intelligence & Cadastral Operations.</p>
+      </div>
+      <div style="text-align: right; background: rgba(255,255,255,0.1); padding: 10px 16px; border-radius: 8px;">
+        <div style="font-size: 11px; text-transform: uppercase; color: #93C5FD; font-weight: 700;">Security Status</div>
+        <div style="font-size: 14px; font-weight: 800; color: #86EFAC;">🟢 Verified Session</div>
+      </div>
+    </div>
+
+    <!-- Role-Specific Action Cards -->
+    <h3 style="font-size: 16px; font-weight: 800; color: var(--color-gov-blue); margin-bottom: 14px;">
+      ⚡ प्राधिकृत कार्यक्षेत्र मॉड्यूल (Authorized Operational Modules)
+    </h3>
+    <div class="grid-cards" id="role-modules-grid"></div>
+
+    <!-- Active Permissions -->
+    <div class="permissions-box">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 15px; font-weight: 800; color: var(--color-gov-blue);">
+          🛡️ सक्रिय वैधानिक अनुमतियाँ (Active Role Entitlements & Permissions)
+        </h3>
+        <span style="font-size: 11.5px; color: #64748B;">Enforced Server-Side via RBAC Middleware</span>
+      </div>
+      <div class="perm-chips-wrap" id="user-permissions-chips"></div>
+    </div>
+
+  </main>
+
+  <script>
+    const API_BASE = (window.location.protocol === 'file:' || (window.location.hostname === '127.0.0.1' && window.location.port !== '8000') || (window.location.hostname === 'localhost' && window.location.port !== '8000'))
+      ? 'http://127.0.0.1:8000'
+      : '';
+
+    const authToken = sessionStorage.getItem('bhoomi_auth_token');
+
+    // Authentication Guard
+    async function initDashboard() {
+      if (!authToken) {
+        window.location.href = '/login?redirect=/dashboard';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+
+        if (!res.ok) {
+          sessionStorage.removeItem('bhoomi_auth_token');
+          window.location.href = '/login?redirect=/dashboard';
+          return;
+        }
+
+        const user = await res.json();
+        renderUserProfile(user);
+      } catch (err) {
+        console.error("Dashboard session error:", err);
+      }
+    }
+
+    function renderUserProfile(user) {
+      document.getElementById('user-display-name').innerText = user.full_name;
+      document.getElementById('user-display-email').innerText = user.email;
+      
+      const roleBadge = document.getElementById('user-role-badge');
+      roleBadge.innerText = user.role.replace('_', ' ');
+
+      const welcomeHeader = document.getElementById('welcome-header');
+      const welcomeSub = document.getElementById('welcome-sub');
+      welcomeHeader.innerText = `Welcome, ${user.full_name}`;
+
+      // Render Permissions Chips
+      const permsContainer = document.getElementById('user-permissions-chips');
+      if (user.permissions && user.permissions.length > 0) {
+        permsContainer.innerHTML = user.permissions.map(p => `
+          <div class="perm-chip"><span>✓</span> <span>${p}</span></div>
+        `).join('');
+      } else {
+        permsContainer.innerHTML = '<div style="color: #64748B;">Standard Public Permissions</div>';
+      }
+
+      // Render Role-Tailored Modules
+      renderRoleModules(user.role);
+    }
+
+    function renderRoleModules(role) {
+      const container = document.getElementById('role-modules-grid');
+      let cards = [];
+
+      if (role === 'GOVERNMENT_OFFICER') {
+        cards = [
+          {
+            icon: '🗺️',
+            title: 'Cadastral GIS Intelligence',
+            desc: 'Inspect land parcels with live DILRMP revenue linkages, geometry verification, and village survey numbers.',
+            actionText: 'Open Cadastral Map',
+            link: '/#cadastral'
+          },
+          {
+            icon: '📑',
+            title: 'Property Deed Verification',
+            desc: 'Verify registered land deeds against the SHA-256 sovereign ledger with cryptographic validity proofs.',
+            actionText: 'Verify Document',
+            link: '/#doc-verify'
+          },
+          {
+            icon: '📤',
+            title: 'Official Document Registration',
+            desc: 'Register verified property deeds, pattas, and registry records into the immutable proof ledger.',
+            actionText: 'Register Deed',
+            link: '/#doc-register'
+          },
+          {
+            icon: '⚡',
+            title: 'Section 90-A Diversion Approvals',
+            desc: 'Assess agricultural land conversion tariff calculations, infrastructure cess, and environmental compliance.',
+            actionText: 'Review Section 90-A',
+            link: '/#section90a'
+          }
+        ];
+      } else if (role === 'POLICYMAKER') {
+        cards = [
+          {
+            icon: '⚡',
+            title: 'Section 90-A Policy Simulator',
+            desc: 'Simulate land conversion revenue tariffs, CGWB aquifer depletion stress, and agricultural yield loss.',
+            actionText: 'Run Policy Simulator',
+            link: '/#section90a'
+          },
+          {
+            icon: '🗺️',
+            title: 'National Land Use Analytics',
+            desc: 'Analyze regional land utilization trends across Rajasthan, Gujarat, and Karnataka.',
+            actionText: 'Explore Land Map',
+            link: '/#cadastral'
+          },
+          {
+            icon: '🛡️',
+            title: 'Blockchain Ledger Audit',
+            desc: 'Inspect sovereign proof-of-authority blocks and public policy notarization proofs.',
+            actionText: 'Audit Ledger',
+            link: '/#ledger'
+          }
+        ];
+      } else if (role === 'RESEARCHER') {
+        cards = [
+          {
+            icon: '🌱',
+            title: 'Soil & Satellite Telemetry',
+            desc: 'Live Open-Meteo satellite feed: topsoil moisture (0-1cm), surface temperature, and atmospheric metrics.',
+            actionText: 'View Telemetry',
+            link: '/#telemetry'
+          },
+          {
+            icon: '🧠',
+            title: 'Ask BHOOMI Geospatial AI',
+            desc: 'Ask complex land intelligence queries synthesized with ISRO remote sensing and NGT directives.',
+            actionText: 'Launch AI Query',
+            link: '/#ai-ask'
+          },
+          {
+            icon: '🛡️',
+            title: 'Dataset Integrity Engine',
+            desc: 'Verify NIST SHA-256 cryptographic dataset hashes and run tamper detection diagnostics.',
+            actionText: 'Verify Datasets',
+            link: '/#dataset-audit'
+          }
+        ];
+      } else if (role === 'LEGAL_VERIFIER') {
+        cards = [
+          {
+            icon: '📑',
+            title: 'Anti-Tamper Deed Verification',
+            desc: 'Conduct due diligence on title deeds and registries using dual-layer SHA-256 fingerprint matching.',
+            actionText: 'Verify Title Deed',
+            link: '/#doc-verify'
+          },
+          {
+            icon: '📤',
+            title: 'Deed Registration & Ledger Write',
+            desc: 'Register notarized title deeds into the sovereign proof-of-authority verification ledger.',
+            actionText: 'Register Deed',
+            link: '/#doc-register'
+          },
+          {
+            icon: '🛡️',
+            title: 'Blockchain Chain Validity',
+            desc: 'Validate hash chain continuity and cryptographic validity proofs under the IT Act 2000.',
+            actionText: 'Inspect Ledger',
+            link: '/#ledger'
+          }
+        ];
+      } else if (role === 'ADMIN') {
+        cards = [
+          {
+            icon: '🔐',
+            title: 'National Security Center',
+            desc: 'Comprehensive security posture, live autonomous diagnostics, defensive score (100/100 A+), and headers.',
+            actionText: 'Open Security Center',
+            link: '/#security-center'
+          },
+          {
+            icon: '👥',
+            title: 'User Roles & Access Control',
+            desc: 'Review 5-tier role-based access control, active session tokens, and permission grants.',
+            actionText: 'Manage Roles',
+            link: '/#security-center'
+          },
+          {
+            icon: '📑',
+            title: 'Document Intelligence Operations',
+            desc: 'Full administrative access to document registration, anti-tamper ledger, and verification proofs.',
+            actionText: 'Manage Documents',
+            link: '/#doc-verify'
+          },
+          {
+            icon: '🛡️',
+            title: 'Dataset Audit & Integrity',
+            desc: 'Manage cadastral dataset definitions and simulate cryptographic tamper detection.',
+            actionText: 'Manage Datasets',
+            link: '/#dataset-audit'
+          }
+        ];
+      }
+
+      container.innerHTML = cards.map(c => `
+        <div class="module-card">
+          <div>
+            <div class="card-top">
+              <div class="card-icon">${c.icon}</div>
+              <div class="card-title">${c.title}</div>
+            </div>
+            <div class="card-desc">${c.desc}</div>
+          </div>
+          <a href="${c.link}" class="btn-launch-module">
+            <span>${c.actionText}</span> <span>→</span>
+          </a>
+        </div>
+      `).join('');
+    }
+
+    async function handleDashboardLogout() {
+      if (authToken) {
+        try {
+          await fetch(`${API_BASE}/api/v1/auth/logout`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+        } catch (e) {}
+      }
+      sessionStorage.removeItem('bhoomi_auth_token');
+      sessionStorage.removeItem('bhoomi_auth_user');
+      window.location.href = '/login';
+    }
+
+    window.addEventListener('DOMContentLoaded', initDashboard);
+  </script>
+</body>
+</html>

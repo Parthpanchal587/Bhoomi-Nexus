@@ -983,6 +983,74 @@
       background: #F1F5F9;
     }
 
+    
+    /* TOP AUTHENTICATION CONTROLS */
+    .btn-gov-signin-top {
+      background: #FFFFFF;
+      border: 1px solid var(--color-gov-blue);
+      color: var(--color-gov-blue);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 1px 2px rgba(12, 50, 88, 0.08);
+    }
+    .btn-gov-signin-top:hover {
+      background: var(--color-gov-blue);
+      color: #FFFFFF;
+    }
+    .btn-gov-user-top {
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-gov-user-top:hover {
+      border-color: var(--color-gov-blue);
+      background: #F1F5F9;
+    }
+    .header-user-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 6px;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      width: 220px;
+      z-index: 3500;
+      padding: 6px 0;
+    }
+    .header-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .header-menu-item:hover {
+      background: #F1F5F9;
+      color: var(--color-gov-blue);
+    }
+
     /* DOCUMENT VERIFICATION MODAL STYLES */
     .doc-mode-toggle {
       display: flex;
@@ -1276,6 +1344,32 @@
 
     <!-- Right Header Badges -->
     <div class="header-badges-group">
+            <!-- Top Sign In & User Profile Dropdown -->
+      <a href="/login" class="btn-gov-signin-top" id="top-btn-signin" title="Sign In to BHOOMI NEXUS">
+        <span>🔐</span> <span>साइन इन (Sign In)</span>
+      </a>
+
+      <div class="user-profile-dropdown-wrap" id="top-user-dropdown-wrap" style="display: none; position: relative;">
+        <button type="button" class="btn-gov-user-top" id="top-btn-user" onclick="toggleHeaderUserMenu()">
+          <span style="font-size: 15px;">👤</span>
+          <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
+            <span id="top-username-disp" style="font-weight: 800; font-size: 11.5px; color: var(--color-gov-blue);">Officer Sharma</span>
+            <span id="top-role-disp" style="font-size: 9.5px; color: #047857; font-weight: 700;">GOVT OFFICER</span>
+          </div>
+          <span style="font-size: 10px; color: #94A3B8; margin-left: 3px;">▼</span>
+        </button>
+
+        <div class="header-user-menu" id="header-user-menu">
+          <div style="padding: 10px 14px; border-bottom: 1px solid #E2E8F0;">
+            <div style="font-weight: 800; font-size: 12px; color: #0F172A;" id="menu-user-name">Ramesh Kumar Sharma</div>
+            <div style="font-size: 10.5px; color: #64748B;" id="menu-user-role-label">Government Officer</div>
+          </div>
+          <a href="/dashboard" class="header-menu-item"><span>📊</span> <span>My Dashboard</span></a>
+          <a href="javascript:void(0)" onclick="openSecurityCenterModal()" class="header-menu-item"><span>🛡️</span> <span>Security Center</span></a>
+          <div style="border-top: 1px solid #E2E8F0; margin: 4px 0;"></div>
+          <a href="javascript:void(0)" onclick="submitSecurityLogout()" class="header-menu-item" style="color: #DC2626;"><span>🚪</span> <span>Sign Out (लॉग आउट)</span></a>
+        </div>
+      </div>
       <div class="badge-digital-india">
         <span class="di-tri">DIGITAL INDIA</span>
       </div>
@@ -2145,6 +2239,48 @@
         <div id="sec-audit-log-container" style="background: #0F172A; color: #F8FAFC; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 11px; max-height: 140px; overflow-y: auto; line-height: 1.5;">
           <div style="color: #94A3B8;">[SYSTEM] Initializing Bhoomi Nexus Defense Console...</div>
         </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- ============================================================
+       MODAL: AUTHENTICATION & PERMISSION REQUIRED PROMPT
+  ============================================================ -->
+  <div class="app-modal-overlay" id="modal-auth-required">
+    <div class="app-modal-card" style="max-width: 520px; text-align: center; padding: 26px;">
+      <div style="font-size: 38px; margin-bottom: 10px;">🔐</div>
+      <h3 style="font-size: 17px; font-weight: 800; color: var(--color-gov-blue); margin-bottom: 6px;">
+        प्राधिकृत लॉगिन आवश्यक (Authorized Sign-In Required)
+      </h3>
+      <p style="font-size: 12.5px; color: #475569; line-height: 1.5; margin-bottom: 16px;" id="auth-req-message">
+        You are attempting to access a protected government land intelligence feature. Please sign in with an authorized account to continue.
+      </p>
+
+      <!-- Quick Role Switcher Buttons -->
+      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-bottom: 18px; text-align: left;">
+        <div style="font-size: 11px; font-weight: 700; color: #64748B; margin-bottom: 8px;">
+          1-क्लिक त्वरित परीक्षण लॉगिन (1-Click Demo Login as):
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('officer', 'OfficerGov#2026!')" style="font-size: 11.5px; padding: 4px 8px;">
+            🏛️ Govt Officer
+          </button>
+          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('verifier', 'LegalVerifier#2026!')" style="font-size: 11.5px; padding: 4px 8px;">
+            📑 Legal Verifier
+          </button>
+          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('admin', 'BhoomiAdmin#2026!')" style="font-size: 11.5px; padding: 4px 8px;">
+            🛡️ Admin
+          </button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <a href="/login" class="btn-notarize-blockchain" id="btn-modal-signin-link" style="text-decoration: none; padding: 10px 18px; font-size: 12.5px;">
+          <span>🔐</span> <span>लॉगिन पृष्ठ पर जाएं (Go to Sign In)</span>
+        </a>
+        <button type="button" class="btn-quick-sample" onclick="closeModal('modal-auth-required')" style="padding: 10px 16px; font-size: 12.5px;">
+          रद्द करें (Cancel)
+        </button>
       </div>
     </div>
   </div>
@@ -3467,6 +3603,18 @@
     }
 
     async function notarizeOnBlockchain() {
+      if (!activeAuthToken) {
+        promptAuthRequired("Section 90-A Statutory Notarization (धारा 90-क प्रमाणीकरण)", () => {
+          notarizeOnBlockchain();
+        });
+        return;
+      }
+
+      if (activeAuthUser && activeAuthUser.role === 'RESEARCHER') {
+        showToast("⚠️ शोधकर्ता (Researcher) रोल के पास धारा 90-क प्रमाणीकरण की अनुमति नहीं है।");
+        return;
+      }
+
       const divertedHa = parseFloat(document.getElementById("slider-divert-ha").value);
       const cat = document.getElementById("sel-diversion-cat").value;
       const totalTariffText = document.getElementById("disp-total-tariff").innerText;
@@ -3728,6 +3876,94 @@
     let activeAuthToken = sessionStorage.getItem("bhoomi_auth_token") || null;
     let activeAuthUser = null;
 
+    
+    // ============================================================
+    // HEADER USER DROPDOWN & AUTH UX INTERCEPTOR
+    // ============================================================
+    function toggleHeaderUserMenu() {
+      const menu = document.getElementById("header-user-menu");
+      if (menu) {
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+      }
+    }
+
+    // Close menu on click outside
+    document.addEventListener("click", function(e) {
+      const wrap = document.getElementById("top-user-dropdown-wrap");
+      const menu = document.getElementById("header-user-menu");
+      if (wrap && menu && !wrap.contains(e.target)) {
+        menu.style.display = "none";
+      }
+    });
+
+    function updateTopNavAuthUI(user) {
+      const signinBtn = document.getElementById("top-btn-signin");
+      const userWrap = document.getElementById("top-user-dropdown-wrap");
+      const nameDisp = document.getElementById("top-username-disp");
+      const roleDisp = document.getElementById("top-role-disp");
+      const menuName = document.getElementById("menu-user-name");
+      const menuRole = document.getElementById("menu-user-role-label");
+
+      if (user) {
+        if (signinBtn) signinBtn.style.display = "none";
+        if (userWrap) userWrap.style.display = "block";
+        if (nameDisp) nameDisp.innerText = user.full_name.split(' ')[0] || user.full_name;
+        if (roleDisp) roleDisp.innerText = user.role.replace('_', ' ');
+        if (menuName) menuName.innerText = user.full_name;
+        if (menuRole) menuRole.innerText = user.role.replace('_', ' ');
+      } else {
+        if (signinBtn) signinBtn.style.display = "inline-flex";
+        if (userWrap) userWrap.style.display = "none";
+      }
+    }
+
+    let pendingTargetFeature = null;
+
+    function promptAuthRequired(featureName, targetAction) {
+      pendingTargetFeature = targetAction;
+      const msg = document.getElementById("auth-req-message");
+      if (msg) {
+        msg.innerText = `You are accessing a protected government land intelligence feature: ${featureName}. Please sign in with an authorized account.`;
+      }
+      openModal("modal-auth-required");
+    }
+
+    async function quickLoginAs(user, pass) {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: user, password: pass })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          activeAuthToken = data.token;
+          sessionStorage.setItem("bhoomi_auth_token", data.token);
+          activeAuthUser = {
+            user_id: data.user_id,
+            email: data.email,
+            full_name: data.full_name,
+            role: data.role,
+            permissions: data.permissions
+          };
+          updateTopNavAuthUI(activeAuthUser);
+          closeModal("modal-auth-required");
+          showToast(`सफल लॉगिन: ${data.full_name} (${data.role})`);
+          if (pendingTargetFeature && typeof pendingTargetFeature === "function") {
+            pendingTargetFeature();
+          }
+          loadSecurityCenterData();
+        } else {
+          alert(`Login failed: ${data.detail}`);
+        }
+      } catch (err) {
+        alert(`Connection error: ${err.message}`);
+      }
+    }
+
+    // Attach token automatically to document register uploads
+    const originalRegisterSubmit = window.submitDocumentRegistration;
+
     function openSecurityCenterModal() {
       openModal('modal-security-center');
       loadSecurityCenterData();
@@ -3788,10 +4024,12 @@
           const user = await res.json();
           activeAuthUser = user;
           updateSessionUI(user);
+          updateTopNavAuthUI(user);
         } else {
           sessionStorage.removeItem("bhoomi_auth_token");
           activeAuthToken = null;
           updateSessionUI(null);
+          updateTopNavAuthUI(null);
         }
       } catch (e) {
         updateSessionUI(null);
@@ -4281,6 +4519,23 @@
         return;
       }
 
+      if (!activeAuthToken) {
+        promptAuthRequired("Official Document Registration (दस्तावेज़ पंजीकरण)", () => {
+          submitDocumentRegistration();
+        });
+        return;
+      }
+
+      if (activeAuthUser && activeAuthUser.role !== 'GOVERNMENT_OFFICER' && activeAuthUser.role !== 'LEGAL_VERIFIER' && activeAuthUser.role !== 'ADMIN') {
+        const container = document.getElementById("register-result-container");
+        container.style.display = "block";
+        container.innerHTML = `<div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 12px; border-radius: 6px; font-weight: 700;">
+          ⚠️ <strong>Access Denied:</strong> Your active role (<strong>${activeAuthUser.role}</strong>) does not have permission to register property deeds in the official ledger. (Requires Government Officer, Legal Verifier, or Admin).
+        </div>`;
+        showToast("पंजीकरण अनुमति अस्वीकृत (Unauthorized Role)");
+        return;
+      }
+
       const container = document.getElementById("register-result-container");
       container.style.display = "block";
       container.innerHTML = `<div style="text-align: center; padding: 14px; font-weight: 700; color: var(--color-gov-blue);">दस्तावेज़ का हैशिंग एवं लेज़र में पंजीकरण जारी...</div>`;
@@ -4301,8 +4556,10 @@
 
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 4000);
+        const headers = activeAuthToken ? { 'Authorization': `Bearer ${activeAuthToken}` } : {};
         const res = await fetch(`${API_BASE}/api/v1/documents/upload`, {
           method: "POST",
+          headers: headers,
           body: formData,
           signal: controller.signal
         });

@@ -22,46 +22,60 @@ from typing import Dict, List, Optional, Set
 
 class Role(str, Enum):
     GUEST = "GUEST"
-    USER = "USER"
-    ANALYST = "ANALYST"
-    OFFICIAL = "OFFICIAL"
+    GOVERNMENT_OFFICER = "GOVERNMENT_OFFICER"
+    POLICYMAKER = "POLICYMAKER"
+    RESEARCHER = "RESEARCHER"
+    LEGAL_VERIFIER = "LEGAL_VERIFIER"
     ADMIN = "ADMIN"
+
+    # Backward compatibility aliases
+    OFFICIAL = "GOVERNMENT_OFFICER"
+    ANALYST = "RESEARCHER"
+    USER = "LEGAL_VERIFIER"
+
+
+class Permission:
+    VIEW_PUBLIC_GIS = "VIEW_PUBLIC_GIS"
+    VIEW_PUBLIC_RESEARCH = "VIEW_PUBLIC_RESEARCH"
+    USE_AI_BASIC = "USE_AI_BASIC"
+    USE_AI_FULL = "USE_AI_FULL"
+    RUN_OSINT = "RUN_OSINT"
+    VIEW_OSINT_EVIDENCE = "VIEW_OSINT_EVIDENCE"
+    VERIFY_DOCUMENT = "VERIFY_DOCUMENT"
+    REGISTER_DOCUMENT = "REGISTER_DOCUMENT"
+    VIEW_LEDGER = "VIEW_LEDGER"
+    WRITE_LEDGER = "WRITE_LEDGER"
+    MANAGE_DATASETS = "MANAGE_DATASETS"
+    RUN_POLICY_SIMULATION = "RUN_POLICY_SIMULATION"
+    VIEW_AUDIT_LOGS = "VIEW_AUDIT_LOGS"
+    MANAGE_USERS = "MANAGE_USERS"
+    MANAGE_ROLES = "MANAGE_ROLES"
+    ADMIN_SYSTEM = "ADMIN_SYSTEM"
 
 
 # Role hierarchy and permissions mapping
 ROLE_PERMISSIONS: Dict[Role, Set[str]] = {
     Role.GUEST: {
+        Permission.VIEW_PUBLIC_GIS,
+        Permission.VIEW_PUBLIC_RESEARCH,
+        Permission.USE_AI_BASIC,
+        Permission.VIEW_LEDGER,
         "cadastral:view",
         "telemetry:view",
         "health:view",
         "security:view_status",
     },
-    Role.USER: {
-        "cadastral:view",
-        "telemetry:view",
-        "health:view",
-        "security:view_status",
-        "document:verify",
-        "document:upload_own",
-        "ai:query",
-        "policy:evaluate",
-        "gis:analyze",
-    },
-    Role.ANALYST: {
-        "cadastral:view",
-        "telemetry:view",
-        "health:view",
-        "security:view_status",
-        "document:verify",
-        "document:upload_own",
-        "ai:query",
-        "policy:evaluate",
-        "gis:analyze",
-        "blockchain:verify_dataset",
-        "blockchain:view_ledger",
-        "enclave:view_attestation",
-    },
-    Role.OFFICIAL: {
+    Role.GOVERNMENT_OFFICER: {
+        Permission.VIEW_PUBLIC_GIS,
+        Permission.VIEW_PUBLIC_RESEARCH,
+        Permission.USE_AI_BASIC,
+        Permission.USE_AI_FULL,
+        Permission.RUN_OSINT,
+        Permission.VIEW_OSINT_EVIDENCE,
+        Permission.VERIFY_DOCUMENT,
+        Permission.REGISTER_DOCUMENT,
+        Permission.VIEW_LEDGER,
+        Permission.RUN_POLICY_SIMULATION,
         "cadastral:view",
         "telemetry:view",
         "health:view",
@@ -78,8 +92,57 @@ ROLE_PERMISSIONS: Dict[Role, Set[str]] = {
         "enclave:execute",
         "enclave:view_attestation",
     },
+    Role.POLICYMAKER: {
+        Permission.VIEW_PUBLIC_GIS,
+        Permission.VIEW_PUBLIC_RESEARCH,
+        Permission.USE_AI_BASIC,
+        Permission.USE_AI_FULL,
+        Permission.VIEW_LEDGER,
+        Permission.RUN_POLICY_SIMULATION,
+        "cadastral:view",
+        "telemetry:view",
+        "health:view",
+        "security:view_status",
+        "ai:query",
+        "policy:evaluate",
+        "gis:analyze",
+        "blockchain:view_ledger",
+    },
+    Role.RESEARCHER: {
+        Permission.VIEW_PUBLIC_GIS,
+        Permission.VIEW_PUBLIC_RESEARCH,
+        Permission.USE_AI_BASIC,
+        Permission.USE_AI_FULL,
+        Permission.RUN_OSINT,
+        Permission.VIEW_OSINT_EVIDENCE,
+        Permission.VIEW_LEDGER,
+        "cadastral:view",
+        "telemetry:view",
+        "health:view",
+        "security:view_status",
+        "ai:query",
+        "gis:analyze",
+        "blockchain:verify_dataset",
+        "blockchain:view_ledger",
+    },
+    Role.LEGAL_VERIFIER: {
+        Permission.VIEW_PUBLIC_GIS,
+        Permission.VIEW_PUBLIC_RESEARCH,
+        Permission.USE_AI_BASIC,
+        Permission.VERIFY_DOCUMENT,
+        Permission.REGISTER_DOCUMENT,
+        Permission.VIEW_LEDGER,
+        Permission.VIEW_OSINT_EVIDENCE,
+        "cadastral:view",
+        "telemetry:view",
+        "health:view",
+        "security:view_status",
+        "document:verify",
+        "document:upload_own",
+        "blockchain:view_ledger",
+    },
     Role.ADMIN: {
-        "*"  # Wildcard administrative access
+        "*",  # Wildcard administrative access to all permissions
     },
 }
 
@@ -143,9 +206,13 @@ class AuthService:
 
     ALIASES = {
         "admin": "admin@bhoominexus.gov.in",
+        "officer": "officer.jaipur@bhoominexus.gov.in",
         "official": "officer.jaipur@bhoominexus.gov.in",
-        "analyst": "analyst.delhi@bhoominexus.gov.in",
-        "user": "citizen.public@bhoominexus.gov.in",
+        "policymaker": "policy.delhi@bhoominexus.gov.in",
+        "researcher": "research.isro@bhoominexus.gov.in",
+        "analyst": "research.isro@bhoominexus.gov.in",
+        "verifier": "legal.verifier@bhoominexus.gov.in",
+        "user": "legal.verifier@bhoominexus.gov.in",
     }
 
     def __init__(self):
@@ -163,9 +230,10 @@ class AuthService:
         """Seed initial government role accounts with secure random salts."""
         accounts = [
             ("admin@bhoominexus.gov.in", "National Cadastral Director", Role.ADMIN, "BhoomiAdmin#2026!"),
-            ("officer.jaipur@bhoominexus.gov.in", "Revenue Officer Jaipur", Role.OFFICIAL, "OfficialGov#2026!"),
-            ("analyst.delhi@bhoominexus.gov.in", "GIS Geospatial Analyst", Role.ANALYST, "AnalystSec#2026!"),
-            ("citizen.public@bhoominexus.gov.in", "Registered Landholder Citizen", Role.USER, "PublicUser#2026!"),
+            ("officer.jaipur@bhoominexus.gov.in", "Ramesh Kumar Sharma (Tehsildar)", Role.GOVERNMENT_OFFICER, "OfficerGov#2026!"),
+            ("policy.delhi@bhoominexus.gov.in", "Dr. Sunita Verma (Director Land Policy)", Role.POLICYMAKER, "PolicyMaker#2026!"),
+            ("research.isro@bhoominexus.gov.in", "Prof. Amit Banerjee (GIS Researcher)", Role.RESEARCHER, "Researcher#2026!"),
+            ("legal.verifier@bhoominexus.gov.in", "Adv. Meera Chawla (Title Verifier)", Role.LEGAL_VERIFIER, "LegalVerifier#2026!"),
         ]
         for email, name, role, pwd in accounts:
             salt = secrets.token_bytes(32)
@@ -310,6 +378,53 @@ class AuthService:
             ],
         }
 
+    def get_full_audit_logs(self, user: User) -> List[dict]:
+        """Return full audit log entries (restricted to ADMIN)."""
+        if user.role != Role.ADMIN and not self.authorize(user, Permission.VIEW_AUDIT_LOGS):
+            from fastapi import HTTPException, status
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access Denied: Only Administrator role can view raw security audit logs.",
+            )
+        return [
+            {
+                "timestamp": e.timestamp,
+                "event_type": e.event_type,
+                "user_id": e.user_id,
+                "ip_address": e.ip_address,
+                "detail": e.detail,
+                "severity": e.severity,
+            }
+            for e in reversed(self._audit_log)
+        ]
+
 
 # Global singleton instance
 auth_service = AuthService()
+
+
+def require_permission(required_perm: str):
+    """FastAPI route dependency to verify authentication and permission."""
+    from fastapi import Header, HTTPException, status
+
+    def dependency(authorization: Optional[str] = Header(None)):
+        if not authorization:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required. Please sign in to perform this action.",
+            )
+        user = auth_service.validate_token(authorization)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired session token. Please sign in again.",
+            )
+        if not auth_service.authorize(user, required_perm):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access Denied: Role '{user.role.value}' does not possess the required '{required_perm}' permission.",
+            )
+        return user
+
+    return dependency
+

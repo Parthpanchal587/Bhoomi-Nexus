@@ -22,6 +22,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "Bhoomi-Nexus", "backend"))
 
 from app.main import app
+from app.middleware.security import RateLimiterMiddleware
 from app.services.auth import (
     hash_password,
     verify_password,
@@ -32,6 +33,11 @@ from app.services.auth import (
 
 class TestBhoomiSecurityHardening(unittest.TestCase):
     def setUp(self):
+        RateLimiterMiddleware.reset_all()
+        # Reset failed attempts and locks
+        for user in auth_service._users.values():
+            user.failed_attempts = 0
+            user.locked_until = 0.0
         self.client = TestClient(app)
 
     # ─────────────────────────────────────────────────────────────
@@ -107,8 +113,9 @@ class TestBhoomiSecurityHardening(unittest.TestCase):
         # Login
         login_res = self.client.post("/api/v1/auth/login", json={
             "username": "official",
-            "password": "OfficialGov#2026!"
+            "password": "OfficerGov#2026!"
         })
+        self.assertEqual(login_res.status_code, 200)
         token = login_res.json()["token"]
         # Entropy check: token must have high entropy (at least 32 hex bytes = 64 chars)
         self.assertGreaterEqual(len(token), 32)
@@ -116,7 +123,7 @@ class TestBhoomiSecurityHardening(unittest.TestCase):
         # Call /api/v1/auth/me with Bearer token
         me_res = self.client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
         self.assertEqual(me_res.status_code, 200)
-        self.assertEqual(me_res.json()["role"], "OFFICIAL")
+        self.assertEqual(me_res.json()["role"], "GOVERNMENT_OFFICER")
 
         # Logout
         logout_res = self.client.post("/api/v1/auth/logout", headers={"Authorization": f"Bearer {token}"})
@@ -191,7 +198,14 @@ class TestBhoomiSecurityHardening(unittest.TestCase):
             "district": "Jaipur",
             "state": "Rajasthan"
         }
-        res = self.client.post("/api/v1/documents/upload", files=files, data=data)
+        login_res = self.client.post(
+            "/api/v1/auth/login",
+            json={"username": "officer", "password": "OfficerGov#2026!"}
+        )
+        self.assertEqual(login_res.status_code, 200)
+        token = login_res.json()["token"]
+        headers = {"Authorization": f"Bearer {token}"}
+        res = self.client.post("/api/v1/documents/upload", files=files, data=data, headers=headers)
         self.assertEqual(res.status_code, 200)
         json_data = res.json()
         self.assertEqual(json_data["status"], "REGISTERED")

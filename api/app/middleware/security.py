@@ -70,10 +70,20 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
         ("/api", 150, 60),                    # Global API: 150 requests per minute per IP
     ]
 
+    _instances: List['RateLimiterMiddleware'] = []
+
     def __init__(self, app):
         super().__init__(app)
         self._ip_history: Dict[str, Dict[str, List[float]]] = defaultdict(lambda: defaultdict(list))
         self._lock = Lock()
+        RateLimiterMiddleware._instances.append(self)
+
+    @classmethod
+    def reset_all(cls):
+        """Reset rate limiter state across all instances (used for test teardown)."""
+        for inst in cls._instances:
+            with inst._lock:
+                inst._ip_history.clear()
 
     async def dispatch(self, request: Request, call_next) -> Response:
         path = request.url.path

@@ -156,7 +156,42 @@ The OSINT land intelligence subsystem connects with external data portals, proce
 
 ---
 
-## 6. Security Incident Reporting
+## 6. Application Security & Defense-in-Depth Middleware
+
+BHOOMI-NEXUS enforces multi-layered perimeter and application defenses directly within the FastAPI pipeline:
+
+### 6.1 HTTP Defensive Security Headers (`SecurityHeadersMiddleware`)
+Every HTTP response is injected with strict security headers:
+- **`Content-Security-Policy (CSP)`**: Restricts script execution to approved domains (`'self'`, `https://unpkg.com`, `https://fonts.googleapis.com`), denies unauthorized frame ancestors (`frame-ancestors 'none'`), disallows plugin objects (`object-src 'none'`), and permits authorized GeoJSON / map tile connections.
+- **`X-Frame-Options`**: `DENY` — Prevents clickjacking attacks and framing inside unauthorized iframes.
+- **`X-Content-Type-Options`**: `nosniff` — Prevents MIME-type sniffing and drive-by content execution.
+- **`Strict-Transport-Security (HSTS)`**: `max-age=31536000; includeSubDomains; preload` — Enforces HTTPS transport.
+- **`Referrer-Policy`**: `strict-origin-when-cross-origin` — Protects internal routing metadata.
+- **`Permissions-Policy`**: Disables unused browser hardware interfaces (`camera=(), microphone=(), payment=()`).
+- **Server Disclosure Removal**: Strips revealing `Server` and `X-Powered-By` headers to prevent fingerprinting.
+
+### 6.2 Sliding-Window IP Rate Limiting (`RateLimiterMiddleware`)
+Thread-safe sliding-window rate limiting protects sensitive endpoints against credential brute-forcing, denial-of-service, and resource exhaustion:
+- `/api/v1/auth/login`: Maximum 10 attempts per minute per IP.
+- `/api/v1/documents`: Maximum 30 operations per minute per IP.
+- `/api/ai`: Maximum 40 natural language queries per minute per IP.
+- `/api/blockchain/notarize`: Maximum 20 notarizations per minute per IP.
+- `/api` (Global fallback): Maximum 150 requests per minute per IP.
+
+### 6.3 File Ingestion & Magic Bytes Verification
+Deed uploads are defended against polyglot files, hidden executables, and malicious scripts:
+- **Magic Bytes Validation**: Uploaded documents must start with the `%PDF` binary signature (`b"%PDF"`). Disguised executables (`.exe`), scripts (`.php`, `<script>`), or ZIP archives are rejected immediately with `HTTP 400 Bad Request`.
+- **Payload Ceiling**: Strict 10 MB payload ceiling enforced at the HTTP gateway.
+- **Path Traversal Defense**: User-supplied filenames are never evaluated against the filesystem. Ingestion operates strictly in-memory.
+
+### 6.4 Role-Based Access Control (RBAC)
+- 5 distinct official roles: `GOVERNMENT_OFFICER`, `POLICYMAKER`, `RESEARCHER`, `LEGAL_VERIFIER`, and `ADMIN`, plus anonymous `GUEST`.
+- Server-side dependency injection (`require_permission`) enforces granular, atomic permissions on all protected routes.
+- Immutable security audit logging for all authentication attempts, permission denials, and administrative actions.
+
+---
+
+## 7. Security Incident Reporting
 
 To report a vulnerability or security concern regarding BHOOMI-NEXUS:
 - Open a confidential security advisory via GitHub Security Advisories.

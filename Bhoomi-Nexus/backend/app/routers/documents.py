@@ -12,10 +12,11 @@ Endpoints:
 import os
 from typing import Optional
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile, status
 
 from app.schemas.document import DocumentUploadResponse, DocumentVerifyResponse
 from app.services.document_verification import register_document, verify_document
+from app.services.auth import auth_service, Permission, Role
 
 router = APIRouter(prefix="/api/v1/documents", tags=["Document Verification (v1)"])
 
@@ -33,13 +34,11 @@ async def upload_document(
     state: Optional[str] = Form(None, description="State name"),
     property_type: Optional[str] = Form(None, description="Property type (e.g., Residential, Agricultural)"),
     area_description: Optional[str] = Form(None, description="Area description or measurement"),
+    authorization: Optional[str] = Header(None, description="Bearer Session Token"),
 ):
     """
     Upload and register a document in the in-memory verification ledger.
-
-    Computes SHA-256 binary hash and text fingerprint, extracts text content,
-    and stores the document record with metadata. If the exact document was
-    already registered, returns the existing record.
+    Requires REGISTER_DOCUMENT permission (Government Officer, Legal Verifier, Admin).
     """
     file_bytes = await file.read()
 
@@ -55,6 +54,24 @@ async def upload_document(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File security rejection: Uploaded file does not contain a valid %PDF magic byte header.",
+        )
+
+    # Server-Side Authorization: requires REGISTER_DOCUMENT permission
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Please sign in to register property documents in the sovereign ledger.",
+        )
+    user = auth_service.validate_token(authorization)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session token. Please sign in again.",
+        )
+    if not auth_service.authorize(user, Permission.REGISTER_DOCUMENT):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access Denied: Role '{user.role.value}' is not authorized to register property documents.",
         )
 
     # Path Traversal and Name Sanitization

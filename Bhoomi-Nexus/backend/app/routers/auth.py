@@ -168,7 +168,14 @@ async def get_security_posture():
         authorization={
             "status": "ENFORCED",
             "model": "Role-Based Access Control (RBAC)",
-            "roles": ["GUEST", "USER", "ANALYST", "OFFICIAL", "ADMIN"],
+            "roles": [
+                "GOVERNMENT_OFFICER",
+                "POLICYMAKER",
+                "RESEARCHER",
+                "LEGAL_VERIFIER",
+                "ADMIN",
+                "GUEST",
+            ],
             "least_privilege": "Enforced on all sensitive APIs",
         },
         transport_security={
@@ -212,3 +219,75 @@ async def get_security_posture():
         },
         audit_summary=audit,
     )
+
+
+ROLE_METADATA = {
+    Role.GUEST: {
+        "title": "Public Visitor / नागरिक",
+        "description": "Public exploration of land GIS, basic AI queries, and read-only ledger.",
+        "badge_color": "#64748B",
+    },
+    Role.GOVERNMENT_OFFICER: {
+        "title": "Government Officer / प्राधिकृत राजस्व अधिकारी",
+        "description": "Full authorized parcel analysis, document verification, authorized registration, and policy evaluations.",
+        "badge_color": "#1E40AF",
+    },
+    Role.POLICYMAKER: {
+        "title": "Policymaker / नीति निर्माता",
+        "description": "Section 90-A policy simulator, regional soil & aquifer stress analytics, and land revenue reports.",
+        "badge_color": "#B45309",
+    },
+    Role.RESEARCHER: {
+        "title": "Researcher / भू-स्थानिक शोधकर्ता",
+        "description": "Soil & satellite telemetry, GIS analysis, authorized datasets, Ask BHOOMI AI queries, and OSINT evidence.",
+        "badge_color": "#047857",
+    },
+    Role.LEGAL_VERIFIER: {
+        "title": "Legal & Property Verifier / विधिक एवं संपत्ति सत्यापनकर्ता",
+        "description": "Anti-tamper document verification, SHA-256 deed registration, blockchain proof, and property due diligence.",
+        "badge_color": "#7E22CE",
+    },
+    Role.ADMIN: {
+        "title": "System Administrator / मुख्य प्रणाली प्रशासक",
+        "description": "Full administrative control, user & role management, security audits, and dataset management.",
+        "badge_color": "#DC2626",
+    },
+}
+
+
+@router.get("/roles")
+async def list_roles_and_permissions():
+    """Return all available system roles, descriptions, and associated permissions."""
+    return {
+        role.value: {
+            "title": ROLE_METADATA.get(role, {}).get("title", role.value),
+            "description": ROLE_METADATA.get(role, {}).get("description", ""),
+            "badge_color": ROLE_METADATA.get(role, {}).get("badge_color", "#64748B"),
+            "permissions": sorted(list(ROLE_PERMISSIONS.get(role, set()))),
+        }
+        for role in [
+            Role.GOVERNMENT_OFFICER,
+            Role.POLICYMAKER,
+            Role.RESEARCHER,
+            Role.LEGAL_VERIFIER,
+            Role.ADMIN,
+            Role.GUEST,
+        ]
+    }
+
+
+@router.get("/audit-logs")
+async def get_audit_logs(authorization: Optional[str] = Header(None)):
+    """Retrieve full immutable audit logs (Restricted to Administrator)."""
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to view system audit logs.",
+        )
+    user = auth_service.validate_token(authorization)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session token.",
+        )
+    return auth_service.get_full_audit_logs(user)
