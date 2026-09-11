@@ -24,3 +24,6 @@ desktop.ini
 .env
 .env.local
 *.secret
+
+# Scratch directory
+scratch/

@@ -100,12 +100,18 @@ class NotarizeRequest(BaseModel):
 
 class Block(BaseModel):
     index: int
+    block_index: Optional[int] = None
     timestamp: str
     parcel_id: str
     data: dict[str, Any]
     previous_hash: str
     hash: str
     nonce: int
+
+    def __init__(self, **data: Any):
+        if "block_index" not in data or data["block_index"] is None:
+            data["block_index"] = data.get("index")
+        super().__init__(**data)
 
 
 class LedgerResponse(BaseModel):
