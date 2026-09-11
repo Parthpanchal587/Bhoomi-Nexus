@@ -4272,19 +4272,20 @@
       const st0_7_val = stDepths.layer_0_to_7cm != null ? stDepths.layer_0_to_7cm : stDepths['0_7cm'];
       const st0_7 = st0_7_val != null ? `${st0_7_val} °C` : 'Unavailable';
 
-      const phVal = soil?.ph_h2o_topsoil != null ? soil.ph_h2o_topsoil : (soil?.summary_0_5cm?.ph);
-      const soilPh = phVal != null ? String(phVal) : 'Unavailable';
+      const phVal = soil?.properties?.ph?.value != null ? soil.properties.ph.value : (soil?.ph_h2o_topsoil != null ? soil.ph_h2o_topsoil : (soil?.summary_0_5cm?.ph != null ? soil.summary_0_5cm.ph : soil?.soil?.ph?.value));
+      const soilPh = (phVal != null && !isNaN(phVal)) ? String(phVal) : 'Unavailable';
 
-      const socVal = soil?.soc_g_per_kg_topsoil != null ? soil.soc_g_per_kg_topsoil : (soil?.summary_0_5cm?.soil_organic_carbon_g_per_kg);
-      const soc = socVal != null ? `${socVal} g/kg` : 'Unavailable';
+      const socVal = soil?.properties?.soc?.value != null ? soil.properties.soc.value : (soil?.soc_g_per_kg_topsoil != null ? soil.soc_g_per_kg_topsoil : (soil?.summary_0_5cm?.soil_organic_carbon_g_per_kg != null ? soil.summary_0_5cm.soil_organic_carbon_g_per_kg : soil?.soil?.soc?.value));
+      const soc = (socVal != null && !isNaN(socVal)) ? `${socVal} g/kg` : 'Unavailable';
 
-      const clayVal = soil?.clay_percent_topsoil != null ? soil.clay_percent_topsoil : (soil?.summary_0_5cm?.clay_pct);
-      const clay = clayVal != null ? `${clayVal} %` : 'Unavailable';
+      const clayVal = soil?.properties?.clay?.value != null ? soil.properties.clay.value : (soil?.clay_percent_topsoil != null ? soil.clay_percent_topsoil : (soil?.summary_0_5cm?.clay_pct != null ? soil.summary_0_5cm.clay_pct : soil?.soil?.clay?.value));
+      const clay = (clayVal != null && !isNaN(clayVal)) ? `${clayVal} %` : 'Unavailable';
 
-      const sandVal = soil?.sand_percent_topsoil != null ? soil.sand_percent_topsoil : (soil?.summary_0_5cm?.sand_pct);
-      const sand = sandVal != null ? `${sandVal} %` : 'Unavailable';
+      const sandVal = soil?.properties?.sand?.value != null ? soil.properties.sand.value : (soil?.sand_percent_topsoil != null ? soil.sand_percent_topsoil : (soil?.summary_0_5cm?.sand_pct != null ? soil.summary_0_5cm.sand_pct : soil?.soil?.sand?.value));
+      const sand = (sandVal != null && !isNaN(sandVal)) ? `${sandVal} %` : 'Unavailable';
 
       const lastUpdated = tele?.timestamp ? new Date(tele.timestamp).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST' : 'Live';
+      const sampledNote = (soil?.location?.isNearestValidPixel && soil.location.distanceMeters > 0) ? ` (Sampled: ${soil.location.distanceMeters}m nearest soil cell)` : '';
 
       return `
         <div style="font-family: var(--font-main); font-size: 11.5px; line-height: 1.45; color: #1E293B; max-width: 320px;">
@@ -4326,7 +4327,7 @@
             <!-- 4. SOIL & MOISTURE -->
             <div style="background: #FAF5FF; border: 1px solid #E9D5FF; border-radius: 4px; padding: 5px 7px; margin-bottom: 6px;">
               <div style="font-weight: 800; color: #6B21A8; font-size: 10px; margin-bottom: 2px;">🔬 SOIL INTELLIGENCE (ISRIC 250m Spatial Model):</div>
-              <div style="font-size: 9px; color: #7E22CE; font-family: var(--font-mono); margin-bottom: 4px;">Depth: 0–5 cm • Query: ${queryLocStr}</div>
+              <div style="font-size: 9px; color: #7E22CE; font-family: var(--font-mono); margin-bottom: 4px;">Depth: 0–5 cm • Query: ${queryLocStr}${sampledNote}</div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10.5px;">
                 <div>Soil pH: <strong>${soilPh}</strong></div>
                 <div>SOC: <strong>${soc}</strong></div>
@@ -4336,6 +4337,7 @@
                 <div>Moisture (0-7cm): <strong>${sm0_7}</strong></div>
               </div>
             </div>
+
 
             <!-- 5. DATA PROVENANCE -->
             <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 4px; padding: 5px 7px; margin-bottom: 6px; font-size: 9.5px; line-height: 1.4;">
@@ -4502,12 +4504,12 @@
         setVal("val-st-0-7", null);
       }
 
-      // 6. ISRIC SoilGrids (supports ph_h2o_topsoil AND summary_0_5cm)
+      // 6. ISRIC SoilGrids (supports normalized properties, ph_h2o_topsoil AND summary_0_5cm)
       if (soilData) {
-        const ph = soilData.ph_h2o_topsoil != null ? soilData.ph_h2o_topsoil : (soilData.summary_0_5cm?.ph);
-        const soc = soilData.soc_g_per_kg_topsoil != null ? soilData.soc_g_per_kg_topsoil : (soilData.summary_0_5cm?.soil_organic_carbon_g_per_kg);
-        const clay = soilData.clay_percent_topsoil != null ? soilData.clay_percent_topsoil : (soilData.summary_0_5cm?.clay_pct);
-        const sand = soilData.sand_percent_topsoil != null ? soilData.sand_percent_topsoil : (soilData.summary_0_5cm?.sand_pct);
+        const ph = soilData.properties?.ph?.value != null ? soilData.properties.ph.value : (soilData.ph_h2o_topsoil != null ? soilData.ph_h2o_topsoil : (soilData.summary_0_5cm?.ph != null ? soilData.summary_0_5cm.ph : soilData.soil?.ph?.value));
+        const soc = soilData.properties?.soc?.value != null ? soilData.properties.soc.value : (soilData.soc_g_per_kg_topsoil != null ? soilData.soc_g_per_kg_topsoil : (soilData.summary_0_5cm?.soil_organic_carbon_g_per_kg != null ? soilData.summary_0_5cm.soil_organic_carbon_g_per_kg : soilData.soil?.soc?.value));
+        const clay = soilData.properties?.clay?.value != null ? soilData.properties.clay.value : (soilData.clay_percent_topsoil != null ? soilData.clay_percent_topsoil : (soilData.summary_0_5cm?.clay_pct != null ? soilData.summary_0_5cm.clay_pct : soilData.soil?.clay?.value));
+        const sand = soilData.properties?.sand?.value != null ? soilData.properties.sand.value : (soilData.sand_percent_topsoil != null ? soilData.sand_percent_topsoil : (soilData.summary_0_5cm?.sand_pct != null ? soilData.summary_0_5cm.sand_pct : soilData.soil?.sand?.value));
 
         setVal("val-soil-ph", ph);
         setVal("val-soil-soc", soc, "g/kg");
@@ -4522,7 +4524,8 @@
 
         const elSoilMeta = document.getElementById("disp-soil-meta");
         if (elSoilMeta) {
-          elSoilMeta.innerText = `Depth: 0–5 cm • ISRIC SoilGrids 250m (WCS) • ${coordsText}`;
+          const sampledNote = (soilData.location?.isNearestValidPixel && soilData.location.distanceMeters > 0) ? ` • Nearest sampled cell: ${soilData.location.distanceMeters}m` : '';
+          elSoilMeta.innerText = `Depth: 0–5 cm • ISRIC SoilGrids 250m (WCS) • ${coordsText}${sampledNote}`;
         }
       } else {
         setVal("val-soil-ph", null);
@@ -4734,84 +4737,36 @@
     }
 
     async function fetchSoilData(lat, lon, signal = null) {
-      const cacheKey = `soil:${lat.toFixed(4)}:${lon.toFixed(4)}`;
+      const cacheKey = `soilgrids:phh2o:0-5cm:${lat.toFixed(5)}:${lon.toFixed(5)}`;
       if (soilCoordCache.has(cacheKey)) {
         const cached = soilCoordCache.get(cacheKey);
         if (Date.now() - cached._ts < 600000) return cached.data; // 10 min cache
       }
 
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/env/soil?lat=${lat}&lon=${lon}`, { signal });
-        if (res.ok) {
-          const d = await res.json();
-          if (d && d.status === "success") {
-            soilCoordCache.set(cacheKey, { _ts: Date.now(), data: d });
-            return d;
-          }
-        }
-      } catch (e) {
-        if (e.name === 'AbortError') throw e;
+      const reqId = `soil-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+      const endpoints = [
+        `${API_BASE}/api/soilgrids/query?lat=${lat}&lon=${lon}&request_id=${reqId}`,
+        `${API_BASE}/api/v1/env/soil?lat=${lat}&lon=${lon}&request_id=${reqId}`
+      ];
+      if (window.location.protocol === 'file:' || (window.location.hostname === 'localhost' && window.location.port !== '8000') || (window.location.hostname === '127.0.0.1' && window.location.port !== '8000')) {
+        endpoints.push(`http://127.0.0.1:8000/api/soilgrids/query?lat=${lat}&lon=${lon}&request_id=${reqId}`);
       }
 
-      try {
-        const sgUrl = `https://rest.isric.org/soilgrids/v2.0/properties/query?lat=${lat}&lon=${lon}&property=phh2o&property=clay&property=sand&property=silt&property=soc&property=nitrogen&property=cec&depth=0-5cm&depth=5-15cm&value=mean&value=uncertainty`;
-        const sgResp = await fetch(sgUrl, { headers: { "Accept": "application/json" }, signal });
-        if (sgResp.ok) {
-          const sgJson = await sgResp.json();
-          const layers = sgJson.properties?.layers || [];
-          const parsed = {};
-          for (const layer of layers) {
-            const pName = layer.name;
-            const dFactor = layer.unit_measure?.d_factor || 1;
-            const depths = {};
-            for (const d of layer.depths || []) {
-              const m = d.values?.mean;
-              depths[d.label] = {
-                mean: m != null ? Math.round((m / dFactor) * 100) / 100 : null
-              };
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, { signal });
+          if (res.ok) {
+            const d = await res.json();
+            if (d && (d.status === "success" || d.properties)) {
+              soilCoordCache.set(cacheKey, { _ts: Date.now(), data: d });
+              return d;
             }
-            parsed[pName] = depths;
           }
-          const phTop = parsed.phh2o?.['0-5cm']?.mean;
-          let phClass = 'Neutral';
-          if (phTop != null) {
-            if (phTop < 5.5) phClass = 'Strongly Acidic';
-            else if (phTop < 6.5) phClass = 'Moderately Acidic';
-            else if (phTop <= 7.5) phClass = 'Neutral / Optimal';
-            else if (phTop <= 8.5) phClass = 'Moderately Alkaline';
-            else phClass = 'Strongly Alkaline';
-          }
-          const result = {
-            status: "success",
-            latitude: lat,
-            longitude: lon,
-            ph_h2o_topsoil: phTop,
-            ph_classification: phClass,
-            clay_percent_topsoil: parsed.clay?.['0-5cm']?.mean,
-            sand_percent_topsoil: parsed.sand?.['0-5cm']?.mean,
-            silt_percent_topsoil: parsed.silt?.['0-5cm']?.mean,
-            soc_g_per_kg_topsoil: parsed.soc?.['0-5cm']?.mean,
-            nitrogen_g_per_kg_topsoil: parsed.nitrogen?.['0-5cm']?.mean,
-            cec_cmolc_per_kg_topsoil: parsed.cec?.['0-5cm']?.mean,
-            summary_0_5cm: {
-              ph: phTop,
-              soil_organic_carbon_g_per_kg: parsed.soc?.['0-5cm']?.mean,
-              clay_pct: parsed.clay?.['0-5cm']?.mean,
-              sand_pct: parsed.sand?.['0-5cm']?.mean,
-              estimated_texture: phClass
-            },
-            provenance: {
-              provider: "ISRIC - World Soil Information (SoilGrids 2.0)",
-              badge: "SPATIAL ESTIMATE (250m)",
-              disclaimer: "SoilGrids predictions represent spatial estimates (250m). Not a substitute for laboratory Soil Health Card testing."
-            }
-          };
-          soilCoordCache.set(cacheKey, { _ts: Date.now(), data: result });
-          return result;
+        } catch (e) {
+          if (e.name === 'AbortError') throw e;
         }
-      } catch (err) {
-        if (err.name === 'AbortError') throw err;
       }
+
       return null;
     }
 

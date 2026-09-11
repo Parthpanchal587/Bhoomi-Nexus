@@ -33,16 +33,16 @@ class EnvironmentalCache:
         self._store: Dict[str, Dict[str, Any]] = {}
 
     @staticmethod
-    def _quantize(coord: float, precision: int = 2) -> float:
-        """Quantize coordinates to ~1.1km at equator (0.01 deg) for cache efficiency."""
+    def _quantize(coord: float, precision: int = 5) -> float:
+        """Quantize coordinates to ~1.1m (0.00001 deg) to match 250m SoilGrids raster cells without cross-location collisions."""
         return round(coord, precision)
 
     def _make_key(self, source: str, lat: float, lon: float, bucket: Optional[str] = None) -> str:
-        q_lat = self._quantize(lat)
-        q_lon = self._quantize(lon)
+        q_lat = self._quantize(lat, 5 if "soil" in source else 3)
+        q_lon = self._quantize(lon, 5 if "soil" in source else 3)
         if bucket:
-            return f"{source}:{q_lat}:{q_lon}:{bucket}"
-        return f"{source}:{q_lat}:{q_lon}"
+            return f"{source}:{q_lat:.5f}:{q_lon:.5f}:{bucket}"
+        return f"{source}:{q_lat:.5f}:{q_lon:.5f}"
 
     def get(self, source: str, lat: float, lon: float, bucket: Optional[str] = None) -> Optional[Dict[str, Any]]:
         key = self._make_key(source, lat, lon, bucket)

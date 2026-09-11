@@ -5,7 +5,7 @@ Zero synthetic random values.
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Query, HTTPException
 
@@ -85,15 +85,51 @@ async def get_live_telemetry(lat: float = Query(...), lon: float = Query(...)):
 
 
 @router.get("/api/v1/env/soil")
-async def get_soil_profile(lat: float = Query(...), lon: float = Query(...)):
+@router.get("/api/soilgrids/query")
+async def get_soil_profile(
+    lat: float = Query(..., description="WGS84 latitude coordinate"),
+    lon: float = Query(..., description="WGS84 longitude coordinate"),
+    request_id: Optional[str] = Query(None, description="Client request ID for race condition elimination")
+):
     """
     Returns real spatial soil predictions from ISRIC SoilGrids 2.0 (250m resolution):
     pH, clay, sand, silt, organic carbon, nitrogen, and cation exchange capacity.
+    Normalized according to Section 12 specification.
     """
     if not validate_coordinates(lat, lon):
         raise HTTPException(status_code=400, detail="Invalid latitude or longitude coordinates")
 
-    return await fetch_real_soilgrids_data(lat, lon)
+    from app.services.soil_provider import soil_service
+    res = await soil_service.get_soil_properties(lat, lon, depth="0-5cm", request_id=request_id)
+    return res
+
+
+@router.get("/api/v1/env/soil/health")
+@router.get("/api/soilgrids/health")
+async def get_soil_service_health():
+    """
+    Internal health check endpoint for the ISRIC SoilGrids pipeline (Section 18).
+    Returns provider, method (WCS), health status, last successful query, and last error.
+    """
+    from app.services.soil_provider import soil_service
+    return soil_service.get_health_status()
+
+
+@router.get("/api/soilgrids/test")
+async def get_soil_diagnostic_test(
+    lat: float = Query(26.98550, description="Latitude for diagnostic test"),
+    lon: float = Query(75.85870, description="Longitude for diagnostic test")
+):
+    """
+    Development diagnostic endpoint matching Section 19.
+    Returns requested and transformed coordinates, WCS coverage IDs, HTTP status,
+    raw extracted raster values, converted values, and NoData status.
+    """
+    if not validate_coordinates(lat, lon):
+        raise HTTPException(status_code=400, detail="Invalid coordinates for diagnostic query")
+
+    from app.services.soil_provider import soil_service
+    return await soil_service.get_diagnostic_info(lat, lon, depth="0-5cm")
 
 
 @router.get("/api/v1/env/composite")
@@ -106,3 +142,4 @@ async def get_composite_environment(lat: float = Query(...), lon: float = Query(
         raise HTTPException(status_code=400, detail="Invalid latitude or longitude coordinates")
 
     return await get_composite_environmental_intelligence(lat, lon)
+
