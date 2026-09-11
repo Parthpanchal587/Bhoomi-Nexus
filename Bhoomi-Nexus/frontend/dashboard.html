@@ -350,11 +350,11 @@
       ? 'http://127.0.0.1:8000'
       : '';
 
-    const authToken = sessionStorage.getItem('bhoomi_auth_token');
+    const authToken = sessionStorage.getItem('bhoomi_auth_token') || localStorage.getItem('bhoomi_auth_token');
 
     // Authentication Guard
     async function initDashboard() {
-      const storedUser = sessionStorage.getItem('bhoomi_auth_user');
+      const storedUser = sessionStorage.getItem('bhoomi_auth_user') || localStorage.getItem('bhoomi_auth_user');
       if (storedUser) {
         try {
           const user = JSON.parse(storedUser);
@@ -373,10 +373,13 @@
         if (res.ok) {
           const user = await res.json();
           sessionStorage.setItem('bhoomi_auth_user', JSON.stringify(user));
+          localStorage.setItem('bhoomi_auth_user', JSON.stringify(user));
           renderUserProfile(user);
         } else if (res.status === 401 && !authToken.startsWith('bhoomi_demo_')) {
           sessionStorage.removeItem('bhoomi_auth_token');
           sessionStorage.removeItem('bhoomi_auth_user');
+          localStorage.removeItem('bhoomi_auth_token');
+          localStorage.removeItem('bhoomi_auth_user');
           window.location.href = '/login?redirect=/dashboard';
         }
       } catch (err) {

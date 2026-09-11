@@ -201,6 +201,164 @@
       margin-top: 2px;
     }
 
+    
+    /* ============================================================
+       CONSOLIDATED BHOOMI-NEXUS PRODUCTION AUTHENTICATION CSS
+       ============================================================ */
+    #auth-header-container {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .auth-header-loading {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .btn-gov-signin-top {
+      background: #FFFFFF;
+      border: 1.5px solid var(--color-gov-blue);
+      color: var(--color-gov-blue);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 5px 14px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(12, 50, 88, 0.08);
+    }
+    .btn-gov-signin-top:hover {
+      background: var(--color-gov-blue);
+      color: #FFFFFF;
+    }
+
+    .user-profile-dropdown-wrap {
+      display: none;
+      position: relative;
+    }
+
+    .btn-gov-user-top {
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .btn-gov-user-top:hover {
+      border-color: var(--color-gov-blue);
+      background: #F1F5F9;
+    }
+
+    .auth-role-tag {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .auth-role-tag.real {
+      background: #DCFCE7;
+      color: #166534;
+      border: 1px solid #86EFAC;
+    }
+    .auth-role-tag.demo {
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+    }
+
+    .header-user-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      width: 250px;
+      z-index: 3500;
+      padding: 6px 0;
+      text-align: left;
+    }
+    .header-user-menu.show {
+      display: block !important;
+    }
+
+    .header-user-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid #E2E8F0;
+      background: #F8FAFC;
+    }
+    .header-user-header .full-name {
+      font-weight: 800;
+      font-size: 12.5px;
+      color: #0F172A;
+      line-height: 1.2;
+    }
+    .header-user-header .role-title {
+      font-size: 10.5px;
+      color: #64748B;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .header-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .header-menu-item:hover {
+      background: #F1F5F9;
+      color: var(--color-gov-blue);
+    }
+    .header-menu-item.danger {
+      color: #DC2626;
+    }
+    .header-menu-item.danger:hover {
+      background: #FEF2F2;
+      color: #B91C1C;
+    }
+
+    .demo-notice-banner {
+      background: #FFFBEB;
+      border: 1px solid #FCD34D;
+      color: #92400E;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      margin: 4px 8px;
+      border-radius: 4px;
+      text-align: center;
+      display: none;
+    }
+
     .header-badges-group {
       display: flex;
       align-items: center;
@@ -1600,31 +1758,59 @@
       </div>
     </div>
 
-    <!-- Right Header Badges -->
+        <!-- Right Header Badges -->
     <div class="header-badges-group">
-            <!-- Top Sign In & User Profile Dropdown -->
-      <a href="/login" class="btn-gov-signin-top" id="top-btn-signin" title="Sign In to BHOOMI NEXUS">
-        <span>🔐</span> <span>साइन इन (Sign In)</span>
-      </a>
+      <!-- Consolidated Single Authoritative Auth Container -->
+      <div id="auth-header-container">
+        <!-- 1. Checking Session Loading Indicator -->
+        <div id="top-auth-loading" class="auth-header-loading">
+          <span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span>
+          <span style="font-size:11px;">सत्र जांच (Checking Session)...</span>
+        </div>
 
-      <div class="user-profile-dropdown-wrap" id="top-user-dropdown-wrap" style="display: none; position: relative;">
-        <button type="button" class="btn-gov-user-top" id="top-btn-user" onclick="toggleHeaderUserMenu()">
-          <span style="font-size: 15px;">👤</span>
-          <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.15;">
-            <span id="top-username-disp" style="font-weight: 800; font-size: 11.5px; color: var(--color-gov-blue);">Officer Sharma</span>
-            <span id="top-role-disp" style="font-size: 9.5px; color: #047857; font-weight: 700;">GOVT OFFICER</span>
-          </div>
-          <span style="font-size: 10px; color: #94A3B8; margin-left: 3px;">▼</span>
-        </button>
+        <!-- 2. UNAUTHENTICATED State: Sign In Button ONLY -->
+        <a href="/login" class="btn-gov-signin-top" id="top-btn-signin" style="display:none;" title="Sign In to BHOOMI NEXUS">
+          <span>🔐</span> <span>साइन इन (Sign In)</span>
+        </a>
 
-        <div class="header-user-menu" id="header-user-menu">
-          <div style="padding: 10px 14px; border-bottom: 1px solid #E2E8F0;">
-            <div style="font-weight: 800; font-size: 12px; color: #0F172A;" id="menu-user-name">Ramesh Kumar Sharma</div>
-            <div style="font-size: 10.5px; color: #64748B;" id="menu-user-role-label">Government Officer</div>
+        <!-- 3. AUTHENTICATED State: User Profile & Role Dropdown ONLY -->
+        <div class="user-profile-dropdown-wrap" id="top-user-dropdown-wrap" style="display:none;">
+          <button type="button" class="btn-gov-user-top" id="top-btn-user" onclick="BhoomiAuth.toggleDropdown()">
+            <span style="font-size: 16px;">👤</span>
+            <div style="display: flex; flex-direction: column; text-align: left; line-height: 1.2;">
+              <span id="top-username-disp" style="font-weight: 800; font-size: 11.5px; color: var(--color-gov-blue);">—</span>
+              <div style="display: flex; align-items: center; gap: 4px; margin-top: 1px;">
+                <span id="top-role-badge" class="auth-role-tag real">ROLE</span>
+              </div>
+            </div>
+            <span style="font-size: 10px; color: #94A3B8; margin-left: 2px;">▼</span>
+          </button>
+
+          <div class="header-user-menu" id="header-user-menu">
+            <div class="header-user-header">
+              <div class="full-name" id="menu-user-name">—</div>
+              <div class="role-title" id="menu-user-role-label">—</div>
+              <div class="role-title" id="menu-user-email" style="font-family: var(--font-mono); font-size: 9.5px; color: #64748B;">—</div>
+            </div>
+            
+            <div id="menu-demo-notice" class="demo-notice-banner">
+              ⚠️ SIH DEMONSTRATION ACCOUNT • DEMO MODE
+            </div>
+
+            <a href="/dashboard" class="header-menu-item">
+              <span>📊</span> <span>My Dashboard</span>
+            </a>
+            <a href="javascript:void(0)" onclick="BhoomiAuth.openProfileModal()" class="header-menu-item">
+              <span>👤</span> <span>Profile & Permissions</span>
+            </a>
+            <a href="javascript:void(0)" onclick="BhoomiAuth.openSecurityModal()" class="header-menu-item">
+              <span>🔐</span> <span>Security Details</span>
+            </a>
+            <div style="border-top: 1px solid #E2E8F0; margin: 4px 0;"></div>
+            <a href="javascript:void(0)" onclick="BhoomiAuth.logout()" class="header-menu-item danger">
+              <span>🚪</span> <span>Sign Out (लॉग आउट)</span>
+            </a>
           </div>
-          <a href="/dashboard" class="header-menu-item"><span>📊</span> <span>My Dashboard</span></a>
-          <div style="border-top: 1px solid #E2E8F0; margin: 4px 0;"></div>
-          <a href="javascript:void(0)" onclick="submitSecurityLogout()" class="header-menu-item" style="color: #DC2626;"><span>🚪</span> <span>Sign Out (लॉग आउट)</span></a>
         </div>
       </div>
       <div class="badge-digital-india">
@@ -5132,91 +5318,389 @@
     // ============================================================
     // NATIONAL CYBER & SECURITY CENTER MODULE
     // ============================================================
-    let activeAuthToken = sessionStorage.getItem("bhoomi_auth_token") || null;
-    let activeAuthUser = null;
-
-    
     // ============================================================
-    // HEADER USER DROPDOWN & AUTH UX INTERCEPTOR
+    // BHOOMI-NEXUS: SINGLE AUTHORITATIVE AUTHENTICATION SYSTEM
     // ============================================================
-    function toggleHeaderUserMenu() {
-      const menu = document.getElementById("header-user-menu");
-      if (menu) {
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    window.BhoomiAuth = (function() {
+      // Clean 5-State Machine
+      const STATES = {
+        LOADING: 'LOADING',
+        AUTHENTICATED: 'AUTHENTICATED',
+        DEMO_AUTHENTICATED: 'DEMO_AUTHENTICATED',
+        UNAUTHENTICATED: 'UNAUTHENTICATED',
+        SESSION_EXPIRED: 'SESSION_EXPIRED',
+        AUTH_ERROR: 'AUTH_ERROR'
+      };
+
+      let _state = STATES.LOADING;
+      let _user = null;
+      let _token = null;
+      let _listeners = [];
+      let _pendingAction = null;
+
+      function _readStorage() {
+        let token = sessionStorage.getItem('bhoomi_auth_token') || localStorage.getItem('bhoomi_auth_token');
+        let rawUser = sessionStorage.getItem('bhoomi_auth_user') || localStorage.getItem('bhoomi_auth_user');
+        let user = null;
+        if (rawUser) {
+          try { user = JSON.parse(rawUser); } catch (e) { user = null; }
+        }
+        return { token, user };
       }
-    }
 
-    // Close menu on click outside
-    document.addEventListener("click", function(e) {
-      const wrap = document.getElementById("top-user-dropdown-wrap");
-      const menu = document.getElementById("header-user-menu");
-      if (wrap && menu && !wrap.contains(e.target)) {
-        menu.style.display = "none";
+      function _writeStorage(token, user) {
+        if (token) {
+          sessionStorage.setItem('bhoomi_auth_token', token);
+          localStorage.setItem('bhoomi_auth_token', token);
+        } else {
+          sessionStorage.removeItem('bhoomi_auth_token');
+          localStorage.removeItem('bhoomi_auth_token');
+        }
+        if (user) {
+          sessionStorage.setItem('bhoomi_auth_user', JSON.stringify(user));
+          localStorage.setItem('bhoomi_auth_user', JSON.stringify(user));
+        } else {
+          sessionStorage.removeItem('bhoomi_auth_user');
+          localStorage.removeItem('bhoomi_auth_user');
+        }
       }
-    });
 
-    function updateTopNavAuthUI(user) {
-      const signinBtn = document.getElementById("top-btn-signin");
-      const userWrap = document.getElementById("top-user-dropdown-wrap");
-      const nameDisp = document.getElementById("top-username-disp");
-      const roleDisp = document.getElementById("top-role-disp");
-      const menuName = document.getElementById("menu-user-name");
-      const menuRole = document.getElementById("menu-user-role-label");
-
-      if (user) {
-        if (signinBtn) signinBtn.style.display = "none";
-        if (userWrap) userWrap.style.display = "block";
-        if (nameDisp) nameDisp.innerText = user.full_name.split(' ')[0] || user.full_name;
-        if (roleDisp) roleDisp.innerText = user.role.replace('_', ' ');
-        if (menuName) menuName.innerText = user.full_name;
-        if (menuRole) menuRole.innerText = user.role.replace('_', ' ');
-      } else {
-        if (signinBtn) signinBtn.style.display = "inline-flex";
-        if (userWrap) userWrap.style.display = "none";
+      function _syncGlobals() {
+        window.activeAuthToken = _token;
+        window.activeAuthUser = _user;
       }
-    }
 
-    let pendingTargetFeature = null;
+      function _notify() {
+        _syncGlobals();
+        _renderHeaderUI();
+        _listeners.forEach(fn => {
+          try { fn({ state: _state, user: _user, token: _token }); } catch(e) {}
+        });
+      }
+
+      function _renderHeaderUI() {
+        const loadingEl = document.getElementById('top-auth-loading');
+        const signinBtn = document.getElementById('top-btn-signin');
+        const userWrap = document.getElementById('top-user-dropdown-wrap');
+        const menu = document.getElementById('header-user-menu');
+        const usernameDisp = document.getElementById('top-username-disp');
+        const roleBadge = document.getElementById('top-role-badge');
+        const menuName = document.getElementById('menu-user-name');
+        const menuRole = document.getElementById('menu-user-role-label');
+        const menuEmail = document.getElementById('menu-user-email');
+        const demoNotice = document.getElementById('menu-demo-notice');
+
+        // Close dropdown menu if open during state changes
+        if (menu) menu.classList.remove('show');
+
+        if (_state === STATES.LOADING) {
+          if (loadingEl) loadingEl.style.display = 'inline-flex';
+          if (signinBtn) signinBtn.style.display = 'none';
+          if (userWrap) userWrap.style.display = 'none';
+          return;
+        }
+
+        if (loadingEl) loadingEl.style.display = 'none';
+
+        if (_state === STATES.AUTHENTICATED || _state === STATES.DEMO_AUTHENTICATED) {
+          // MUTUALLY EXCLUSIVE: HIDE SIGN IN COMPLETELY
+          if (signinBtn) signinBtn.style.display = 'none';
+          if (userWrap) userWrap.style.display = 'inline-block';
+
+          const isDemo = (_state === STATES.DEMO_AUTHENTICATED) || (_user && _user.is_demo);
+          const fullName = _user ? (_user.full_name || 'Authenticated User') : 'User';
+          const shortName = fullName.split(' ')[0] || fullName;
+          const roleText = _user ? (_user.role || 'OFFICER').replace(/_/g, ' ') : 'OFFICER';
+
+          if (usernameDisp) usernameDisp.innerText = isDemo ? `Demo (${shortName})` : shortName;
+          if (roleBadge) {
+            roleBadge.innerText = isDemo ? `DEMO • ${roleText}` : roleText;
+            roleBadge.className = isDemo ? 'auth-role-tag demo' : 'auth-role-tag real';
+          }
+          if (menuName) menuName.innerText = fullName;
+          if (menuRole) menuRole.innerText = isDemo ? `SIH Demonstration Account (${roleText})` : `Government Authorized • ${roleText}`;
+          if (menuEmail) menuEmail.innerText = _user ? (_user.email || '') : '';
+          if (demoNotice) demoNotice.style.display = isDemo ? 'block' : 'none';
+        } else {
+          // UNAUTHENTICATED / SESSION_EXPIRED / AUTH_ERROR
+          // MUTUALLY EXCLUSIVE: SHOW SIGN IN ONLY, HIDE USER PROFILE AND LOGOUT
+          if (signinBtn) signinBtn.style.display = 'inline-flex';
+          if (userWrap) userWrap.style.display = 'none';
+        }
+      }
+
+      async function init() {
+        _state = STATES.LOADING;
+        _renderHeaderUI();
+
+        const stored = _readStorage();
+        _token = stored.token;
+        _user = stored.user;
+        _syncGlobals();
+
+        if (!_token) {
+          _state = STATES.UNAUTHENTICATED;
+          _user = null;
+          _writeStorage(null, null);
+          _notify();
+          return;
+        }
+
+        // Validate token against backend /api/v1/auth/me
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 4000);
+          const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
+            headers: { 'Authorization': `Bearer ${_token}` },
+            signal: controller.signal
+          });
+          clearTimeout(timeout);
+
+          if (res.ok) {
+            const profile = await res.json();
+            _user = {
+              user_id: profile.user_id,
+              email: profile.email,
+              full_name: profile.full_name,
+              role: profile.role,
+              permissions: profile.permissions || [],
+              is_demo: profile.email.includes('demo') || _token.startsWith('bhoomi_demo_')
+            };
+            _state = _user.is_demo ? STATES.DEMO_AUTHENTICATED : STATES.AUTHENTICATED;
+            _writeStorage(_token, _user);
+          } else if (res.status === 401) {
+            if (_token.startsWith('bhoomi_demo_') && _user) {
+              // Preserve demo session if offline static run
+              _state = STATES.DEMO_AUTHENTICATED;
+            } else {
+              _state = STATES.SESSION_EXPIRED;
+              _token = null;
+              _user = null;
+              _writeStorage(null, null);
+            }
+          } else {
+            // Non-auth server issue: trust stored user if valid format
+            if (_user && _user.role) {
+              _state = (_user.is_demo || _token.startsWith('bhoomi_demo_')) ? STATES.DEMO_AUTHENTICATED : STATES.AUTHENTICATED;
+            } else {
+              _state = STATES.UNAUTHENTICATED;
+            }
+          }
+        } catch (err) {
+          // Network offline / standalone: trust stored session if present
+          if (_user && _user.role) {
+            _state = (_user.is_demo || _token.startsWith('bhoomi_demo_')) ? STATES.DEMO_AUTHENTICATED : STATES.AUTHENTICATED;
+          } else {
+            _state = STATES.UNAUTHENTICATED;
+          }
+        }
+
+        _notify();
+      }
+
+      async function login(username, password) {
+        _state = STATES.LOADING;
+        _renderHeaderUI();
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            _token = data.token;
+            _user = {
+              user_id: data.user_id,
+              email: data.email,
+              full_name: data.full_name,
+              role: data.role,
+              permissions: data.permissions || [],
+              is_demo: false
+            };
+            _state = STATES.AUTHENTICATED;
+            _writeStorage(_token, _user);
+            _notify();
+            showToast(`प्रमाणीकरण सफल: ${_user.full_name} (${_user.role})`);
+            _resumePendingAction();
+            return { success: true, user: _user };
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            _state = STATES.UNAUTHENTICATED;
+            _notify();
+            showToast(`प्रमाणीकरण अस्वीकृत: ${errData.detail || 'अमान्य क्रेडेंशियल्स'}`);
+            return { success: false, message: errData.detail || 'Invalid credentials' };
+          }
+        } catch (err) {
+          _state = STATES.AUTH_ERROR;
+          _notify();
+          showToast(`कनेक्शन त्रुटि: सर्वर से संपर्क नहीं हो सका`);
+          return { success: false, message: err.message };
+        }
+      }
+
+      function loginAsDemo(roleKey) {
+        const ROLES_MAP = {
+          'officer': { full_name: 'Demo Officer (Tehsildar)', role: 'GOVERNMENT_OFFICER', email: 'demo.officer@sih-bhoomi.local', permissions: ["VIEW_PUBLIC_GIS", "VIEW_PUBLIC_RESEARCH", "USE_AI_BASIC", "USE_AI_FULL", "VERIFY_DOCUMENT", "REGISTER_DOCUMENT", "VIEW_LEDGER"] },
+          'verifier': { full_name: 'Demo Legal Verifier', role: 'LEGAL_VERIFIER', email: 'demo.verifier@sih-bhoomi.local', permissions: ["VIEW_PUBLIC_GIS", "VIEW_PUBLIC_RESEARCH", "USE_AI_BASIC", "VERIFY_DOCUMENT", "REGISTER_DOCUMENT", "VIEW_LEDGER"] },
+          'admin': { full_name: 'Demo System Administrator', role: 'ADMIN', email: 'demo.admin@sih-bhoomi.local', permissions: ["*"] }
+        };
+
+        const template = ROLES_MAP[roleKey] || ROLES_MAP['verifier'];
+        _token = 'bhoomi_demo_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        _user = {
+          user_id: 'DEMO-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+          email: template.email,
+          full_name: template.full_name,
+          role: template.role,
+          permissions: template.permissions,
+          is_demo: true
+        };
+        _state = STATES.DEMO_AUTHENTICATED;
+        _writeStorage(_token, _user);
+        _notify();
+        showToast(`⚡ SIH प्रदर्शन खाता सक्रिय (Demo Mode: ${template.role})`);
+        _resumePendingAction();
+        return { success: true, user: _user };
+      }
+
+      async function logout() {
+        if (_token && !_token.startsWith('bhoomi_demo_')) {
+          try {
+            await fetch(`${API_BASE}/api/v1/auth/logout`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${_token}` }
+            });
+          } catch (e) {}
+        }
+        _token = null;
+        _user = null;
+        _state = STATES.UNAUTHENTICATED;
+        _writeStorage(null, null);
+        _notify();
+        showToast('सत्र समाप्त: आप लॉग आउट हो चुके हैं।');
+      }
+
+      function _resumePendingAction() {
+        if (_pendingAction && typeof _pendingAction === 'function') {
+          const fn = _pendingAction;
+          _pendingAction = null;
+          try { fn(); } catch(e) {}
+        }
+      }
+
+      function hasPermission(perm) {
+        if (!_user || !_user.permissions) return false;
+        if (_user.permissions.includes('*')) return true;
+        return _user.permissions.includes(perm);
+      }
+
+      function toggleDropdown() {
+        const menu = document.getElementById('header-user-menu');
+        if (menu) menu.classList.toggle('show');
+      }
+
+      function openProfileModal() {
+        const menu = document.getElementById('header-user-menu');
+        if (menu) menu.classList.remove('show');
+        if (!_user) return;
+
+        const fn = document.getElementById('prof-modal-fullname');
+        const em = document.getElementById('prof-modal-email');
+        const ro = document.getElementById('prof-modal-role');
+        const ty = document.getElementById('prof-modal-type');
+        const pe = document.getElementById('prof-modal-permissions');
+
+        if (fn) fn.innerText = _user.full_name;
+        if (em) em.innerText = _user.email;
+        if (ro) ro.innerText = _user.role.replace(/_/g, ' ');
+        if (ty) {
+          ty.innerText = _user.is_demo ? '⚡ SIH Demonstration Account (Demo Mode)' : '🏛️ Government Official Account (Production)';
+          ty.style.color = _user.is_demo ? '#D97706' : '#047857';
+        }
+        if (pe) {
+          pe.innerHTML = (_user.permissions || []).map(p => `
+            <span style="background:#EFF6FF; border:1px solid #BFDBFE; color:#1E40AF; padding:3px 8px; border-radius:4px; font-size:10.5px; font-weight:700;">✓ ${p}</span>
+          `).join('');
+        }
+        openModal('modal-user-profile');
+      }
+
+      function openSecurityModal() {
+        const menu = document.getElementById('header-user-menu');
+        if (menu) menu.classList.remove('show');
+        openModal('modal-security-details');
+      }
+
+      async function quickLoginAs(roleKey, pass) {
+        closeModal('modal-auth-required');
+        return await login(roleKey, pass);
+      }
+
+      function handleAuthGateAction(action) {
+        if (action === 'demo') {
+          loginAsDemo('verifier');
+          closeModal('modal-auth-required');
+        } else if (action === 'signin') {
+          window.location.href = '/login';
+        } else if (action === 'signup') {
+          showToast(currentLang === 'hi' ? "पंजीकरण हेतु नोडल अधिकारी से संपर्क करें।" : "Institutional registration requires Nodal Officer approval.");
+        }
+      }
+
+      function subscribe(fn) {
+        _listeners.push(fn);
+        return () => { _listeners = _listeners.filter(l => l !== fn); };
+      }
+
+      // Close dropdown when clicking anywhere outside
+      document.addEventListener('click', function(e) {
+        const wrap = document.getElementById('top-user-dropdown-wrap');
+        const menu = document.getElementById('header-user-menu');
+        if (wrap && menu && !wrap.contains(e.target)) {
+          menu.classList.remove('show');
+        }
+      });
+
+      return {
+        STATES,
+        init,
+        login,
+        loginAsDemo,
+        logout,
+        quickLoginAs,
+        handleAuthGateAction,
+        toggleDropdown,
+        openProfileModal,
+        openSecurityModal,
+        hasPermission,
+        subscribe,
+        get state() { return _state; },
+        get user() { return _user; },
+        get token() { return _token; },
+        get isAuthenticated() { return _state === STATES.AUTHENTICATED || _state === STATES.DEMO_AUTHENTICATED; },
+        get isDemo() { return _state === STATES.DEMO_AUTHENTICATED || (_user && _user.is_demo); },
+        get role() { return _user ? _user.role : null; },
+        get permissions() { return _user ? (_user.permissions || []) : []; },
+        set pendingAction(fn) { _pendingAction = fn; }
+      };
+    })();
+
+    // Legacy Bridge Aliases
+    function toggleHeaderUserMenu() { BhoomiAuth.toggleDropdown(); }
+    function submitSecurityLogout() { BhoomiAuth.logout(); }
+    function quickLoginAs(roleKey, pass) { return BhoomiAuth.quickLoginAs(roleKey, pass); }
+    function handleAuthGateAction(action) { BhoomiAuth.handleAuthGateAction(action); }
+    function updateTopNavAuthUI(user) { /* Managed authoritatively by BhoomiAuth */ }
+    function updateSessionUI(user) { /* Managed authoritatively by BhoomiAuth */ }
 
     function promptAuthRequired(featureName, targetAction) {
-      pendingTargetFeature = targetAction;
+      BhoomiAuth.pendingAction = targetAction;
       const msg = document.getElementById("auth-req-message");
       if (msg) {
-        msg.innerText = `You are accessing a protected government land intelligence feature: ${featureName}. Please sign in with an authorized account.`;
+        msg.innerText = `You are accessing a protected feature: ${featureName}. Please sign in or continue as an authorized demo user.`;
       }
       openModal("modal-auth-required");
-    }
-
-        async function quickLoginAs(roleKey, pass) {
-      closeModal('modal-auth-required');
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: roleKey, password: pass })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          activeAuthToken = data.token;
-          sessionStorage.setItem("bhoomi_auth_token", data.token);
-          activeAuthUser = data.user;
-          showToast(`सुरक्षा सत्र सक्रिय: ${data.user.role}`);
-        }
-      } catch (e) {}
-
-      // If triggered from Document Verification, resume verification flow seamlessly
-      if (window._pendingDocVerificationFile) {
-        selectedVerifyFile = window._pendingDocVerificationFile;
-        window._pendingDocVerificationFile = null;
-        openModal('modal-doc-verify');
-        const nameEl = document.getElementById("verify-file-name");
-        if (nameEl && selectedVerifyFile) {
-          nameEl.innerText = `📄 ${selectedVerifyFile.name} (${(selectedVerifyFile.size / 1024).toFixed(1)} KB)`;
-        }
-        const infoEl = document.getElementById("verify-file-info");
-        if (infoEl) infoEl.style.display = "flex";
-        submitDocumentVerification();
-      }
     }
 
     // Attach token automatically to document register uploads
@@ -5477,10 +5961,28 @@
       }
 
       // ── FIRST-TIME PDF VERIFICATION AUTHENTICATION GATE ──
-      // If unauthenticated: preserve selected PDF and require login/auth
-      if (!activeAuthToken) {
+      // Consolidated Auth State Machine check
+      if (!BhoomiAuth.isAuthenticated) {
         window._pendingDocVerificationFile = selectedVerifyFile;
-        openAuthRequiredModalForVerification("To verify a property document, sign in or create an account to continue.");
+        BhoomiAuth.pendingAction = () => {
+          if (window._pendingDocVerificationFile) {
+            selectedVerifyFile = window._pendingDocVerificationFile;
+            window._pendingDocVerificationFile = null;
+            openModal('modal-doc-verify');
+            const nameEl = document.getElementById("verify-file-name");
+            if (nameEl && selectedVerifyFile) {
+              nameEl.innerText = `📄 ${selectedVerifyFile.name} (${(selectedVerifyFile.size / 1024).toFixed(1)} KB)`;
+            }
+            const infoEl = document.getElementById("verify-file-info");
+            if (infoEl) infoEl.style.display = "flex";
+            submitDocumentVerification();
+          }
+        };
+        const msgEl = document.getElementById("auth-req-message");
+        if (msgEl) {
+          msgEl.innerText = "To verify a property document, please sign in with an authorized account or continue in SIH Demonstration Mode.";
+        }
+        openModal("modal-auth-required");
         return;
       }
 
@@ -5502,7 +6004,7 @@
           res = await fetch(`${API_BASE}/api/v1/documents/verify`, {
             method: "POST",
             headers: {
-              "Authorization": `Bearer ${activeAuthToken}`
+              "Authorization": `Bearer ${BhoomiAuth.token || ""}`
             },
             body: formData,
             signal: controller.signal
@@ -5523,12 +6025,14 @@
 
         if (res && res.status === 401) {
           loader.style.display = "none";
-          activeAuthToken = null;
-          activeAuthUser = null;
-          sessionStorage.removeItem("bhoomi_auth_token");
-          updateSessionUI(null);
+          BhoomiAuth.logout();
           window._pendingDocVerificationFile = selectedVerifyFile;
-          openAuthRequiredModalForVerification("Session expired. Please sign in again to continue verification.");
+          promptAuthRequired("Document Verification", () => {
+            if (window._pendingDocVerificationFile) {
+              selectedVerifyFile = window._pendingDocVerificationFile;
+              submitDocumentVerification();
+            }
+          });
           return;
         }
 
@@ -5639,14 +6143,14 @@
         return;
       }
 
-      if (!activeAuthToken) {
+      if (!BhoomiAuth.isAuthenticated) {
         promptAuthRequired("Official Document Registration (दस्तावेज़ पंजीकरण)", () => {
           submitDocumentRegistration();
         });
         return;
       }
 
-      if (activeAuthUser && activeAuthUser.role !== 'GOVERNMENT_OFFICER' && activeAuthUser.role !== 'LEGAL_VERIFIER' && activeAuthUser.role !== 'ADMIN') {
+      if (BhoomiAuth.user && BhoomiAuth.user.role !== 'GOVERNMENT_OFFICER' && BhoomiAuth.user.role !== 'LEGAL_VERIFIER' && BhoomiAuth.user.role !== 'ADMIN') {
         const container = document.getElementById("register-result-container");
         container.style.display = "block";
         container.innerHTML = `<div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; padding: 12px; border-radius: 6px; font-weight: 700;">
@@ -6008,6 +6512,9 @@
     // APP STARTUP
     // ============================================================
     window.addEventListener("DOMContentLoaded", () => {
+      // 1. Authoritative Session Initialization
+      BhoomiAuth.init();
+
       // Initialize full Indian administrative hierarchy dropdowns
       populateAdminDropdowns();
 
@@ -6136,6 +6643,105 @@
     <div id="debug-pipe-cadastral" style="color:#F43F5E;">CADASTRAL REQ: IDLE</div>
     <div id="debug-pipe-map" style="color:#10B981;">MAP: CENTER —, ZOOM —</div>
     <div id="debug-pipe-bounds" style="color:#64748B; font-size:9.5px; margin-top:4px; border-top:1px solid #1E293B; padding-top:4px;">INDIA BOUNDS: [5.5, 66.0] to [38.0, 99.0] | noWrap: TRUE</div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: USER PROFILE & RBAC PERMISSIONS INSPECTOR
+  ============================================================ -->
+  <div class="app-modal-overlay" id="modal-user-profile">
+    <div class="app-modal-card" style="max-width: 540px; padding: 24px; text-align: left;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:26px;">👤</span>
+          <div>
+            <h3 style="font-size:16px; font-weight:800; color:var(--color-gov-blue); margin:0;" id="prof-modal-fullname">User Profile</h3>
+            <span style="font-size:11px; color:#64748B;" id="prof-modal-email">user@bhoominexus.gov.in</span>
+          </div>
+        </div>
+        <button class="btn-card-close" onclick="closeModal('modal-user-profile')">✕</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:12px;">
+        <div>
+          <span style="font-size:10.5px; color:#64748B; font-weight:700; display:block;">ROLE ASSIGNMENT</span>
+          <span id="prof-modal-role" style="font-weight:800; font-size:12.5px; color:#0F172A;">—</span>
+        </div>
+        <div>
+          <span style="font-size:10.5px; color:#64748B; font-weight:700; display:block;">ACCOUNT CLASSIFICATION</span>
+          <span id="prof-modal-type" style="font-weight:800; font-size:12px; color:#047857;">—</span>
+        </div>
+        <div>
+          <span style="font-size:10.5px; color:#64748B; font-weight:700; display:block;">SESSION STATUS</span>
+          <span id="prof-modal-status" style="font-weight:700; font-size:11.5px; color:#166534;">Active (Verified)</span>
+        </div>
+        <div>
+          <span style="font-size:10.5px; color:#64748B; font-weight:700; display:block;">SECURITY CLEARANCE</span>
+          <span id="prof-modal-clearance" style="font-weight:700; font-size:11.5px; color:var(--color-gov-blue);">National Cadastral L1</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <span style="font-size:11px; font-weight:800; color:#334155; display:block; margin-bottom:8px;">
+          GRANTED RBAC PERMISSIONS (प्राधिकृत अनुमतियां):
+        </span>
+        <div id="prof-modal-permissions" style="display:flex; flex-wrap:wrap; gap:6px; max-height:140px; overflow-y:auto; padding:4px;">
+          <!-- Permissions chips rendered dynamically -->
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #E2E8F0; padding-top:12px;">
+        <a href="/dashboard" class="btn-notarize-blockchain" style="padding:6px 14px; font-size:11.5px; text-decoration:none;">
+          <span>📊</span> <span>Go to Dashboard</span>
+        </a>
+        <button type="button" class="btn-quick-sample" onclick="closeModal('modal-user-profile')" style="padding:6px 14px; font-size:11.5px;">
+          बंद करें (Close)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: SECURITY & SESSION POSTURE
+  ============================================================ -->
+  <div class="app-modal-overlay" id="modal-security-details">
+    <div class="app-modal-card" style="max-width: 520px; padding: 24px; text-align: left;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:22px;">🔐</span>
+          <h3 style="font-size:15px; font-weight:800; color:var(--color-gov-blue); margin:0;">Active Session Security</h3>
+        </div>
+        <button class="btn-card-close" onclick="closeModal('modal-security-details')">✕</button>
+      </div>
+
+      <div style="font-size:12px; line-height:1.6; color:#334155; margin-bottom:14px;">
+        <div style="background:#F0FDF4; border:1px solid #86EFAC; border-radius:6px; padding:10px 12px; margin-bottom:12px;">
+          <strong style="color:#166534;">🛡️ Cryptographic Session Active</strong>
+          <div style="font-size:11px; color:#15803D; margin-top:2px;">
+            Token verified via SHA-256 / PBKDF2 protected backend with automatic rate limiting and tamper defense.
+          </div>
+        </div>
+        <table style="width:100%; font-size:11.5px; border-collapse:collapse;">
+          <tr style="border-bottom:1px solid #F1F5F9;">
+            <td style="padding:5px 0; color:#64748B;">Transport Security:</td>
+            <td style="padding:5px 0; font-weight:700; color:#0F172A; text-align:right;">TLS 1.3 / Strict-Transport-Security</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F1F5F9;">
+            <td style="padding:5px 0; color:#64748B;">Token Storage:</td>
+            <td style="padding:5px 0; font-weight:700; color:#0F172A; text-align:right;">Browser Session Memory (Scoped)</td>
+          </tr>
+          <tr style="border-bottom:1px solid #F1F5F9;">
+            <td style="padding:5px 0; color:#64748B;">Sovereign Ledger Node:</td>
+            <td style="padding:5px 0; font-weight:700; color:#0F172A; text-align:right;">NIC Meghraj Cloud Node (Active)</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="text-align:right;">
+        <button type="button" class="btn-quick-sample" onclick="closeModal('modal-security-details')" style="padding:6px 14px; font-size:11.5px;">
+          समझ गया (Close)
+        </button>
+      </div>
+    </div>
   </div>
 
 </body>

@@ -24,10 +24,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "Bhoomi-Nexus",
 
 from app.main import app
 from app.services.auth import Role, Permission, auth_service
+from app.middleware.security import RateLimiterMiddleware
 
 
 class TestBhoomiRBACAccessControl(unittest.TestCase):
     def setUp(self):
+        RateLimiterMiddleware.reset_all()
+        for user in auth_service._users.values():
+            user.failed_attempts = 0
+            user.locked_until = 0.0
         self.client = TestClient(app)
 
     # ─────────────────────────────────────────────────────────────

@@ -500,13 +500,17 @@
         if (res.ok) {
           const data = await res.json();
           sessionStorage.setItem('bhoomi_auth_token', data.token);
-          sessionStorage.setItem('bhoomi_auth_user', JSON.stringify({
+          localStorage.setItem('bhoomi_auth_token', data.token);
+          const userPayload = JSON.stringify({
             user_id: data.user_id,
             email: data.email,
             full_name: data.full_name,
             role: data.role,
-            permissions: data.permissions
-          }));
+            permissions: data.permissions,
+            is_demo: false
+          });
+          sessionStorage.setItem('bhoomi_auth_user', userPayload);
+          localStorage.setItem('bhoomi_auth_user', userPayload);
 
           alertBox.className = 'auth-alert success';
           alertBox.innerHTML = `✓ <strong>प्रमाणीकरण सफल:</strong> ${data.full_name} (${data.role}) के रूप में लॉगिन। पुनः निर्देशित किया जा रहा है...`;
@@ -532,13 +536,17 @@
       if (demoUser && demoUser.password === password) {
         const clientToken = 'bhoomi_demo_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
         sessionStorage.setItem('bhoomi_auth_token', clientToken);
-        sessionStorage.setItem('bhoomi_auth_user', JSON.stringify({
+        localStorage.setItem('bhoomi_auth_token', clientToken);
+        const demoPayload = JSON.stringify({
           user_id: demoUser.user_id,
           email: demoUser.email,
           full_name: demoUser.full_name,
           role: demoUser.role,
-          permissions: demoUser.permissions
-        }));
+          permissions: demoUser.permissions,
+          is_demo: true
+        });
+        sessionStorage.setItem('bhoomi_auth_user', demoPayload);
+        localStorage.setItem('bhoomi_auth_user', demoPayload);
 
         alertBox.className = 'auth-alert success';
         alertBox.innerHTML = `✓ <strong>प्रमाणीकरण सफल (Prototype Authentication):</strong> ${demoUser.full_name} (${demoUser.role}) के रूप में लॉगिन। पुनः निर्देशित किया जा रहा है...`;
