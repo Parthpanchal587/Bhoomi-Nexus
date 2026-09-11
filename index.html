@@ -3848,16 +3848,54 @@
     // ============================================================
     // MAP INITIALIZATION (RESTRICTED TO INDIA)
     // ============================================================
+    // SOVEREIGN INDIA-ONLY INVERSE MASK LAYER
+    // ============================================================
+    let indiaMaskLayer = null;
+
+    function applyIndiaOnlyMask() {
+      if (!map) return;
+
+      // Dedicated high-priority pane for India-Only Mask (above tile layers, below district vector borders & pins)
+      if (!map.getPane('indiaMaskPane')) {
+        map.createPane('indiaMaskPane');
+        map.getPane('indiaMaskPane').style.zIndex = 350;
+        map.getPane('indiaMaskPane').style.pointerEvents = 'none';
+      }
+
+      if (indiaMaskLayer && map.hasLayer(indiaMaskLayer)) {
+        map.removeLayer(indiaMaskLayer);
+      }
+
+      const maskGeo = window.INDIA_MASK_GEOJSON;
+      if (maskGeo) {
+        indiaMaskLayer = L.geoJSON(maskGeo, {
+          pane: 'indiaMaskPane',
+          style: {
+            fillColor: '#07172B', // Solid sovereign dark navy mask — completely hides Pakistan, China, Nepal, oceans, etc.
+            fillOpacity: 1.0,     // 100% opaque — completely removes visibility of all other countries
+            color: '#FF9933',     // Sovereign Tricolor Saffron border along India's international boundary
+            weight: 2.2,
+            opacity: 1.0
+          },
+          interactive: false
+        }).addTo(map);
+        console.log('[GIS] Sovereign India-only mask applied successfully (other countries concealed)');
+      } else {
+        console.warn('[GIS] window.INDIA_MASK_GEOJSON not yet available');
+      }
+    }
+
+    // ============================================================
     function initMap() {
       // Bounding Box strictly containing India territorial extent
-      const southWest = L.latLng(6.0, 68.0);
-      const northEast = L.latLng(37.5, 97.5);
+      const southWest = L.latLng(4.0, 65.0);
+      const northEast = L.latLng(38.5, 100.0);
       const indiaBounds = L.latLngBounds(southWest, northEast);
 
       map = L.map("cadastral-map", {
         center: [currentLat, currentLon],
         zoom: 11,
-        minZoom: 5,
+        minZoom: 4,
         maxZoom: 19,
         maxBounds: indiaBounds,
         maxBoundsViscosity: 1.0,
@@ -3869,16 +3907,19 @@
       // Default: Google Maps Hybrid (satellite + roads)
       setMapLayer("hybrid");
 
+      // Apply Sovereign India Mask: 100% solid mask covering all other countries
+      applyIndiaOnlyMask();
+
       // Place Cadastral Inspection Marker
       inspectionMarker = L.marker([currentLat, currentLon]).addTo(map);
 
       // Map Click Handler: Live Internet Cadastral & House Inspection
       map.on("click", (e) => {
-        // Enforce clicks only within India sovereign landmass (strictly reject water/oceans/non-India)
+        // Enforce clicks only within India sovereign landmass (strictly reject non-India regions & oceans)
         if (window.isPointInIndiaLand && !window.isPointInIndiaLand(e.latlng.lat, e.latlng.lng)) {
           showToast(currentLang === 'hi'
-            ? "🌊 जलीय क्षेत्र / बाहर: यहाँ कोई कैडस्ट्रल भूमि अथवा भूखंड पंजीकृत नहीं है।"
-            : "🌊 Water Body / Sea: No cadastral land plot registered in water or outside territory.");
+            ? "⚠️ केवल भारत की भौगोलिक सीमा मान्य है (अन्य देश अवरुद्ध हैं)।"
+            : "⚠️ Only Indian sovereign territory is accessible. Surrounding countries and non-Indian waters are masked.");
           if (inspectionMarker) inspectionMarker.closePopup();
           return;
         }
@@ -3940,6 +3981,9 @@
       }
 
       currentTileLayer.addTo(map);
+      if (!indiaMaskLayer || !map.hasLayer(indiaMaskLayer)) {
+        applyIndiaOnlyMask();
+      }
     }
 
     // Helper: Find nearest state, district, and tehsil for given coordinates
