@@ -40,6 +40,7 @@ def root_info():
 
 
 @router.get("/api/health", response_model=HealthResponse)
+@router.get("/api/v1/health", response_model=HealthResponse)
 def get_health():
     uptime = time.time() - start_time
     return HealthResponse(
