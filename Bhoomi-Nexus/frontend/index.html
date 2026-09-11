@@ -11,6 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 
   <!-- Leaflet GIS CSS -->
+  <!-- India Territorial Mask Data (Completely masks out all other countries) -->
+  <script src="india_mask_data.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
   <style>
@@ -2610,14 +2612,14 @@
     // ============================================================
     function initMap() {
       // Bounding Box strictly containing India territorial extent
-      const southWest = L.latLng(6.4, 68.0);
+      const southWest = L.latLng(6.0, 68.0);
       const northEast = L.latLng(37.5, 97.5);
       const indiaBounds = L.latLngBounds(southWest, northEast);
 
       map = L.map("cadastral-map", {
         center: [currentLat, currentLon],
         zoom: 11,
-        minZoom: 4,
+        minZoom: 5,
         maxZoom: 19,
         maxBounds: indiaBounds,
         maxBoundsViscosity: 1.0,
@@ -2626,19 +2628,58 @@
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
+      // Create dedicated high-priority Pane for India-Only Mask (covers all non-Indian territory)
+      map.createPane('indiaMaskPane');
+      map.getPane('indiaMaskPane').style.zIndex = 450;
+      map.getPane('indiaMaskPane').style.pointerEvents = 'none';
+
       // Default: Google Maps Hybrid (satellite + roads)
       setMapLayer("hybrid");
+
+      // Apply Sovereign India Mask: 100% solid mask covering all other countries
+      applyIndiaOnlyMask();
 
       // Place Cadastral Inspection Marker
       inspectionMarker = L.marker([currentLat, currentLon]).addTo(map);
 
       // Map Click Handler: Live Internet Cadastral & House Inspection
       map.on("click", (e) => {
-        inspectLocation(e.latlng.lat, e.latlng.lng, null, null, true);
+        // Enforce clicks only within India bounding box
+        if (indiaBounds.contains(e.latlng)) {
+          inspectLocation(e.latlng.lat, e.latlng.lng, null, null, true);
+        } else {
+          showToast(currentLang === 'hi' ? "⚠️ केवल भारत की भौगोलिक सीमा ही मान्य है。" : "⚠️ Only Indian territory is accessible.");
+        }
       });
 
       // Initial inspection at default location (Jaipur/Amer)
       inspectLocation(currentLat, currentLon, "Amer, Jaipur Parcel 7829", 11, false);
+    }
+
+    function applyIndiaOnlyMask() {
+      const renderMask = (geo) => {
+        if (!geo || !map) return;
+        L.geoJSON(geo, {
+          pane: 'indiaMaskPane',
+          style: {
+            fillColor: '#071F36', // Deep government navy - completely masks out other countries
+            fillOpacity: 1.0,     // 100% solid opaque - zero visibility of other nations
+            color: '#FF671F',     // Saffron National border outline
+            weight: 2.5,
+            opacity: 1.0
+          },
+          interactive: false
+        }).addTo(map);
+      };
+
+      if (window.INDIA_MASK_GEOJSON) {
+        renderMask(window.INDIA_MASK_GEOJSON);
+      } else {
+        fetch('india_mask.json')
+          .then(res => res.json())
+          .then(data => renderMask(data))
+          .catch(() => {});
+      }
     }
 
     function setMapLayer(type) {
