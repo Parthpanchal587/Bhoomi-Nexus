@@ -9,9 +9,10 @@ Endpoints:
   POST /api/v1/documents/verify   — Verify a document against the ledger
 """
 
+import os
 from typing import Optional
 
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
 from app.schemas.document import DocumentUploadResponse, DocumentVerifyResponse
 from app.services.document_verification import register_document, verify_document
@@ -44,22 +45,41 @@ async def upload_document(
 
     # Enforce maximum file size limit (Denial of Service protection)
     if len(file_bytes) > MAX_DOCUMENT_SIZE_BYTES:
-        from fastapi import HTTPException, status
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"File exceeds maximum allowed size of 10 MB (received {len(file_bytes)} bytes).",
         )
 
+    # File Security: Enforce '%PDF' Magic Bytes Signature
+    if not file_bytes.startswith(b"%PDF"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File security rejection: Uploaded file does not contain a valid %PDF magic byte header.",
+        )
+
+    # Path Traversal and Name Sanitization
+    raw_name = file.filename or "uploaded_deed.pdf"
+    safe_filename = os.path.basename(raw_name).replace("\x00", "").strip()[:100]
+    if not safe_filename.lower().endswith(".pdf"):
+        safe_filename += ".pdf"
+
+    # Input text sanitization helper
+    def _sanitize(val: Optional[str], max_len: int = 250) -> Optional[str]:
+        if not val:
+            return None
+        clean = val.replace("<", "&lt;").replace(">", "&gt;").replace("\x00", "").strip()
+        return clean[:max_len]
+
     record = register_document(
         file_bytes=file_bytes,
-        filename=file.filename or "unknown.pdf",
-        owner_name=owner_name,
-        registration_date=registration_date,
-        stamp_number=stamp_number,
-        district=district,
-        state=state,
-        property_type=property_type,
-        area_description=area_description,
+        filename=safe_filename,
+        owner_name=_sanitize(owner_name),
+        registration_date=_sanitize(registration_date, 50),
+        stamp_number=_sanitize(stamp_number, 50),
+        district=_sanitize(district, 100),
+        state=_sanitize(state, 100),
+        property_type=_sanitize(property_type, 100),
+        area_description=_sanitize(area_description, 250),
     )
 
     return DocumentUploadResponse(
@@ -95,21 +115,28 @@ async def verify_document_endpoint(
 
     # Enforce maximum file size limit (Denial of Service protection)
     if len(file_bytes) > MAX_DOCUMENT_SIZE_BYTES:
-        from fastapi import HTTPException, status
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"File exceeds maximum allowed size of 10 MB (received {len(file_bytes)} bytes).",
         )
 
-    filename = file.filename or "unknown.pdf"
+    # File Security: Enforce '%PDF' Magic Bytes Signature
+    if not file_bytes.startswith(b"%PDF"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File security rejection: Uploaded file does not contain a valid %PDF magic byte header.",
+        )
 
-    result = verify_document(file_bytes=file_bytes, filename=filename)
+    raw_name = file.filename or "unknown.pdf"
+    safe_filename = os.path.basename(raw_name).replace("\x00", "").strip()[:100]
+
+    result = verify_document(file_bytes=file_bytes, filename=safe_filename)
 
     # Build response
     response = DocumentVerifyResponse(
         status=result.status,
         message=result.message,
-        filename=filename,
+        filename=safe_filename,
         uploaded_binary_hash=result.binary_hash,
         uploaded_text_fingerprint=result.text_fingerprint,
         match_type=result.match_type,

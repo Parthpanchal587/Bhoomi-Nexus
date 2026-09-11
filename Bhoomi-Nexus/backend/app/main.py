@@ -27,7 +27,9 @@ from app.routers import (
     policy,
     enclave,
     osint,
+    auth,
 )
+from app.middleware.security import SecurityHeadersMiddleware, RateLimiterMiddleware
 
 
 # ── Application Factory ──────────────────────────────────────────────────
@@ -41,6 +43,10 @@ app = FastAPI(
         "and Cryptographic Integrity."
     ),
 )
+
+# Security Middlewares: HTTP Security Headers & Rate Limiting
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimiterMiddleware)
 
 # Enable CORS safely for frontend clients
 origins = settings.CORS_ORIGINS
@@ -59,6 +65,9 @@ app.add_middleware(
 
 
 # ── Mount Routers ────────────────────────────────────────────────────────
+
+# Security & Authentication router (v1)
+app.include_router(auth.router)
 
 # Existing endpoints (backward compatible)
 app.include_router(health.router)
