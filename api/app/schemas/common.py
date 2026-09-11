@@ -39,24 +39,32 @@ class TelemetryResponse(BaseModel):
     latitude: float
     longitude: float
     timestamp: str
-    surface_temperature_c: float
-    soil_temperature_10cm_c: float
-    soil_moisture_volumetric: float
-    soil_moisture_percentage: float
-    ambient_temperature_c: float
-    relative_humidity_pct: float
-    elevation_m: float
+    surface_temperature_c: Optional[float] = None
+    soil_temperature_10cm_c: Optional[float] = None
+    soil_moisture_volumetric: Optional[float] = None
+    soil_moisture_percentage: Optional[float] = None
+    ambient_temperature_c: Optional[float] = None
+    relative_humidity_pct: Optional[float] = None
+    precipitation_mm: Optional[float] = 0.0
+    rain_mm: Optional[float] = 0.0
+    wind_speed_kmh: Optional[float] = None
+    wind_direction_deg: Optional[float] = None
+    soil_moisture_depths: Optional[dict[str, Any]] = None
+    soil_temperature_depths: Optional[dict[str, Any]] = None
+    elevation_m: float = 0.0
     aridity_status: str
     cadastral_crop_suitability: str
     data_source: str
+    provenance: Optional[dict[str, Any]] = None
+    status: str = "success"
 
 
 # ── Land Conversion Simulation ────────────────────────────────────────────
 
 class SimulationRequest(BaseModel):
-    parcel_id: str = Field(default="KHA-7829-RJ")
-    total_hectares: float = Field(default=45.0, ge=0.1)
-    converted_hectares: float = Field(default=18.0, ge=0.0)
+    parcel_id: str = Field(default="PARCEL-CUSTOM")
+    total_hectares: float = Field(default=10.0, ge=0.1)
+    converted_hectares: float = Field(default=4.0, ge=0.0)
     conversion_type: str = Field(default="industrial")
     baseline_yield_per_ha: float = Field(default=38.5, ge=1.0)
     crop_type: str = Field(default="Wheat / Mustard")

@@ -1,86 +1,108 @@
 """
-Live telemetry endpoint (Open-Meteo soil & weather data).
-Extracted from original main.py — logic identical.
+BHOOMI-NEXUS: Live Environmental & Soil Telemetry Router
+Backed by real Open-Meteo ECMWF/DWD models and ISRIC SoilGrids 2.0.
+Zero synthetic random values.
 """
 
 from datetime import datetime, timezone
+from typing import Any, Dict
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 
-import httpx
-
-from app.config import settings
 from app.schemas.common import TelemetryResponse
+from app.services.env_service import (
+    fetch_real_weather_and_soil_telemetry,
+    fetch_real_soilgrids_data,
+    get_composite_environmental_intelligence,
+    validate_coordinates,
+)
 
 router = APIRouter(tags=["Telemetry"])
 
 
 @router.get("/api/telemetry/live", response_model=TelemetryResponse)
 async def get_live_telemetry(lat: float = Query(...), lon: float = Query(...)):
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "current": "temperature_2m,relative_humidity_2m,surface_temperature,soil_temperature_0_to_10cm,soil_moisture_0_to_1cm",
-    }
-    try:
-        async with httpx.AsyncClient(timeout=8.0) as client:
-            resp = await client.get(settings.OPEN_METEO_BASE_URL, params=params)
-            if resp.status_code == 200:
-                data = resp.json()
-                current = data.get("current", {})
-                surface_temp = float(current.get("surface_temperature", 28.0))
-                soil_temp = float(current.get("soil_temperature_0_to_10cm", 27.5))
-                soil_moisture = float(current.get("soil_moisture_0_to_1cm", 0.22))
-                ambient_temp = float(current.get("temperature_2m", 29.0))
-                rel_humidity = float(current.get("relative_humidity_2m", 65.0))
-                elevation = float(data.get("elevation", 350.0))
-                time_iso = current.get("time", datetime.now(timezone.utc).isoformat())
-                moisture_pct = round(soil_moisture * 100.0, 1)
+    """
+    Returns real live atmospheric weather, multi-depth soil moisture, and
+    multi-depth soil temperature from Open-Meteo ECMWF/DWD reanalysis models.
+    """
+    if not validate_coordinates(lat, lon):
+        raise HTTPException(status_code=400, detail="Invalid latitude or longitude coordinates")
 
-                if soil_moisture < 0.12:
-                    aridity = "ARID / CRITICAL SOIL MOISTURE DEFICIT"
-                    suitability = "Drought-Hardy Millets, Desert Shelterbelts, Sub-surface Drip Required"
-                elif soil_moisture < 0.22:
-                    aridity = "SEMI-ARID / MODERATE MOISTURE"
-                    suitability = "Suitable for Mustard, Pulses, Cluster Bean (Guar)"
-                elif soil_moisture < 0.38:
-                    aridity = "OPTIMAL / ARABLE LOAM"
-                    suitability = "High Productivity Dual-Crop Zone: Wheat, Barley, Mustard"
-                else:
-                    aridity = "SATURATED / WETLAND TRACT"
-                    suitability = "Canal Command Hydrated Zone"
+    telemetry = await fetch_real_weather_and_soil_telemetry(lat, lon)
+    if telemetry.get("status") == "unavailable":
+        # Honest fallback without inventing fake numbers
+        return TelemetryResponse(
+            latitude=lat,
+            longitude=lon,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            surface_temperature_c=None,
+            soil_temperature_10cm_c=None,
+            soil_moisture_volumetric=None,
+            soil_moisture_percentage=None,
+            ambient_temperature_c=None,
+            relative_humidity_pct=None,
+            elevation_m=0.0,
+            aridity_status="ENVIRONMENTAL DATA TEMPORARILY UNAVAILABLE",
+            cadastral_crop_suitability="Live sensor feed unavailable. Retry or check local IMD station.",
+            data_source="Open-Meteo (Unavailable)",
+            provenance=telemetry.get("provenance", {}),
+            status="unavailable",
+        )
 
-                return TelemetryResponse(
-                    latitude=lat,
-                    longitude=lon,
-                    timestamp=time_iso,
-                    surface_temperature_c=surface_temp,
-                    soil_temperature_10cm_c=soil_temp,
-                    soil_moisture_volumetric=soil_moisture,
-                    soil_moisture_percentage=moisture_pct,
-                    ambient_temperature_c=ambient_temp,
-                    relative_humidity_pct=rel_humidity,
-                    elevation_m=elevation,
-                    aridity_status=aridity,
-                    cadastral_crop_suitability=suitability,
-                    data_source="Open-Meteo Land Surface Telemetry",
-                )
-    except Exception:
-        pass
+    weather = telemetry.get("weather", {})
+    soil_moist = telemetry.get("soil_moisture", {})
+    soil_temp = telemetry.get("soil_temperature", {})
 
-    moisture = 0.245
+    st_0_7 = soil_temp.get("layer_0_to_7cm")
+    sm_0_7 = soil_moist.get("layer_0_to_7cm")
+    amb_temp = weather.get("temperature_2m")
+    rel_hum = weather.get("relative_humidity_2m")
+
     return TelemetryResponse(
         latitude=lat,
         longitude=lon,
-        timestamp=datetime.now(timezone.utc).isoformat(),
-        surface_temperature_c=29.4,
-        soil_temperature_10cm_c=28.1,
-        soil_moisture_volumetric=moisture,
-        soil_moisture_percentage=round(moisture * 100.0, 1),
-        ambient_temperature_c=30.2,
-        relative_humidity_pct=60.0,
-        elevation_m=380.0,
-        aridity_status="SEMI-ARID / MODERATE MOISTURE",
-        cadastral_crop_suitability="Arable Loam: Dual-crop Mustard & Pulses",
-        data_source="Bhoomi Synthetic Cadastral Telemetry (Offline Fallback)",
+        timestamp=telemetry.get("timestamp", datetime.now(timezone.utc).isoformat()),
+        surface_temperature_c=st_0_7,
+        soil_temperature_10cm_c=st_0_7,
+        soil_moisture_volumetric=sm_0_7,
+        soil_moisture_percentage=soil_moist.get("percentage_0_to_7cm"),
+        ambient_temperature_c=amb_temp,
+        relative_humidity_pct=rel_hum,
+        precipitation_mm=weather.get("precipitation_mm", 0.0),
+        rain_mm=weather.get("rain_mm", 0.0),
+        wind_speed_kmh=weather.get("wind_speed_kmh"),
+        wind_direction_deg=weather.get("wind_direction_deg"),
+        soil_moisture_depths=soil_moist,
+        soil_temperature_depths=soil_temp,
+        elevation_m=telemetry.get("elevation_m", 0.0),
+        aridity_status=soil_moist.get("aridity_condition", "MODERATE"),
+        cadastral_crop_suitability=soil_moist.get("crop_suitability", "Standard Arable Soil"),
+        data_source="Open-Meteo / ECMWF IFS & Land Reanalysis",
+        provenance=telemetry.get("provenance"),
+        status="success",
     )
+
+
+@router.get("/api/v1/env/soil")
+async def get_soil_profile(lat: float = Query(...), lon: float = Query(...)):
+    """
+    Returns real spatial soil predictions from ISRIC SoilGrids 2.0 (250m resolution):
+    pH, clay, sand, silt, organic carbon, nitrogen, and cation exchange capacity.
+    """
+    if not validate_coordinates(lat, lon):
+        raise HTTPException(status_code=400, detail="Invalid latitude or longitude coordinates")
+
+    return await fetch_real_soilgrids_data(lat, lon)
+
+
+@router.get("/api/v1/env/composite")
+async def get_composite_environment(lat: float = Query(...), lon: float = Query(...)):
+    """
+    Unified composite query returning weather, multi-depth soil moisture/temperature,
+    and ISRIC SoilGrids spatial profile for the exact clicked coordinates.
+    """
+    if not validate_coordinates(lat, lon):
+        raise HTTPException(status_code=400, detail="Invalid latitude or longitude coordinates")
+
+    return await get_composite_environmental_intelligence(lat, lon)

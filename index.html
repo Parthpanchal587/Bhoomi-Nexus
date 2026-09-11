@@ -1553,6 +1553,10 @@
   </style>
 </head>
 <body>
+  <div id="demo-mode-banner" style="display:none; position:fixed; top:0; left:0; width:100%; background:#FEF3C7; color:#92400E; border-bottom:2px solid #F59E0B; z-index:99999; text-align:center; padding:6px 12px; font-weight:700; font-size:12px; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+    ⚠️ DEMONSTRATION DATA (Offline / Simulation Mode) — Not authoritative legal land records.
+    <button onclick="toggleDataMode('live')" style="margin-left:12px; background:#D97706; color:#FFF; border:none; padding:2px 8px; border-radius:4px; cursor:pointer; font-weight:700; font-size:11px;">Switch to Live Data</button>
+  </div>
 
   <!-- 1. TOP TRICOLOR & ACCESSIBILITY BAR -->
   <div class="top-tricolor-bar"></div>
@@ -1729,6 +1733,14 @@
       <button class="layer-pill-btn" id="btn-split-view" onclick="toggleSplitView()" title="सभी पैनल देखें / Show All Panels" style="margin-left: 6px; border-left: 2px solid #CBD5E1;">
         <span>🗂️</span> <span data-i18n="btn_all_panels">विस्तृत दृश्य (Split View)</span>
       </button>
+      <!-- LIVE vs DEMO DATA MODE TOGGLE -->
+      <div class="data-mode-toggle-group" style="display:inline-flex; align-items:center; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:18px; padding:2px 4px; margin-left:8px;">
+        <button class="mode-toggle-btn" id="btn-mode-live" onclick="toggleDataMode('live')" style="border:none; background:#16A34A; color:#FFF; font-size:11px; font-weight:700; padding:3px 8px; border-radius:14px; cursor:pointer;" title="Strict real-source data only">🟢 LIVE DATA</button>
+        <button class="mode-toggle-btn" id="btn-mode-demo" onclick="toggleDataMode('demo')" style="border:none; background:transparent; color:#64748B; font-size:11px; font-weight:700; padding:3px 8px; border-radius:14px; cursor:pointer;" title="Demo simulation mode">🟡 DEMO MODE</button>
+      </div>
+      <button class="layer-pill-btn" onclick="openModal('modal-data-methodology')" title="डेटा स्रोत एवं कार्यप्रणाली (Data Sources & Methodology)" style="margin-left:6px; background:#F8FAFC; color:#0C3258; font-weight:700; border:1px solid #94A3B8;">
+        <span>📚</span> <span>डेटा स्रोत (Methodology)</span>
+      </button>
     </div>
   </div>
 
@@ -1809,45 +1821,45 @@
       <table class="telemetry-meta-table">
         <tr>
           <td class="label" data-i18n="lbl_cadastral_house">भवन / भूखंड (House / Plot):</td>
-          <td class="value" id="disp-cadastral-house" style="color: #0C3258;">Plot #104 / Residential Structure</td>
+          <td class="value" id="disp-cadastral-house" style="color: #0C3258;">निरीक्षण बिंदु (Click Map to Inspect)</td>
         </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_road">सड़क / मार्ग (Road / Street):</td>
-          <td class="value" id="disp-cadastral-road">राजस्व मुख्य मार्ग (Revenue Road)</td>
+          <td class="value" id="disp-cadastral-road">—</td>
         </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_village">ग्राम / मौजा (Village):</td>
-          <td class="value" id="disp-cadastral-village">Amer Cadastral Mouza</td>
+          <td class="value" id="disp-cadastral-village">—</td>
         </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_khasra">खसरा संख्या (Khasra No.):</td>
-          <td class="value" id="disp-cadastral-khasra" style="color: var(--color-gold);">KHA-7829-RJ</td>
+          <td class="value" id="disp-cadastral-khasra" style="color: var(--color-gold);">भू-नक्शा पोर्टल से प्राप्य (Bhu-Naksha Required)</td>
         </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_tehsil">तहसील एवं जिला:</td>
-          <td class="value" id="disp-cadastral-admin" data-i18n="cadastral_admin_disp">Amer, Jaipur (राजस्थान)</td>
+          <td class="value" id="disp-cadastral-admin" data-i18n="cadastral_admin_disp">भारत (India)</td>
         </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_area">रकबा (Cadastral Area):</td>
-          <td class="value" id="disp-cadastral-area" style="color: var(--color-gov-blue); font-weight: 800;">45.00 Ha (111.20 एकड़)</td>
+          <td class="value" id="disp-cadastral-area" style="color: var(--color-gov-blue); font-weight: 800;">भू-नक्शा पोर्टल से प्राप्य (Unavailable via open API)</td>
         </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_class">भूमि वर्गीकरण:</td>
-          <td class="value" id="disp-cadastral-class" style="color: var(--color-green); font-weight: 700;" data-i18n="val_cadastral_class">कृषि (चाही-1 / सिंचित)</td>
+          <td class="value" id="disp-cadastral-class" style="color: var(--color-green); font-weight: 700;" data-i18n="val_cadastral_class">राज्य राजस्व अभिलेख से सत्यापन योग्य</td>
         </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_geom">बहुभुज अखंडता (Geometry):</td>
-          <td class="value" id="disp-cadastral-geom" style="color: #16A34A; font-weight: 800;" data-i18n="val_cadastral_geom">✓ 100% संवृत (Closed Polygon)</td>
+          <td class="value" id="disp-cadastral-geom" style="color: #16A34A; font-weight: 800;" data-i18n="val_cadastral_geom">अभिलेख भू-नक्शा पोर्टल पर उपलब्ध</td>
         </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_hazard">बफर / संकट जांच:</td>
-          <td class="value" style="color: #0369A1; font-weight: 700;" data-i18n="val_cadastral_hazard">सुरक्षित (रेलवे/जल प्रवाह मुक्त)</td>
+          <td class="value" style="color: #0369A1; font-weight: 700;" data-i18n="val_cadastral_hazard">मानचित्र क्लिक पर विश्लेषित</td>
         </tr>
       </table>
 
       <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 5px; padding: 7px 10px; margin-top: 10px; font-size: 11px; color: #1E40AF; font-weight: 600; display: flex; align-items: center; gap: 6px;">
         <span>💡</span>
-        <span data-i18n="click_map_hint">नक्शे पर कहीं भी क्लिक करें — इंटरनेट से लाइव भू-अभिलेख एवं भवन डेटा लोड होगा।</span>
+        <span data-i18n="click_map_hint">नक्शे पर कहीं भी क्लिक करें — प्रशासनिक पदानुक्रम, वास्तविक मौसम व मृदा टेलीमेट्री लोड होगी।</span>
       </div>
 
       <!-- Cadastral Quick Action Grid -->
@@ -1866,11 +1878,11 @@
     </div>
 
     <!-- LEFT FLOATING CARD 2: SOIL & SATELLITE TELEMETRY -->
-    <div class="floating-card left-telemetry-card" id="card-telemetry" style="display: none;">
+    <div class="floating-card left-telemetry-card" id="card-telemetry" style="display: none; max-height: 85vh; overflow-y: auto;">
       <div class="card-title-bar">
         <div class="card-title-text">
           <span>🌱</span>
-          <span data-i18n="telemetry_card_title">मृदा परीक्षण एवं भू-उपग्रह टेलीमेट्री</span>
+          <span data-i18n="telemetry_card_title">मृदा परीक्षण एवं पर्यावरणीय टेलीमेट्री</span>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
           <button class="btn-refresh-telemetry" onclick="refreshTelemetry()" data-i18n="btn_refresh">🔄 नवीनीकृत</button>
@@ -1880,51 +1892,140 @@
 
       <table class="telemetry-meta-table">
         <tr>
-          <td class="label" data-i18n="lbl_khasra_no">खसरा संख्या (Khasra No.):</td>
-          <td class="value" style="color: var(--color-gold);">KHA-7829-RJ</td>
-        </tr>
-        <tr>
           <td class="label" data-i18n="lbl_coords">निर्देशांक (Coordinates):</td>
-          <td class="value" id="disp-tele-coords">23.0191° N, 71.4551° E</td>
+          <td class="value" id="disp-tele-coords" style="font-family: var(--font-mono); font-weight:700;">नक्शा क्लिक करें / Click Map</td>
         </tr>
         <tr>
-          <td class="label" data-i18n="lbl_source">डेटा स्रोत (Data Feeder):</td>
-          <td class="value" style="color: var(--color-text-title);">Open-Meteo Land Surface Telemetry</td>
+          <td class="label">डेटा स्रोत (Providers):</td>
+          <td class="value" style="color: var(--color-text-title); font-size:11px;">Open-Meteo & ISRIC SoilGrids 2.0</td>
+        </tr>
+        <tr>
+          <td class="label">अंतिम अपडेट (Freshness):</td>
+          <td class="value" id="disp-tele-timestamp" style="font-size:11px; color:#475569;">—</td>
         </tr>
       </table>
 
-      <!-- 2x2 Metric Grid -->
-      <div class="telemetry-grid">
-        <div class="telemetry-metric-box">
-          <div class="metric-name" data-i18n="metric_soil_moist">मृदा नमी (Soil Moisture 0-1cm)</div>
-          <div class="metric-val" id="val-soil-moist">20.6 %</div>
-          <div class="metric-sub" id="sub-soil-moist">0.206 m³/m³</div>
+      <!-- 1. Atmospheric Weather Box -->
+      <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px; padding:8px 10px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:11px; font-weight:800; color:#0F172A;">🌤️ वातावरणीय मौसम (Atmospheric Weather)</span>
+          <span style="font-size:9.5px; background:#DBEAFE; color:#1E40AF; padding:2px 5px; border-radius:3px; font-weight:700;">[MODELLED / FORECAST]</span>
         </div>
-        <div class="telemetry-metric-box">
-          <div class="metric-name" data-i18n="metric_surface_temp">सतह तापमान (Surface Temp)</div>
-          <div class="metric-val" id="val-surface-temp">25 °C</div>
-          <div class="metric-sub" id="sub-surface-temp">तापमान 24.2°C</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div style="background:#FFF; border:1px solid #E2E8F0; border-radius:4px; padding:5px 8px;">
+            <div style="font-size:10px; color:#64748B;">वायु तापमान (Air Temp)</div>
+            <div style="font-size:14px; font-weight:800; color:#0C3258;" id="val-air-temp">— °C</div>
+            <div style="font-size:9.5px; color:#64748B;" id="sub-apparent-temp">महसूस: — °C</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #E2E8F0; border-radius:4px; padding:5px 8px;">
+            <div style="font-size:10px; color:#64748B;">सापेक्ष आर्द्रता (Humidity)</div>
+            <div style="font-size:14px; font-weight:800; color:#0284C7;" id="val-humidity">— %</div>
+            <div style="font-size:9.5px; color:#64748B;" id="sub-humidity">2m संवेदक</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #E2E8F0; border-radius:4px; padding:5px 8px;">
+            <div style="font-size:10px; color:#64748B;">वर्षा (Precipitation)</div>
+            <div style="font-size:13px; font-weight:800; color:#059669;" id="val-rain">0.0 mm</div>
+            <div style="font-size:9.5px; color:#64748B;">वर्तमान दर</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #E2E8F0; border-radius:4px; padding:5px 8px;">
+            <div style="font-size:10px; color:#64748B;">पवन गति (Wind)</div>
+            <div style="font-size:13px; font-weight:800; color:#334155;" id="val-wind">— km/h</div>
+            <div style="font-size:9.5px; color:#64748B;" id="sub-wind-dir">10m ऊंचाई</div>
+          </div>
         </div>
-        <div class="telemetry-metric-box">
-          <div class="metric-name" data-i18n="metric_air_temp">वातावरणीय ताप (Air Temp)</div>
-          <div class="metric-val" id="val-air-temp">25.5 °C</div>
-          <div class="metric-sub" data-i18n="metric_air_sub">2m ऊँचाई सेंसर</div>
+      </div>
+
+      <!-- 2. Multi-Depth Soil Moisture Box -->
+      <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:8px 10px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:11px; font-weight:800; color:#14532D;">💧 मृदा नमी गहराई-वार (Soil Moisture m³/m³)</span>
+          <span style="font-size:9.5px; background:#DCFCE7; color:#166534; padding:2px 5px; border-radius:3px; font-weight:700;">[REANALYSIS]</span>
         </div>
-        <div class="telemetry-metric-box">
-          <div class="metric-name" data-i18n="metric_humidity">सापेक्ष आर्द्रता (Humidity)</div>
-          <div class="metric-val" id="val-humidity">89 %</div>
-          <div class="metric-sub" data-i18n="metric_humidity_sub">आर्द्रता गेज 58m</div>
+        <div style="font-size:10px; color:#475569; margin-bottom:6px;">वोल्यूमेट्रिक मृदा जल अनुपात (Volumetric Soil Water)</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div style="background:#FFF; border:1px solid #DCFCE7; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">0 – 7 cm (शीर्ष सतह)</div>
+            <div style="font-size:13px; font-weight:800; color:#15803D;" id="val-sm-0-7">— m³/m³</div>
+            <div style="font-size:9px; color:#16A34A;" id="pct-sm-0-7">— %</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #DCFCE7; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">7 – 28 cm (जड़ क्षेत्र)</div>
+            <div style="font-size:13px; font-weight:800; color:#15803D;" id="val-sm-7-28">— m³/m³</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #DCFCE7; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">28 – 100 cm (मध्य मृदा)</div>
+            <div style="font-size:13px; font-weight:800; color:#15803D;" id="val-sm-28-100">— m³/m³</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #DCFCE7; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">100 – 255 cm (गहरी मृदा)</div>
+            <div style="font-size:13px; font-weight:800; color:#15803D;" id="val-sm-100-255">— m³/m³</div>
+          </div>
         </div>
+      </div>
+
+      <!-- 3. Multi-Depth Soil Temperature Box -->
+      <div style="background:#FFFBEB; border:1px solid #FDE68A; border-radius:6px; padding:8px 10px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:11px; font-weight:800; color:#78350F;">🌡️ मृदा तापमान (Soil Temperature °C)</span>
+          <span style="font-size:9.5px; background:#FEF3C7; color:#92400E; padding:2px 5px; border-radius:3px; font-weight:700;">[REANALYSIS]</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div style="background:#FFF; border:1px solid #FEF3C7; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">0 – 7 cm:</div>
+            <div style="font-size:13px; font-weight:800; color:#B45309;" id="val-st-0-7">— °C</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #FEF3C7; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">7 – 28 cm:</div>
+            <div style="font-size:13px; font-weight:800; color:#B45309;" id="val-st-7-28">— °C</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #FEF3C7; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">28 – 100 cm:</div>
+            <div style="font-size:13px; font-weight:800; color:#B45309;" id="val-st-28-100">— °C</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #FEF3C7; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">100 – 255 cm:</div>
+            <div style="font-size:13px; font-weight:800; color:#B45309;" id="val-st-100-255">— °C</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. ISRIC SoilGrids 2.0 Spatial Prediction Box -->
+      <div style="background:#FAF5FF; border:1px solid #E9D5FF; border-radius:6px; padding:8px 10px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:11px; font-weight:800; color:#581C87;">🔬 मृदा संरचना (ISRIC SoilGrids 250m)</span>
+          <span style="font-size:9.5px; background:#F3E8FF; color:#6B21A8; padding:2px 5px; border-radius:3px; font-weight:700;">[SPATIAL ESTIMATE]</span>
+        </div>
+        <div style="font-size:9.5px; color:#64748B; margin-bottom:6px;">अनुमानित भौतिक व रासायनिक गुण (0–5 cm गहराई)</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div style="background:#FFF; border:1px solid #F3E8FF; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">मृदा pH (H₂O)</div>
+            <div style="font-size:13px; font-weight:800; color:#7E22CE;" id="val-soil-ph">—</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #F3E8FF; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">जैविक कार्बन (SOC)</div>
+            <div style="font-size:13px; font-weight:800; color:#7E22CE;" id="val-soil-soc">— g/kg</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #F3E8FF; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">चिकनी मिट्टी (Clay)</div>
+            <div style="font-size:13px; font-weight:800; color:#7E22CE;" id="val-soil-clay">— %</div>
+          </div>
+          <div style="background:#FFF; border:1px solid #F3E8FF; border-radius:4px; padding:4px 6px;">
+            <div style="font-size:9.5px; color:#64748B;">रेत अनुपात (Sand)</div>
+            <div style="font-size:13px; font-weight:800; color:#7E22CE;" id="val-soil-sand">— %</div>
+          </div>
+        </div>
+        <div style="margin-top:6px; font-size:10px; color:#6B21A8;" id="val-soil-texture">संरचना: —</div>
+        <div style="font-size:9px; color:#9333EA; margin-top:3px; line-height:1.3;">⚠️ स्थानिक मृदा अनुमान — प्रयोगशाला मृदा स्वास्थ्य कार्ड (Soil Health Card) का विकल्प नहीं है।</div>
       </div>
 
       <!-- Suitability Box -->
-      <div class="suitability-badge-box">
-        <div class="suitability-title" id="disp-suit-title">उपयुक्तता: SEMI-ARID / MODERATE MOISTURE</div>
-        <div class="suitability-desc" id="disp-suit-desc">Suitable for Mustard, Pulses, Cluster Bean (Guar)</div>
+      <div class="suitability-badge-box" style="margin-top:8px;">
+        <div class="suitability-title" id="disp-suit-title">उपयुक्तता स्थिति: विश्लेषित हो रही है...</div>
+        <div class="suitability-desc" id="disp-suit-desc">नक्शे पर किसी स्थान पर क्लिक करके वास्तविक क्षेत्रीय डेटा देखें।</div>
       </div>
 
-      <div class="telemetry-source-note" data-i18n="telemetry_note">
-        <span>ℹ️ चयनित पार्सल के लिए ओपन-मेटियो द्वारा रीयल-टाइम उपग्रह टेलीमेट्री डेटा लोड किया गया।</span>
+      <div class="telemetry-source-note" style="margin-top:8px;">
+        <span>ℹ️ वास्तविक ECMWF / Open-Meteo एवं ISRIC SoilGrids 2.0 डेटा। कोई कृत्रिम मान नहीं।</span>
       </div>
     </div>
 
@@ -1943,9 +2044,13 @@
         </div>
       </div>
 
-      <div class="form-group-row" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="form-group-row" style="display: flex; justify-content: space-between; align-items: center; background:#F8FAFC; padding:6px 8px; border-radius:5px; border:1px solid #E2E8F0;">
         <span style="font-size: 12px; font-weight: 800;" data-i18n="lbl_total_area">कुल रकबा (Total Area):</span>
-        <span class="form-static-val" id="disp-total-ha">45.00 हेक्टेयर (111.2 एकड़)</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <input type="number" id="input-total-ha" class="gov-input" value="10.0" min="0.1" step="0.5" oninput="recalculateTariff()" style="width:75px; padding:3px 6px; font-size:12px; font-weight:700; text-align:right;" />
+          <span style="font-size:11.5px; font-weight:700; color:#334155;">Ha</span>
+          <span style="background:#E2E8F0; color:#334155; font-size:9.5px; padding:2px 4px; border-radius:3px; font-weight:700;">[USER INPUT]</span>
+        </div>
       </div>
 
       <div class="form-group-row">
@@ -2016,7 +2121,7 @@
       <span style="font-weight: 800; color: #0F172A;" data-i18n="legend_title">संकेतिका (Legend):</span>
       <div class="legend-item">
         <span class="legend-color-box" style="background: #EAB308;"></span>
-        <span data-i18n="legend_parcel">खसरा सीमा (Survey Parcel 7829)</span>
+        <span data-i18n="legend_parcel">निरीक्षण क्षेत्र सीमा (Inspection Boundary)</span>
       </div>
       <div class="legend-item">
         <span class="legend-color-box" style="background: #22C55E;"></span>
@@ -3181,7 +3286,7 @@
         tariff_label: "कुल देय राजस्व शुल्क (Total Statutory Tariff):",
         btn_notarize: "प्रमाणित करें एवं संप्रभु लेज़र में दर्ज करें",
         legend_title: "संकेतिका (Legend):",
-        legend_parcel: "खसरा सीमा (Survey Parcel 7829)",
+        legend_parcel: "निरीक्षण क्षेत्र सीमा (Inspection Boundary)",
         legend_agri: "कृषि भूमि (Agriculture)",
         legend_divert: "प्रस्तावित संपरिवर्तन (Diversion)",
         footer_policies: "वेबसाइट नीतियां",
@@ -3303,7 +3408,7 @@
         tariff_label: "Total Statutory Revenue Tariff:",
         btn_notarize: "Notarize & Register in Sovereign Ledger",
         legend_title: "Legend:",
-        legend_parcel: "Khasra Boundary 7829",
+        legend_parcel: "Inspection Boundary",
         legend_agri: "Agricultural Land",
         legend_divert: "Proposed Diversion Area",
         footer_policies: "Website Policies",
@@ -3798,7 +3903,7 @@
       setupGISSearch();
 
       // Initial inspection at default location (Jaipur/Amer)
-      inspectLocation(currentLat, currentLon, "Amer, Jaipur Parcel 7829", 11, false);
+      inspectLocation(currentLat, currentLon, "निरीक्षण बिंदु / Inspection Point", 11, false);
     }
 
     function setMapLayer(type) {
@@ -3928,6 +4033,28 @@
     // ============================================================
     // REAL-TIME INTERNET LAND & HOUSE DETAILS INSPECTOR
     // ============================================================
+    let isDemoMode = false;
+
+    function toggleDataMode(mode) {
+      isDemoMode = (mode === 'demo');
+      const btnLive = document.getElementById("btn-mode-live");
+      const btnDemo = document.getElementById("btn-mode-demo");
+      const banner = document.getElementById("demo-mode-banner");
+
+      if (isDemoMode) {
+        if (btnDemo) { btnDemo.style.background = "#D97706"; btnDemo.style.color = "#FFF"; }
+        if (btnLive) { btnLive.style.background = "transparent"; btnLive.style.color = "#64748B"; }
+        if (banner) banner.style.display = "block";
+        showToast(currentLang === 'hi' ? "⚠️ डेमो मोड सक्रिय (Demonstration Mode Active)" : "⚠️ Demo Mode Active (Simulation Data)");
+      } else {
+        if (btnLive) { btnLive.style.background = "#16A34A"; btnLive.style.color = "#FFF"; }
+        if (btnDemo) { btnDemo.style.background = "transparent"; btnDemo.style.color = "#64748B"; }
+        if (banner) banner.style.display = "none";
+        showToast(currentLang === 'hi' ? "🟢 लाइव डेटा मोड सक्रिय (Live Authoritative Data Active)" : "🟢 Live Data Mode Active (Strict Real Sources)");
+      }
+      refreshTelemetry();
+    }
+
     async function inspectLocation(lat, lon, customTitle = null, targetZoom = null, shouldSyncDropdowns = false) {
       // 1. Strict Land Verification: Reject water bodies, sea, and outside-India coordinates
       if (window.isPointInIndiaLand && !window.isPointInIndiaLand(lat, lon)) {
@@ -3935,26 +4062,22 @@
           ? "🌊 जलीय क्षेत्र / बाहर: यहाँ कोई कैडस्ट्रल भूमि अथवा भूखंड पंजीकृत नहीं है।" 
           : "🌊 Water Body / Outside Boundary: No cadastral land plot registered here.");
         
-        // Remove or close marker & popup
-        if (inspectionMarker) {
-          inspectionMarker.closePopup();
-        }
+        if (inspectionMarker) inspectionMarker.closePopup();
         if (parcelPolygon && map) map.removeLayer(parcelPolygon);
         if (sec90aPolygon && map) map.removeLayer(sec90aPolygon);
 
-        // Update left sidebar panel to indicate Water Body
         const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-        setEl("disp-plot-no", currentLang === 'hi' ? "🌊 जलीय क्षेत्र (Water Body)" : "🌊 Water / Sea Area");
-        setEl("disp-road-name", currentLang === 'hi' ? "समुद्र / जल निकाय (Maritime Zone)" : "Sea / Open Water Body");
-        setEl("disp-village-name", currentLang === 'hi' ? "कोई राजस्व ग्राम नहीं (No Revenue Village)" : "No Cadastral Village");
-        setEl("disp-khasra-no", currentLang === 'hi' ? "गैर-कैडस्ट्रल (Unsurveyed Sea)" : "Non-Cadastral");
-        setEl("disp-tehsil-dist", currentLang === 'hi' ? "भारतीय प्रादेशिक जल (Territorial Waters)" : "Indian Territorial Waters");
+        setEl("disp-cadastral-house", currentLang === 'hi' ? "🌊 जलीय क्षेत्र (Water Body)" : "🌊 Water / Sea Area");
+        setEl("disp-cadastral-road", currentLang === 'hi' ? "समुद्र / जल निकाय (Maritime Zone)" : "Sea / Open Water Body");
+        setEl("disp-cadastral-village", currentLang === 'hi' ? "कोई राजस्व ग्राम नहीं (No Revenue Village)" : "No Cadastral Village");
+        setEl("disp-cadastral-khasra", currentLang === 'hi' ? "गैर-कैडस्ट्रल (Unsurveyed Sea)" : "Non-Cadastral");
+        setEl("disp-cadastral-admin", currentLang === 'hi' ? "भारतीय प्रादेशिक जल (Territorial Waters)" : "Indian Territorial Waters");
         setEl("disp-cadastral-area", "0.00 Ha (0.0 Acres)");
-        setEl("disp-land-class", currentLang === 'hi' ? "जल निकाय / समुद्र (Open Water)" : "Water Body / Sea");
-        setEl("disp-boundary-status", currentLang === 'hi' ? "❌ कोई भूमि भूखंड नहीं (No Land Parcel)" : "❌ No Land Parcel");
-        setEl("disp-buffer-status", currentLang === 'hi' ? "⚠️ समुद्री क्षेत्र (Maritime Zone)" : "⚠️ Maritime Zone");
+        setEl("disp-cadastral-class", currentLang === 'hi' ? "जल निकाय / समुद्र (Open Water)" : "Water Body / Sea");
+        setEl("disp-cadastral-geom", currentLang === 'hi' ? "❌ कोई भूमि भूखंड नहीं (No Land Parcel)" : "❌ No Land Parcel");
         return;
       }
+
       currentLat = lat;
       currentLon = lon;
 
@@ -3968,40 +4091,35 @@
         map.panTo([lat, lon]);
       }
 
-      // Update dynamic coordinates display
       const coordsText = `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`;
       const dispCoords = document.getElementById("disp-tele-coords");
       if (dispCoords) dispCoords.innerText = coordsText;
 
-      // Redraw dynamic cadastral & diversion boundary polygons
       redrawParcelAt(lat, lon);
-
-      // Animate green telemetry pulse
       animateTelemetryPulse();
 
-      // Show temporary loading indicator in popup
       if (inspectionMarker) {
         inspectionMarker.bindPopup(`
-          <div style="font-family: var(--font-main); font-size: 12px; padding: 6px; min-width: 200px; text-align: center;">
+          <div style="font-family: var(--font-main); font-size: 12px; padding: 6px; min-width: 220px; text-align: center;">
             <div style="font-size: 16px; margin-bottom: 4px;">📡</div>
-            <strong style="color: #0C3258;">${currentLang === 'hi' ? 'लाइव भू-अभिलेख व भवन डेटा प्राप्त हो रहा है...' : 'Fetching Live Land & House Data...'}</strong>
+            <strong style="color: #0C3258;">${currentLang === 'hi' ? 'वास्तविक भू-स्थानिक व टेलीमेट्री डेटा लोड हो रहा है...' : 'Fetching Live GIS & Environmental Data...'}</strong>
             <div style="color: #64748B; font-size: 11px; margin-top: 2px;">${coordsText}</div>
           </div>
         `).openPopup();
       }
 
       try {
-        // Fetch Live Land Details (OSM reverse) and Live Satellite Telemetry in parallel
-        const [geoRes, teleRes] = await Promise.allSettled([
+        // Fetch Live Reverse Geocoding, Real Weather & Soil Telemetry, and ISRIC SoilGrids in parallel
+        const [geoRes, teleRes, soilRes] = await Promise.allSettled([
           fetch(`${API_BASE}/api/geo/reverse?lat=${lat}&lon=${lon}`),
-          fetch(`${API_BASE}/api/telemetry/live?lat=${lat}&lon=${lon}`)
+          fetch(`${API_BASE}/api/telemetry/live?lat=${lat}&lon=${lon}`),
+          fetch(`${API_BASE}/api/v1/env/soil?lat=${lat}&lon=${lon}`)
         ]);
 
         let geoData = null;
         if (geoRes.status === "fulfilled" && geoRes.value.ok) {
           geoData = await geoRes.value.json();
         } else {
-          // Robust client-side fallback using nearest admin calculation
           const nearest = findNearestAdmin(lat, lon);
           geoData = {
             house_number: customTitle || (currentLang === 'hi' ? 'भू-अभिलेख निरीक्षण बिंदु' : 'Land Record Inspection Point'),
@@ -4011,11 +4129,11 @@
             district: nearest.district,
             state: nearest.state,
             postcode: nearest.postcode,
-            khasra_no: currentLang === 'hi' ? 'कैडस्ट्रल डेटा भू-नक्शा से उपलब्ध' : 'Cadastral data via Bhu-Naksha',
-            cadastral_area_ha: currentLang === 'hi' ? 'भू-नक्शा से प्राप्य' : 'Available via Bhu-Naksha',
-            cadastral_area_acres: '',
-            land_classification: currentLang === 'hi' ? 'राज्य भू-अभिलेख विभाग से प्राप्य' : 'Available from State Revenue Dept.',
-            geometry_status: currentLang === 'hi' ? 'ℹ️ कैडस्ट्रल सीमा भू-नक्शा पोर्टल पर' : 'ℹ️ Cadastral boundary on Bhu-Naksha portal'
+            khasra_no: currentLang === 'hi' ? 'भू-नक्शा पोर्टल से प्राप्य' : 'Available via Bhu-Naksha',
+            cadastral_area_ha: null,
+            cadastral_area_acres: null,
+            land_classification: currentLang === 'hi' ? 'राज्य राजस्व अभिलेख से सत्यापन योग्य' : 'Verify via State Revenue Dept.',
+            geometry_status: currentLang === 'hi' ? 'अभिलेख भू-नक्शा पोर्टल पर उपलब्ध' : 'Cadastral boundary on Bhu-Naksha portal'
           };
         }
 
@@ -4026,40 +4144,28 @@
         let teleData = null;
         if (teleRes.status === "fulfilled" && teleRes.value.ok) {
           teleData = await teleRes.value.json();
-          updateTelemetryDOM(teleData);
         }
 
-        // Update Cadastral Inspector Panel DOM
+        let soilData = null;
+        if (soilRes.status === "fulfilled" && soilRes.value.ok) {
+          soilData = await soilRes.value.json();
+        }
+
         updateCadastralInspectorDOM(geoData, coordsText);
+        updateTelemetryDOM(teleData, soilData);
 
-        // Update Section 90-A slider dynamic acreage
-        const slider = document.getElementById("slider-divert-ha");
-        if (slider && geoData.cadastral_area_ha) {
-          slider.max = geoData.cadastral_area_ha;
-          slider.value = Math.min(18.0, (geoData.cadastral_area_ha * 0.4).toFixed(1));
-          recalculateTariff();
-        }
-
-        // Render comprehensive interactive popup on the marker
         if (inspectionMarker) {
-          const popupHtml = buildRichMarkerPopup(geoData, teleData, coordsText);
-          inspectionMarker.bindPopup(popupHtml, { maxWidth: 320 }).openPopup();
+          const popupHtml = buildRichMarkerPopup(geoData, teleData, soilData, coordsText);
+          inspectionMarker.bindPopup(popupHtml, { maxWidth: 340 }).openPopup();
         }
 
-        showToast(`${currentLang === 'hi' ? 'भू-अभिलेख प्राप्त: ' : 'Land record loaded: '}${geoData.khasra_no} (${geoData.district})`);
+        showToast(`${currentLang === 'hi' ? 'स्थानिक डेटा लोड हुआ: ' : 'Spatial data loaded: '}${geoData.tehsil || geoData.district || 'India'}`);
       } catch (err) {
         console.error("Inspect location error:", err);
       }
     }
 
     function redrawParcelAt(lat, lon) {
-      // NOTE: Official cadastral/plot boundaries require access to state
-      // Bhu-Naksha services (e.g., bhunaksha.rajasthan.gov.in) which use
-      // CAPTCHA/session-based authentication. We do not fabricate fake
-      // plot boundaries. Instead, we show real administrative data from
-      // NIC Bharat Maps and indicate cadastral data availability honestly.
-
-      // Use real GIS identification to find admin hierarchy at this point
       if (window.BhoomiGIS) {
         BhoomiGIS.identifyLocation(lat, lon).then(function(result) {
           if (result && result.state) {
@@ -4067,7 +4173,6 @@
             var distName = result.district ? (result.district.D_Pan_Name || '') : '';
             var blockName = result.block ? (result.block.B_Pan_Name || '') : '';
 
-            // Update cadastral inspector with real admin hierarchy
             var elAdmin = document.getElementById('disp-cadastral-admin');
             if (elAdmin && stateName) {
               elAdmin.innerText = (blockName ? blockName + ', ' : '') + (distName ? distName + ', ' : '') + stateName;
@@ -4076,7 +4181,6 @@
         });
       }
 
-      // Show inspection circle (not a fake parcel polygon)
       if (parcelPolygon && map && map.hasLayer(parcelPolygon)) {
         map.removeLayer(parcelPolygon);
       }
@@ -4090,14 +4194,13 @@
       }).addTo(map);
 
       parcelPolygon.bindTooltip(
-        currentLang === 'hi' ? "निरीक्षण क्षेत्र (Inspection Area)" : "Inspection Area (Official cadastral data requires Bhu-Naksha access)",
+        currentLang === 'hi' ? "निरीक्षण क्षेत्र (Inspection Area - Cadastral records require Bhu-Naksha access)" : "Inspection Area (Official cadastral data requires Bhu-Naksha access)",
         { permanent: false }
       );
       parcelPolygon.on("click", function() {
         activateTab(document.getElementById("tab-btn-cadastral"), 'cadastral');
       });
 
-      // Diversion area indicator (for Section 90-A calculator — illustrative only)
       if (divertPolygon && map && map.hasLayer(divertPolygon)) {
         map.removeLayer(divertPolygon);
       }
@@ -4111,7 +4214,7 @@
       }).addTo(map);
 
       divertPolygon.bindTooltip(
-        currentLang === 'hi' ? "प्रस्तावित धारा 90-क संपरिवर्तन (Diversion Area)" : "Proposed Section 90-A Diversion Area",
+        currentLang === 'hi' ? "प्रस्तावित धारा 90-क संपरिवर्तन (Section 90-A Area)" : "Proposed Section 90-A Diversion Area",
         { permanent: false }
       );
       divertPolygon.on("click", () => {
@@ -4119,38 +4222,56 @@
       });
     }
 
-    function buildRichMarkerPopup(geo, tele, coordsText) {
+    function buildRichMarkerPopup(geo, tele, soil, coordsText) {
       const isHi = currentLang === 'hi';
-      const soilMoist = tele ? `${tele.soil_moisture_percentage} %` : '28.4 %';
+      const airTemp = tele && tele.ambient_temperature_c != null ? `${tele.ambient_temperature_c} °C` : '—';
+      const humid = tele && tele.relative_humidity_pct != null ? `${tele.relative_humidity_pct} %` : '—';
+      const sm0_7 = tele && tele.soil_moisture_volumetric != null ? `${tele.soil_moisture_volumetric} m³/m³` : '—';
+      const soilPh = soil && soil.summary_0_5cm && soil.summary_0_5cm.ph != null ? soil.summary_0_5cm.ph : '—';
+
+      const khasraLabel = geo.khasra_no || (isHi ? 'भू-नक्शा पोर्टल से प्राप्य' : 'Bhu-Naksha Record');
+      const areaLabel = geo.cadastral_area_ha != null ? `${geo.cadastral_area_ha} Ha` : (isHi ? 'भू-नक्शा से प्राप्य' : 'Via Bhu-Naksha');
 
       return `
-        <div style="font-family: var(--font-main); font-size: 12px; color: #0F172A; min-width: 250px; line-height: 1.4;">
+        <div style="font-family: var(--font-main); font-size: 12px; color: #0F172A; min-width: 270px; line-height: 1.4;">
           <div style="background: #0C3258; color: #FFF; padding: 6px 10px; border-radius: 4px 4px 0 0; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
-            <span>🏛️ ${isHi ? 'राष्ट्रीय भू-अभिलेख' : 'National Land Registry'}</span>
-            <span style="font-family: var(--font-mono); font-size: 11px; color: #FCD34D;">${geo.khasra_no}</span>
+            <span>🏛️ ${isHi ? 'राष्ट्रीय भू-स्थानिक नोड' : 'National Geospatial Node'}</span>
+            <span style="font-size: 10px; background:#1E3A8A; padding:1px 5px; border-radius:3px;">${isDemoMode ? 'DEMO' : 'LIVE'}</span>
           </div>
           <div style="padding: 8px 10px; background: #FFFFFF; border: 1px solid #CBD5E1; border-top: none; border-radius: 0 0 4px 4px;">
             <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #F1F5F9;">
-              <div style="font-size: 11px; color: #475569; font-weight: 700;">🏠 ${isHi ? 'भवन / भूखंड विवरण' : 'House & Plot Details'}:</div>
-              <strong style="color: #0C3258; font-size: 12.5px;">${geo.house_number || 'Plot #104 / Structure'}</strong>
-              <div style="font-size: 11px; color: #334155;">🛣️ ${geo.road || 'Revenue Survey Road'}</div>
-            </div>
-
-            <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #F1F5F9;">
-              <div style="font-size: 11px; color: #475569; font-weight: 700;">📍 ${isHi ? 'राजस्व सीमा' : 'Cadastral Jurisdiction'}:</div>
-              <div style="font-size: 12px; color: #1E293B; font-weight: 700;">${geo.village || ''}, ${geo.tehsil || ''}</div>
+              <div style="font-size: 10.5px; color: #475569; font-weight: 700;">📍 ${isHi ? 'प्रशासनिक क्षेत्राधिकार' : 'Administrative Jurisdiction'}:</div>
+              <div style="font-size: 12px; color: #1E293B; font-weight: 800;">${geo.village || ''}, ${geo.tehsil || ''}</div>
               <div style="font-size: 11px; color: #475569;">${geo.district || ''}, ${geo.state || ''} ${geo.postcode ? '• ' + geo.postcode : ''}</div>
+              <div style="font-size: 10.5px; color: #64748B; font-family: var(--font-mono); margin-top:2px;">${coordsText}</div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; font-size: 11px;">
+            <!-- Environmental Telemetry Metrics -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px; font-size: 11px;">
               <div style="background: #F8FAFC; padding: 4px 6px; border-radius: 4px; border: 1px solid #E2E8F0;">
-                <div style="color: #475569; font-size: 10px;">${isHi ? 'रकबा' : 'Area'}</div>
-                <strong style="color: #0C3258;">${geo.cadastral_area_ha} Ha</strong>
+                <div style="color: #475569; font-size: 9.5px;">वायु तापमान (Air Temp)</div>
+                <strong style="color: #0C3258;">${airTemp}</strong>
               </div>
               <div style="background: #F8FAFC; padding: 4px 6px; border-radius: 4px; border: 1px solid #E2E8F0;">
-                <div style="color: #475569; font-size: 10px;">${isHi ? 'मृदा नमी' : 'Moisture'}</div>
-                <strong style="color: #16A34A;">${soilMoist}</strong>
+                <div style="color: #475569; font-size: 9.5px;">आर्द्रता (Humidity)</div>
+                <strong style="color: #0284C7;">${humid}</strong>
               </div>
+              <div style="background: #F0FDF4; padding: 4px 6px; border-radius: 4px; border: 1px solid #DCFCE7;">
+                <div style="color: #166534; font-size: 9.5px;">मृदा नमी (0-7cm)</div>
+                <strong style="color: #15803D;">${sm0_7}</strong>
+              </div>
+              <div style="background: #FAF5FF; padding: 4px 6px; border-radius: 4px; border: 1px solid #F3E8FF;">
+                <div style="color: #6B21A8; font-size: 9.5px;">मृदा pH (SoilGrids)</div>
+                <strong style="color: #7E22CE;">${soilPh}</strong>
+              </div>
+            </div>
+
+            <!-- DATA PROVENANCE SECTION -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 4px; padding: 5px 7px; margin-bottom: 8px; font-size: 10px; line-height: 1.4;">
+              <div style="font-weight: 800; color: #0C3258; margin-bottom: 2px;">📊 DATA PROVENANCE:</div>
+              <div>• कैडस्ट्रल: <span style="color:#B45309; font-weight:700;">भू-नक्शा / NIC</span> [CADASTRAL]</div>
+              <div>• मौसम व नमी: <span style="color:#0284C7; font-weight:700;">Open-Meteo ECMWF</span> [MODELLED/REANALYSIS]</div>
+              <div>• मृदा संरचना: <span style="color:#7E22CE; font-weight:700;">ISRIC SoilGrids 250m</span> [SPATIAL ESTIMATE]</div>
             </div>
 
             <div style="display: flex; gap: 4px;">
@@ -4172,65 +4293,130 @@
     function updateCadastralInspectorDOM(geo, coordsText) {
       const isHi = currentLang === 'hi';
       const elHouse = document.getElementById("disp-cadastral-house");
-      if (elHouse) elHouse.innerText = geo.house_number || "Plot #104 / Residential Structure";
+      if (elHouse) elHouse.innerText = geo.house_number || (isHi ? "निरीक्षण बिंदु" : "Inspection Point");
 
       const elRoad = document.getElementById("disp-cadastral-road");
-      if (elRoad) elRoad.innerText = geo.road || "राजस्व मुख्य मार्ग (Revenue Road)";
+      if (elRoad) elRoad.innerText = geo.road || "राजस्व संपर्क मार्ग";
 
       const elVillage = document.getElementById("disp-cadastral-village");
-      if (elVillage) elVillage.innerText = geo.village || `${geo.tehsil || 'Amer'} Cadastral Mouza`;
+      if (elVillage) elVillage.innerText = geo.village || `${geo.tehsil || 'प्रशासनिक क्षेत्र'}`;
 
       const elKhasra = document.getElementById("disp-cadastral-khasra");
-      if (elKhasra) elKhasra.innerText = geo.khasra_no || "KHA-7829-RJ";
+      if (elKhasra) elKhasra.innerText = geo.khasra_no || (isHi ? "भू-नक्शा पोर्टल से प्राप्य (Bhu-Naksha Required)" : "Available via Bhu-Naksha");
 
       const elAdmin = document.getElementById("disp-cadastral-admin");
-      if (elAdmin) elAdmin.innerText = `${geo.tehsil || 'Amer'}, ${geo.district || 'Jaipur'} (${geo.state || 'Rajasthan'})`;
+      if (elAdmin) elAdmin.innerText = `${geo.tehsil || ''}, ${geo.district || ''} (${geo.state || 'India'})`;
 
       const elArea = document.getElementById("disp-cadastral-area");
-      if (elArea) elArea.innerText = `${geo.cadastral_area_ha || 45.0} Ha (${geo.cadastral_area_acres || 111.2} ${isHi ? 'एकड़' : 'Acres'})`;
+      if (elArea) {
+        if (geo.cadastral_area_ha != null) {
+          elArea.innerText = `${geo.cadastral_area_ha} Ha (${geo.cadastral_area_acres || ''} ${isHi ? 'एकड़' : 'Acres'})`;
+        } else {
+          elArea.innerText = isHi ? "भू-नक्शा पोर्टल से प्राप्य (Unavailable via open API)" : "Available via Bhu-Naksha Portal";
+        }
+      }
 
       const elClass = document.getElementById("disp-cadastral-class");
-      if (elClass) elClass.innerText = geo.land_classification || (isHi ? "कृषि (चाही-1 / सिंचित)" : "Agriculture (Irrigated)");
+      if (elClass) elClass.innerText = geo.land_classification || (isHi ? "राज्य राजस्व अभिलेख से सत्यापन योग्य" : "Verify via State Land Records");
 
       const elGeom = document.getElementById("disp-cadastral-geom");
-      if (elGeom) elGeom.innerText = geo.geometry_status || "✓ 100% संवृत (Closed Polygon)";
-
-      const dispTotal = document.getElementById("disp-total-ha");
-      if (dispTotal) {
-        dispTotal.innerText = `${geo.cadastral_area_ha || 45.0} ${isHi ? 'हेक्टेयर' : 'Hectares'} (${geo.cadastral_area_acres || 111.2} ${isHi ? 'एकड़' : 'Acres'})`;
-      }
+      if (elGeom) elGeom.innerText = geo.geometry_status || (isHi ? "अभिलेख भू-नक्शा पोर्टल पर उपलब्ध" : "Boundary on State Bhu-Naksha Portal");
     }
 
-    function updateTelemetryDOM(data) {
-      if (!data) return;
-      const elMoist = document.getElementById("val-soil-moist");
-      if (elMoist) elMoist.innerText = `${data.soil_moisture_percentage ?? 24.2} %`;
+    function updateTelemetryDOM(teleData, soilData) {
+      // 1. Coordinates & Timestamp
+      const elCoords = document.getElementById("disp-tele-coords");
+      if (elCoords && teleData) {
+        elCoords.innerText = `${teleData.latitude.toFixed(4)}° N, ${teleData.longitude.toFixed(4)}° E`;
+      }
+      const elTime = document.getElementById("disp-tele-timestamp");
+      if (elTime && teleData && teleData.timestamp) {
+        try {
+          const d = new Date(teleData.timestamp);
+          elTime.innerText = d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST';
+        } catch(e) {
+          elTime.innerText = teleData.timestamp;
+        }
+      }
 
-      const elSubMoist = document.getElementById("sub-soil-moist");
-      const moistVol = data.soil_moisture_volumetric != null ? Number(data.soil_moisture_volumetric).toFixed(3) : "0.180";
-      if (elSubMoist) elSubMoist.innerText = `${moistVol} m³/m³`;
+      // 2. Weather
+      if (teleData) {
+        const elAir = document.getElementById("val-air-temp");
+        if (elAir) elAir.innerText = teleData.ambient_temperature_c != null ? `${teleData.ambient_temperature_c} °C` : '—';
 
-      const elSurfTemp = document.getElementById("val-surface-temp");
-      const surfTemp = data.surface_temperature_c != null ? Math.round(Number(data.surface_temperature_c)) : 28;
-      if (elSurfTemp) elSurfTemp.innerText = `${surfTemp} °C`;
+        const elApp = document.getElementById("sub-apparent-temp");
+        if (elApp) {
+          const appTemp = teleData.surface_temperature_c != null ? teleData.surface_temperature_c : teleData.ambient_temperature_c;
+          elApp.innerText = appTemp != null ? `महसूस: ${appTemp} °C` : 'महसूस: —';
+        }
 
-      const elSubTemp = document.getElementById("sub-surface-temp");
-      const soilTemp = data.soil_temperature_10cm_c != null ? data.soil_temperature_10cm_c : 26.5;
-      if (elSubTemp) elSubTemp.innerText = `${currentLang === 'hi' ? 'तापमान' : 'Sensor'} ${soilTemp}°C`;
+        const elHumid = document.getElementById("val-humidity");
+        if (elHumid) elHumid.innerText = teleData.relative_humidity_pct != null ? `${Math.round(teleData.relative_humidity_pct)} %` : '—';
 
-      const elAirTemp = document.getElementById("val-air-temp");
-      const airTemp = data.ambient_temperature_c != null ? data.ambient_temperature_c : 31.0;
-      if (elAirTemp) elAirTemp.innerText = `${airTemp} °C`;
+        const elRain = document.getElementById("val-rain");
+        if (elRain) elRain.innerText = `${teleData.precipitation_mm ?? 0.0} mm`;
 
-      const elHumid = document.getElementById("val-humidity");
-      const humid = data.relative_humidity_pct != null ? Math.round(Number(data.relative_humidity_pct)) : 42;
-      if (elHumid) elHumid.innerText = `${humid} %`;
+        const elWind = document.getElementById("val-wind");
+        if (elWind) elWind.innerText = teleData.wind_speed_kmh != null ? `${teleData.wind_speed_kmh} km/h` : '—';
 
-      const elSuitTitle = document.getElementById("disp-suit-title");
-      if (elSuitTitle) elSuitTitle.innerText = `${currentLang === 'hi' ? 'उपयुक्तता:' : 'Suitability:'} ${data.aridity_status || 'Semi-Arid (Semi-Moist)'}`;
+        const elWindDir = document.getElementById("sub-wind-dir");
+        if (elWindDir && teleData.wind_direction_deg != null) {
+          elWindDir.innerText = `दिशा: ${teleData.wind_direction_deg}°`;
+        }
 
-      const elSuitDesc = document.getElementById("disp-suit-desc");
-      if (elSuitDesc) elSuitDesc.innerText = data.cadastral_crop_suitability || 'Moisture adequate for Kharif & Rabi pulses.';
+        // 3. Multi-Depth Soil Moisture
+        const smDepths = teleData.soil_moisture_depths || {};
+        const setVal = (id, v, unit = "") => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = v != null ? `${v} ${unit}`.trim() : '—';
+        };
+
+        setVal("val-sm-0-7", smDepths.layer_0_to_7cm, "m³/m³");
+        setVal("pct-sm-0-7", smDepths.percentage_0_to_7cm, "%");
+        setVal("val-sm-7-28", smDepths.layer_7_to_28cm, "m³/m³");
+        setVal("val-sm-28-100", smDepths.layer_28_to_100cm, "m³/m³");
+        setVal("val-sm-100-255", smDepths.layer_100_to_255cm, "m³/m³");
+
+        // 4. Multi-Depth Soil Temperature
+        const stDepths = teleData.soil_temperature_depths || {};
+        setVal("val-st-0-7", stDepths.layer_0_to_7cm, "°C");
+        setVal("val-st-7-28", stDepths.layer_7_to_28cm, "°C");
+        setVal("val-st-28-100", stDepths.layer_28_to_100cm, "°C");
+        setVal("val-st-100-255", stDepths.layer_100_to_255cm, "°C");
+
+        // 5. Suitability
+        const elSuitTitle = document.getElementById("disp-suit-title");
+        if (elSuitTitle) elSuitTitle.innerText = `उपयुक्तता: ${teleData.aridity_status || 'सामान्य'}`;
+
+        const elSuitDesc = document.getElementById("disp-suit-desc");
+        if (elSuitDesc) elSuitDesc.innerText = teleData.cadastral_crop_suitability || 'मृदा नमी का विश्लेषण सक्रिय।';
+      }
+
+      // 6. ISRIC SoilGrids
+      if (soilData && soilData.summary_0_5cm) {
+        const s = soilData.summary_0_5cm;
+        const setVal = (id, v, suffix = "") => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = v != null ? `${v}${suffix}` : '—';
+        };
+        setVal("val-soil-ph", s.ph);
+        setVal("val-soil-soc", s.soil_organic_carbon_g_per_kg, " g/kg");
+        setVal("val-soil-clay", s.clay_pct, " %");
+        setVal("val-soil-sand", s.sand_pct, " %");
+
+        const elTex = document.getElementById("val-soil-texture");
+        if (elTex && s.estimated_texture) {
+          elTex.innerText = `संरचना: ${s.estimated_texture}`;
+        }
+      } else if (soilData && soilData.status === 'unavailable') {
+        const setVal = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
+        setVal("val-soil-ph", "N/A");
+        setVal("val-soil-soc", "N/A");
+        setVal("val-soil-clay", "N/A");
+        setVal("val-soil-sand", "N/A");
+        const elTex = document.getElementById("val-soil-texture");
+        if (elTex) elTex.innerText = "संरचना: अनमैप्ड / जलीय या शहरी क्षेत्र";
+      }
     }
 
     // ============================================================
@@ -4341,22 +4527,30 @@
       }, 5000);
     }
 
-
     // ============================================================
     // TELEMETRY REFRESH
     // ============================================================
     async function refreshTelemetry() {
       try {
-        const res = await fetch(`${API_BASE}/api/telemetry/live?lat=${currentLat}&lon=${currentLon}`);
-        if (res.ok) {
-          const data = await res.json();
-          updateTelemetryDOM(data);
-          showToast(TRANSLATIONS[currentLang].toast_telemetry_refreshed);
-        } else {
-          showToast(currentLang === 'hi' ? "ऑफलाइन मोड: स्थानीय उपग्रह टेलीमेट्री डेटा लोड किया गया।" : "Offline mode: Local satellite telemetry loaded.");
+        const [teleRes, soilRes] = await Promise.allSettled([
+          fetch(`${API_BASE}/api/telemetry/live?lat=${currentLat}&lon=${currentLon}`),
+          fetch(`${API_BASE}/api/v1/env/soil?lat=${currentLat}&lon=${currentLon}`)
+        ]);
+
+        let teleData = null;
+        if (teleRes.status === "fulfilled" && teleRes.value.ok) {
+          teleData = await teleRes.value.json();
         }
+
+        let soilData = null;
+        if (soilRes.status === "fulfilled" && soilRes.value.ok) {
+          soilData = await soilRes.value.json();
+        }
+
+        updateTelemetryDOM(teleData, soilData);
+        showToast(TRANSLATIONS[currentLang].toast_telemetry_refreshed);
       } catch (e) {
-        showToast(currentLang === 'hi' ? "ऑफलाइन मोड: कैश्ड टेलीमेट्री लोड की गई।" : "Offline mode: Cached telemetry loaded.");
+        showToast(currentLang === 'hi' ? "टेलीमेट्री लोड करने में त्रुटि।" : "Error loading telemetry.");
       }
     }
 
@@ -4364,28 +4558,42 @@
     // SECTION 90-A DIVERSION CALCULATION
     // ============================================================
     function recalculateTariff() {
-      const totalHa = 45.0;
-      const divertedHa = parseFloat(document.getElementById("slider-divert-ha").value);
+      const inputTotal = document.getElementById("input-total-ha");
+      const totalHa = inputTotal ? (parseFloat(inputTotal.value) || 10.0) : 10.0;
+      
+      const slider = document.getElementById("slider-divert-ha");
+      if (slider) {
+        slider.max = totalHa;
+        if (parseFloat(slider.value) > totalHa) {
+          slider.value = (totalHa * 0.4).toFixed(1);
+        }
+      }
+
+      const divertedHa = slider ? parseFloat(slider.value) : 4.0;
       const retainedHa = Math.max(0, totalHa - divertedHa);
       const cat = document.getElementById("sel-diversion-cat").value;
       const t = TRANSLATIONS[currentLang];
 
-      // Update Labels
-      document.getElementById("disp-diverted-ha-label").innerText = `${divertedHa.toFixed(1)} / ${totalHa.toFixed(2)} Ha`;
-      document.getElementById("bar-divert-fill").style.width = `${(divertedHa / totalHa) * 100}%`;
-      document.getElementById("lbl-divert-part").innerText = `${t.diverted_legend_div}${divertedHa.toFixed(1)} Ha`;
-      document.getElementById("lbl-retain-part").innerText = `${t.diverted_legend_ret}${retainedHa.toFixed(1)} Ha`;
+      const elDivertLabel = document.getElementById("disp-diverted-ha-label");
+      if (elDivertLabel) elDivertLabel.innerText = `${divertedHa.toFixed(1)} / ${totalHa.toFixed(2)} Ha`;
 
-      // Rates (₹ per Ha)
-      let ratePerHa = 620000; // industrial
+      const elFill = document.getElementById("bar-divert-fill");
+      if (elFill) elFill.style.width = `${Math.min(100, (divertedHa / totalHa) * 100)}%`;
+
+      const elPartDivert = document.getElementById("lbl-divert-part");
+      if (elPartDivert) elPartDivert.innerText = `${t.diverted_legend_div}${divertedHa.toFixed(1)} Ha`;
+
+      const elPartRetain = document.getElementById("lbl-retain-part");
+      if (elPartRetain) elPartRetain.innerText = `${t.diverted_legend_ret}${retainedHa.toFixed(1)} Ha`;
+
+      let ratePerHa = 620000;
       if (cat === "commercial") ratePerHa = 450000;
       else if (cat === "residential") ratePerHa = 310000;
 
       const baseTariff = divertedHa * ratePerHa;
-      const cess = baseTariff * 0.08; // 8% infrastructure cess
+      const cess = baseTariff * 0.08;
       const totalTariff = baseTariff + cess;
 
-      // Impacts
       const yieldLossQtl = Math.round(divertedHa * 38.5);
       const mspLossLakh = ((yieldLossQtl * 2300) / 100000).toFixed(2);
       const gwLossKl = Math.round(divertedHa * 48);
@@ -4398,7 +4606,6 @@
       document.getElementById("disp-tariff-breakdown").innerText = 
         `${t.tariff_base_prefix}${formatIndianNumber(Math.round(baseTariff))}${t.tariff_cess_suffix}${formatIndianNumber(Math.round(cess))}`;
 
-      // Dynamically update diversion polygon visual feedback on map
       if (divertPolygon) {
         divertPolygon.bindTooltip(
           currentLang === 'hi' 
@@ -4437,7 +4644,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            parcel_id: "KHA-7829-RJ",
+            parcel_id: "PARCEL-SELECTED",
             owner_name: "Shri R. K. Sharma",
             state: "Rajasthan",
             district: document.getElementById("sel-district").value,
@@ -5753,5 +5960,66 @@
       }
     });
   </script>
+  <!-- DATA SOURCES & METHODOLOGY MODAL -->
+  <div class="gov-modal-backdrop" id="modal-data-methodology" style="display: none;">
+    <div class="gov-modal-dialog" style="max-width: 680px; max-height: 85vh; overflow-y: auto;">
+      <div class="gov-modal-header" style="background: #0C3258; color: #FFF; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>📚</span>
+          <strong style="font-size: 14px;">डेटा स्रोत, विधि एवं अस्वीकरण (Data Sources & Methodology)</strong>
+        </div>
+        <button class="btn-card-close" onclick="closeModal('modal-data-methodology')" style="color: #FFF; font-size: 16px;">✕</button>
+      </div>
+      <div class="gov-modal-body" style="padding: 16px; font-size: 12px; line-height: 1.6; color: #1E293B;">
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:6px; padding:10px 12px; margin-bottom:12px;">
+          <strong style="color:#1E40AF; font-size:13px;">📌 मूलभूत सिद्धांत: "No Data is Better than Fake Data"</strong>
+          <p style="margin:4px 0 0 0; color:#1E3A8A; font-size:11.5px;">
+            भूमि नेक्सस किसी भी मनगढ़ंत याBelievable खसरा नंबर, रकबा, या मृदा स्कोर का निर्माण नहीं करता है। यदि किसी क्षेत्र का आधिकारिक कानूनी रिकॉर्ड सीधे खुले एपीआई में उपलब्ध नहीं है, तो उसे पारदर्शी रूप से "अनुपलब्ध" दर्शाया जाता है।
+          </p>
+        </div>
+
+        <h4 style="color:#0C3258; margin:12px 0 6px 0; font-size:13px; border-bottom:1px solid #E2E8F0; padding-bottom:4px;">1. प्रशासनिक सीमाएं (Administrative Boundaries)</h4>
+        <ul style="padding-left:18px; margin:0 0 10px 0;">
+          <li><strong>स्रोत:</strong> NIC भारत मैप्स (Panchayat Admin GP Hierarchy MapServer)</li>
+          <li><strong>परतें:</strong> राज्य (L0), जिला (L1), ब्लॉक/तहसील (L2), ग्राम पंचायत (L3) बहुभुज</li>
+          <li><strong>स्थानिक संकल्प:</strong> 1:50,000 (Survey of India / Census 2011 codification)</li>
+          <li><strong>बैज:</strong> <span style="background:#DBEAFE; color:#1E40AF; padding:1px 4px; border-radius:3px; font-weight:700;">[AUTHENTICATED GIS]</span></li>
+        </ul>
+
+        <h4 style="color:#0C3258; margin:12px 0 6px 0; font-size:13px; border-bottom:1px solid #E2E8F0; padding-bottom:4px;">2. मौसम एवं मृदा टेलीमेट्री (Weather & Soil Reanalysis)</h4>
+        <ul style="padding-left:18px; margin:0 0 10px 0;">
+          <li><strong>स्रोत:</strong> Open-Meteo API / ECMWF Integrated Forecasting System (IFS) & Land Reanalysis</li>
+          <li><strong>चर:</strong> वायु तापमान, आर्द्रता, वर्षा, पवन गति/दिशा, मृदा तापमान (4 गहराई), वोल्यूमेट्रिक मृदा नमी (4 गहराई)</li>
+          <li><strong>गहराई स्तर:</strong> 0–7 cm, 7–28 cm, 28–100 cm, 100–255 cm</li>
+          <li><strong>स्थानिक संकल्प:</strong> ~11 km ग्रिड | <strong>समय संकल्प:</strong> प्रति घंटा अपडेट</li>
+          <li><strong>बैज:</strong> <span style="background:#FEF3C7; color:#92400E; padding:1px 4px; border-radius:3px; font-weight:700;">[MODELLED / REANALYSIS]</span></li>
+        </ul>
+
+        <h4 style="color:#0C3258; margin:12px 0 6px 0; font-size:13px; border-bottom:1px solid #E2E8F0; padding-bottom:4px;">3. स्थानिक मृदा गुण (ISRIC SoilGrids 2.0)</h4>
+        <ul style="padding-left:18px; margin:0 0 10px 0;">
+          <li><strong>स्रोत:</strong> ISRIC - World Soil Information (SoilGrids 2020 REST API)</li>
+          <li><strong>चर:</strong> pH (H₂O), क्ले %, सैंड %, सिल्ट %, जैविक कार्बन (SOC), नाइट्रोजन, CEC</li>
+          <li><strong>स्थानिक संकल्प:</strong> 250 m वैश्विक मशीन-लर्निंग प्रेडिक्शन ग्रिड</li>
+          <li><strong>बैज:</strong> <span style="background:#F3E8FF; color:#6B21A8; padding:1px 4px; border-radius:3px; font-weight:700;">[SPATIAL ESTIMATE]</span></li>
+          <li><strong>महत्वपूर्ण सूचना:</strong> यह स्थानिक सांख्यिकीय अनुमान है और मृदा स्वास्थ्य कार्ड (Soil Health Card) की प्रयोगशाला जांच का स्थानापन्न नहीं है।</li>
+        </ul>
+
+        <h4 style="color:#0C3258; margin:12px 0 6px 0; font-size:13px; border-bottom:1px solid #E2E8F0; padding-bottom:4px;">4. कैडस्ट्रल एवं खसरा रिकॉर्ड स्थिति (State Bhu-Naksha Portals)</h4>
+        <ul style="padding-left:18px; margin:0 0 10px 0;">
+          <li><strong>स्थिति:</strong> राजस्थान भू-नक्शा (bhunaksha.rajasthan.gov.in) तथा अन्य राज्य भू-अभिलेख पोर्टल सत्र आधारित व कैप्चा प्रमाणीकरण का प्रयोग करते हैं।</li>
+          <li><strong>नीति:</strong> खुले सार्वजनिक एपीआई के अभाव में प्रणाली किसी भी कल्पित खसरा संख्या या फर्जी रकबे का प्रदर्शन नहीं करती।</li>
+        </ul>
+
+        <div style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:6px; padding:10px 12px; margin-top:14px; font-size:11px; color:#991B1B;">
+          <strong>⚖️ कानूनी एवं वैज्ञानिक अस्वीकरण (Statutory Disclaimer):</strong><br>
+          प्रदर्शित पर्यावरणीय एवं मौसमी मान स्थानिक/मॉडल अनुमान हैं। किसी भी विधिक, वित्तीय या भूमि रजिस्ट्री निर्णय से पूर्व संबंधित राज्य के आधिकारिक राजस्व रिकॉर्ड (जमाबंदी/भू-नक्शा) से प्रमाणीकरण आवश्यक है।
+        </div>
+      </div>
+      <div class="gov-modal-footer" style="padding:10px 16px; background:#F8FAFC; border-top:1px solid #E2E8F0; text-align:right;">
+        <button class="gov-btn-action" onclick="closeModal('modal-data-methodology')" style="padding:6px 14px; background:#0C3258; color:#FFF; border:none; border-radius:4px; font-weight:700; cursor:pointer;">समझ गया / Close</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

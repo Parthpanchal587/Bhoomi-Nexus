@@ -881,12 +881,6 @@ async def reverse_geocoding(lat: float = Query(...), lon: float = Query(...)):
     reverse_url = settings.NOMINATIM_BASE_URL.replace("/search", "/reverse")
     params = {"lat": lat, "lon": lon, "format": "json", "addressdetails": 1}
     
-    # Synthetic consistent khasra & cadastral acreage based on coordinates
-    khasra_seed = abs(int(lat * 7919 + lon * 6271)) % 8999 + 1000
-    plot_seed = abs(int(lat * 1234 + lon * 5678)) % 490 + 1
-    area_ha = round(12.0 + (abs(int(lat * 100 + lon * 100)) % 42) + ((abs(int(lat * 10000)) % 100) / 100.0), 2)
-    area_acres = round(area_ha * 2.47105, 2)
-
     try:
         async with httpx.AsyncClient(timeout=6.0) as client:
             resp = await client.get(reverse_url, params=params, headers=headers)
@@ -901,7 +895,7 @@ async def reverse_geocoding(lat: float = Query(...), lon: float = Query(...)):
                     or address.get("flats")
                     or address.get("office")
                     or address.get("amenity")
-                    or f"भवन / भूखंड संख्या #{plot_seed} (Plot #{plot_seed})"
+                    or "निरीक्षण बिंदु (Inspection Point)"
                 )
                 road = (
                     address.get("road")
@@ -937,12 +931,12 @@ async def reverse_geocoding(lat: float = Query(...), lon: float = Query(...)):
                     or address.get("city", "राजस्व जिला (District)")
                 )
                 state = address.get("state", "भारत (India)")
-                postcode = address.get("postcode", "PIN Verified")
+                postcode = address.get("postcode", "")
                 country = address.get("country", "भारत / India")
 
                 return {
                     "display_name": data.get("display_name", f"{lat:.4f}° N, {lon:.4f}° E"),
-                    "khasra_no": f"KHA-{khasra_seed}",
+                    "khasra_no": "भू-नक्शा पोर्टल से प्राप्य (Via Bhu-Naksha)",
                     "house_number": house_number,
                     "road": road,
                     "village": village,
@@ -953,11 +947,16 @@ async def reverse_geocoding(lat: float = Query(...), lon: float = Query(...)):
                     "country": country,
                     "lat": lat,
                     "lon": lon,
-                    "cadastral_area_ha": area_ha,
-                    "cadastral_area_acres": area_acres,
-                    "land_classification": "कृषि भूमि (चाही-1 / सिंचित) • High Agricultural Yield",
-                    "geometry_status": "100% संवृत बहुभुज (Verified Closed Geo-Polygon)",
-                    "source": "Live OpenStreetMap & NIC National Cadastral Node"
+                    "cadastral_area_ha": None,
+                    "cadastral_area_acres": None,
+                    "land_classification": "राज्य राजस्व अभिलेख से सत्यापन योग्य (Verify via State Revenue Records)",
+                    "geometry_status": "अभिलेख भू-नक्शा पोर्टल पर उपलब्ध (On State Bhu-Naksha Portal)",
+                    "source": "Live OpenStreetMap Reverse Geocoding & NIC Administrative Hierarchy",
+                    "provenance": {
+                        "cadastral_badge": "UNAVAILABLE_OPEN_API",
+                        "geocoding_badge": "OBSERVED",
+                        "source": "OpenStreetMap Nominatim & NIC"
+                    }
                 }
     except Exception:
         pass
@@ -982,22 +981,27 @@ async def reverse_geocoding(lat: float = Query(...), lon: float = Query(...)):
 
     return {
         "display_name": f"{best_tehsil}, {best_district}, {best_state}, India",
-        "khasra_no": f"KHA-{khasra_seed}",
-        "house_number": f"भवन / भूखंड संख्या #{plot_seed} (Plot #{plot_seed})",
-        "road": f"राजस्व मुख्य मार्ग ({best_tehsil} Revenue Road)",
-        "village": f"{best_tehsil} Cadastral Mouza",
+        "khasra_no": "भू-नक्शा पोर्टल से प्राप्य (Via Bhu-Naksha)",
+        "house_number": "निरीक्षण बिंदु (Inspection Point)",
+        "road": f"राजस्व मार्ग ({best_tehsil} Revenue Road)",
+        "village": f"{best_tehsil} प्रशासनिक क्षेत्र",
         "tehsil": best_tehsil,
         "district": best_district,
         "state": best_state,
-        "postcode": f"{abs(int(lat * 1000 + lon * 1000)) % 800000 + 110000}",
+        "postcode": "",
         "country": "भारत / India",
         "lat": lat,
         "lon": lon,
-        "cadastral_area_ha": area_ha,
-        "cadastral_area_acres": area_acres,
-        "land_classification": "कृषि भूमि (सिंचित) • Agricultural Land",
-        "geometry_status": "100% संवृत बहुभुज (Verified Closed Geo-Polygon)",
-        "source": "Bhoomi Pan-India Cadastral Engine (Offline Resilient)"
+        "cadastral_area_ha": None,
+        "cadastral_area_acres": None,
+        "land_classification": "राज्य राजस्व अभिलेख से सत्यापन योग्य (Verify via State Revenue Records)",
+        "geometry_status": "अभिलेख भू-नक्शा पोर्टल पर उपलब्ध (On State Bhu-Naksha Portal)",
+        "source": "Bhoomi Pan-India Administrative Centroid Index",
+        "provenance": {
+            "cadastral_badge": "UNAVAILABLE_OPEN_API",
+            "geocoding_badge": "ADMIN_CENTROID",
+            "source": "NIC Census 2011"
+        }
     }
 
 
@@ -1035,37 +1039,23 @@ def calculate_polygon_area_ha(coords: list[list[float]]) -> float:
 @router.get("/api/geo/cadastral-features")
 async def get_cadastral_features(lat: float = Query(...), lon: float = Query(...)):
     """
-    Returns real-time geospatial separation of:
-    1. Khasra Survey Boundary (खसरा सीमा - Cadastral Parcel)
-    2. Agricultural Land (कृषि भूमि - Farmland / Cultivated Area)
-    3. Proposed Diversion Area (प्रस्तावित संपरिवर्तन क्षेत्र - Section 90-A)
-    Sourced from live OpenStreetMap Overpass cadastral features with mathematical geodesic precision.
+    Checks for open community-contributed cadastral or agricultural features in OpenStreetMap.
+    If no authoritative/open vector polygons exist, honestly reports data unavailable
+    without manufacturing fake Patwari boundary polygons.
     """
-    khasra_seed = abs(int(lat * 7919 + lon * 6271)) % 8999 + 1000
-    sub_khasra = abs(int(lat * 313 + lon * 419)) % 4 + 1
-    khasra_num = f"KHA-{khasra_seed}/{sub_khasra}"
-
     overpass_query = f"""[out:json][timeout:5];
 (
-  way["landuse"="farmland"](around:2500,{lat},{lon});
-  way["landuse"="farmyard"](around:2500,{lat},{lon});
-  way["landuse"="allotments"](around:2500,{lat},{lon});
-  way["landuse"="orchard"](around:2500,{lat},{lon});
-  way["landuse"="meadow"](around:2500,{lat},{lon});
-  way["landuse"="agricultural"](around:2500,{lat},{lon});
-  way["landuse"](around:2000,{lat},{lon});
-  way["building"](around:1200,{lat},{lon});
-  way["boundary"="cadastral"](around:2500,{lat},{lon});
+  way["landuse"="farmland"](around:1500,{lat},{lon});
+  way["landuse"="agricultural"](around:1500,{lat},{lon});
+  way["boundary"="cadastral"](around:2000,{lat},{lon});
 );
-out geom 20;"""
+out geom 10;"""
 
     real_agri_coords = None
-    real_diversion_coords = None
     real_khasra_coords = None
-    data_source = "Live OpenStreetMap Cadastral Engine & ISRO LISS Geometry"
 
     try:
-        async with httpx.AsyncClient(timeout=5.5) as client:
+        async with httpx.AsyncClient(timeout=4.5) as client:
             resp = await client.post(
                 "https://overpass-api.de/api/interpreter",
                 data=overpass_query.encode("utf-8"),
@@ -1073,8 +1063,6 @@ out geom 20;"""
             )
             if resp.status_code == 200:
                 elements = resp.json().get("elements", [])
-                
-                # Look for genuine agricultural ways
                 for el in elements:
                     tags = el.get("tags", {})
                     geom = el.get("geometry", [])
@@ -1084,117 +1072,60 @@ out geom 20;"""
                             pts.append(pts[0])
                         
                         l_use = tags.get("landuse", "")
-                        if l_use in ["farmland", "farmyard", "orchard", "meadow", "allotments", "agricultural", "grass"] and not real_agri_coords:
+                        if l_use in ["farmland", "agricultural"] and not real_agri_coords:
                             real_agri_coords = pts
                         elif tags.get("boundary") == "cadastral" and not real_khasra_coords:
                             real_khasra_coords = pts
-                        elif tags.get("building") or l_use in ["industrial", "commercial", "residential", "construction"]:
-                            if not real_diversion_coords:
-                                real_diversion_coords = pts
     except Exception:
         pass
 
-    # If genuine OSM farmland exists, use its actual geometry!
-    # Otherwise generate a mathematically rigorous irregular Patwari cadastral parcel
-    d_lat = 0.0032
-    d_lon = 0.0038
+    # If NO genuine OSM cadastral/farmland boundary exists, return honest UNAVAILABLE status
+    if not real_khasra_coords and not real_agri_coords:
+        return {
+            "status": "unavailable",
+            "message": "Cadastral survey boundary geometry is not published via open public GIS API for this coordinate.",
+            "notice": "Official Khasra boundaries require authenticated session access via State Bhu-Naksha portals (e.g. bhunaksha.rajasthan.gov.in).",
+            "latitude": lat,
+            "longitude": lon,
+            "provenance": {
+                "provider": "State Bhu-Naksha / NIC",
+                "badge": "CADASTRAL UNAVAILABLE",
+                "source": "State Revenue Department",
+                "statutory_reference": "Rajasthan Tenancy & Land Revenue Acts"
+            },
+            "khasra": None,
+            "agricultural_land": None,
+            "proposed_diversion": None,
+        }
 
-    if not real_khasra_coords:
-        # 6-sided Patwari survey parcel based on local meridian curvature
-        real_khasra_coords = [
-            [lat - d_lat * 0.95, lon - d_lon * 0.90],
-            [lat + d_lat * 0.40, lon - d_lon * 1.10],
-            [lat + d_lat * 1.05, lon - d_lon * 0.35],
-            [lat + d_lat * 0.85, lon + d_lon * 0.95],
-            [lat - d_lat * 0.20, lon + d_lon * 1.15],
-            [lat - d_lat * 1.00, lon + d_lon * 0.25],
-            [lat - d_lat * 0.95, lon - d_lon * 0.90]  # Closed
-        ]
-        data_source = "NIC BhuNaksha Patwari Cadastral Survey & Satellite Contour"
-
-    if not real_agri_coords:
-        # Agricultural partition (Eastern & Northern sector of the khasra)
-        real_agri_coords = [
-            [lat - d_lat * 0.95, lon - d_lon * 0.90],
-            [lat + d_lat * 0.40, lon - d_lon * 1.10],
-            [lat + d_lat * 1.05, lon - d_lon * 0.35],
-            [lat + d_lat * 0.85, lon + d_lon * 0.95],
-            [lat + d_lat * 0.05, lon + d_lon * 0.10],
-            [lat - d_lat * 0.45, lon - d_lon * 0.05],
-            [lat - d_lat * 0.95, lon - d_lon * 0.90]
-        ]
-
-    if not real_diversion_coords:
-        # Proposed Diversion area (South-Western/Road frontage carve-out of the khasra)
-        real_diversion_coords = [
-            [lat + d_lat * 0.05, lon + d_lon * 0.10],
-            [lat + d_lat * 0.85, lon + d_lon * 0.95],
-            [lat - d_lat * 0.20, lon + d_lon * 1.15],
-            [lat - d_lat * 1.00, lon + d_lon * 0.25],
-            [lat - d_lat * 0.45, lon - d_lon * 0.05],
-            [lat + d_lat * 0.05, lon + d_lon * 0.10]
-        ]
-
-    khasra_area_ha = calculate_polygon_area_ha(real_khasra_coords)
-    agri_area_ha = calculate_polygon_area_ha(real_agri_coords)
-    div_area_ha = calculate_polygon_area_ha(real_diversion_coords)
-
-    # Sanity checks
-    if khasra_area_ha < 1.0:
-        khasra_area_ha = 38.5
-    if agri_area_ha < 1.0:
-        agri_area_ha = round(khasra_area_ha * 0.62, 2)
-    if div_area_ha < 0.5:
-        div_area_ha = round(khasra_area_ha - agri_area_ha, 2)
-
-    khasra_acres = round(khasra_area_ha * 2.47105, 2)
-    agri_acres = round(agri_area_ha * 2.47105, 2)
-    div_acres = round(div_area_ha * 2.47105, 2)
-
-    # Survey boundary pillars (vertices)
-    vertices = []
-    directions = ["उत्तर-पश्चिम (NW)", "उत्तर (North)", "उत्तर-पूर्व (NE)", "पूर्व (East)", "दक्षिण-पूर्व (SE)", "दक्षिण (South)"]
-    for idx, pt in enumerate(real_khasra_coords[:-1]):
-        vertices.append({
-            "id": f"BP-{idx + 1}",
-            "label": f"सीमा स्तम्भ BP-{idx + 1} ({directions[idx % len(directions)]})",
-            "lat": round(pt[0], 6),
-            "lon": round(pt[1], 6)
-        })
+    # If genuine OSM boundary exists, calculate true area
+    chosen_geom = real_khasra_coords or real_agri_coords
+    calc_ha = calculate_polygon_area_ha(chosen_geom) if chosen_geom else 0.0
 
     return {
         "status": "success",
-        "data_source": data_source,
+        "data_source": "OpenStreetMap Community Contributed Landuse",
         "khasra": {
-            "number": khasra_num,
-            "title": f"खसरा संख्या {khasra_num} (राजस्व सर्वेक्षण सीमा)",
-            "title_en": f"Khasra Survey Parcel {khasra_num}",
-            "area_ha": khasra_area_ha,
-            "area_acres": khasra_acres,
-            "coordinates": real_khasra_coords,
-            "boundary_type": "राजस्व संप्रभु सीमा (Cadastral Sovereign Boundary)",
-            "vertices": vertices
+            "number": "भू-नक्शा पोर्टल से प्राप्य (Bhu-Naksha Record)",
+            "title": "ओपन मैपिंग भूमि सीमा (Open Boundary)",
+            "title_en": "Open Boundary Feature",
+            "area_ha": calc_ha,
+            "area_acres": round(calc_ha * 2.47105, 2),
+            "coordinates": chosen_geom,
+            "boundary_type": "सार्वजनिक भू-मानचित्र सीमा (Public Vector Way)",
         },
         "agricultural_land": {
-            "title": "कृषि भूमि (सक्रिय खेती क्षेत्र)",
-            "title_en": "Agricultural Land (Active Cultivated Zone)",
-            "classification": "चाही-1 / नहरी सिंचित (Irrigated Farmland)",
-            "area_ha": agri_area_ha,
-            "area_acres": agri_acres,
-            "status": "संरक्षित कृषि क्षेत्र (Protected Agricultural Area)",
+            "title": "कृषि क्षेत्र (Farmland Zone)",
+            "title_en": "Farmland Zone",
+            "area_ha": calc_ha,
+            "area_acres": round(calc_ha * 2.47105, 2),
             "coordinates": real_agri_coords,
-            "soil_type": "जलोढ़ दोमट / उपजाऊ मृदा (Alluvial Loam)",
-            "crop_potential": "गेहूं, सरसों, चना, दलहन (Rabi/Kharif Multi-crop)"
-        },
-        "proposed_diversion": {
-            "title": "प्रस्तावित संपरिवर्तन क्षेत्र (धारा 90-क)",
-            "title_en": "Proposed Land Diversion Zone (Sec 90-A)",
-            "category": "औद्योगिक / व्यावसायिक (Industrial SEZ / Commercial)",
-            "area_ha": div_area_ha,
-            "area_acres": div_acres,
-            "coordinates": real_diversion_coords,
-            "statutory_offset_m": "6.0m राजस्व मार्ग बफर (Statutory Road Offset)",
-            "diversion_status": "प्राविधिक मूल्यांकन प्रक्रियाधीन (Under Statutory Review)"
+        } if real_agri_coords else None,
+        "proposed_diversion": None,
+        "provenance": {
+            "provider": "OpenStreetMap Overpass",
+            "badge": "COMMUNITY_SURVEY",
+            "disclaimer": "Physical land-use polygon from OpenStreetMap; not legal revenue title boundary."
         }
     }
 
