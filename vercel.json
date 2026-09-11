@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.py": {
-      "includeFiles": "api/**"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
