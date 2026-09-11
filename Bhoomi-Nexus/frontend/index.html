@@ -13,6 +13,8 @@
   <!-- Leaflet GIS CSS -->
   <!-- India Territorial Mask Data (Completely masks out all other countries) -->
   <script src="india_mask_data.js"></script>
+  <!-- Bhoomi-Nexus GIS Service Layer (NIC Bharat Maps ArcGIS REST Client) -->
+  <script src="gis_service.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
   <style>
@@ -1302,6 +1304,252 @@
     }
 
     
+
+    /* GIS LAYER CONTROL PANEL */
+    .gis-layer-panel {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 600;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+      padding: 0;
+      min-width: 220px;
+      max-height: calc(100% - 32px);
+      overflow-y: auto;
+      backdrop-filter: blur(6px);
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+    .gis-layer-panel.collapsed {
+      min-width: 42px;
+      padding: 0;
+      overflow: hidden;
+    }
+    .gis-layer-panel.collapsed .gis-layer-body { display: none; }
+    .gis-layer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--color-gov-blue);
+      color: #FFF;
+      border-radius: 8px 8px 0 0;
+      font-weight: 700;
+      font-size: 11.5px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .gis-layer-body { padding: 10px 12px; }
+    .gis-layer-group-title {
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #475569;
+      margin: 8px 0 4px 0;
+      padding-bottom: 3px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .gis-layer-group-title:first-child { margin-top: 0; }
+    .gis-layer-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+      cursor: pointer;
+      font-size: 12px;
+      color: #1E293B;
+    }
+    .gis-layer-item input[type="checkbox"] {
+      accent-color: var(--color-gov-blue);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+    .gis-layer-item .layer-color-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid #94A3B8;
+      flex-shrink: 0;
+    }
+    .gis-layer-item label { cursor: pointer; flex: 1; }
+
+    /* GIS LOADING INDICATOR */
+    .gis-loading-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 700;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 16px 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-main);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-gov-blue);
+    }
+    .gis-loading-overlay.active { display: flex; }
+    .gis-spinner {
+      width: 20px; height: 20px;
+      border: 3px solid #CBD5E1;
+      border-top: 3px solid var(--color-gov-blue);
+      border-radius: 50%;
+      animation: gis-spin 0.8s linear infinite;
+    }
+    @keyframes gis-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* COORDINATES DISPLAY */
+    .gis-coords-display {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      z-index: 500;
+      background: rgba(15, 23, 42, 0.85);
+      color: #E2E8F0;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      pointer-events: none;
+    }
+
+    /* MAP CONTROL BUTTONS */
+    .gis-map-controls {
+      position: absolute;
+      bottom: 40px;
+      right: 14px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .gis-ctrl-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      transition: all 0.2s ease;
+    }
+    .gis-ctrl-btn:hover { background: var(--color-gov-blue); color: #FFF; border-color: var(--color-gov-blue); }
+
+    /* GIS SEARCH RESULTS */
+    .gis-search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 900;
+      background: #FFF;
+      border: 1px solid var(--color-border);
+      border-radius: 0 0 6px 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      max-height: 260px;
+      overflow-y: auto;
+      display: none;
+    }
+    .gis-search-results.active { display: block; }
+    .gis-search-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gis-search-item:hover { background: #EFF6FF; }
+    .gis-search-item .search-type-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .gis-search-item .search-type-badge.state { background: #DBEAFE; color: #1D4ED8; }
+    .gis-search-item .search-type-badge.district { background: #D1FAE5; color: #065F46; }
+    .gis-search-item .search-type-badge.block { background: #FEF3C7; color: #92400E; }
+
+    /* GIS ATTRIBUTION BAR */
+    .gis-attribution {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 450;
+      background: rgba(15, 23, 42, 0.7);
+      color: #CBD5E1;
+      font-size: 9px;
+      padding: 2px 8px;
+      text-align: right;
+      pointer-events: none;
+    }
+
+    /* GIS FEATURE INFO POPUP */
+    .gis-feature-popup {
+      font-family: var(--font-main);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .gis-feature-popup .popup-header {
+      background: var(--color-gov-blue);
+      color: #FFF;
+      padding: 6px 10px;
+      border-radius: 4px 4px 0 0;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .gis-feature-popup .popup-body {
+      padding: 8px 10px;
+    }
+    .gis-feature-popup .popup-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .gis-feature-popup .popup-label {
+      color: #475569;
+      font-size: 11px;
+    }
+    .gis-feature-popup .popup-value {
+      font-weight: 600;
+      color: #0F172A;
+      text-align: right;
+    }
+
+    /* Cadastral unavailable message */
+    .cadastral-unavailable {
+      background: #FFFBEB;
+      border: 1px solid #F59E0B;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #92400E;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .cadastral-unavailable .unavail-icon { font-size: 16px; margin-right: 6px; }
+
   </style>
 </head>
 <body>
@@ -1463,11 +1711,12 @@
         </select>
       </div>
 
-      <div class="search-locate-box">
+      <div class="search-locate-box" style="position:relative;">
         <input type="text" id="input-khasra-search" class="locate-input" placeholder="खसरा, जिला या स्थान खोजें..." value="" data-i18n-ph="search_placeholder" />
         <button class="btn-locate" onclick="locateSearchedPlace()">
           <span>🔍</span> <span data-i18n="btn_locate">खोजें (Locate)</span>
         </button>
+        <div class="gis-search-results" id="gis-search-results"></div>
       </div>
     </div>
 
@@ -1487,6 +1736,65 @@
   <main class="gis-viewport-wrapper" id="main">
     <!-- Leaflet Map Canvas -->
     <div id="cadastral-map"></div>
+
+    <!-- GIS LAYER CONTROL PANEL -->
+    <div class="gis-layer-panel" id="gis-layer-panel">
+      <div class="gis-layer-header" onclick="toggleGISLayerPanel()">
+        <span>🗺️ GIS Layers</span>
+        <span id="gis-panel-toggle-icon">▼</span>
+      </div>
+      <div class="gis-layer-body" id="gis-layer-body">
+        <div class="gis-layer-group-title">Administrative Boundaries</div>
+        <div class="gis-layer-item">
+          <input type="checkbox" id="chk-layer-states" checked onchange="toggleGISLayer('states')">
+          <div class="layer-color-swatch" style="background:#3B82F6;"></div>
+          <label for="chk-layer-states">States (राज्य)</label>
+        </div>
+        <div class="gis-layer-item">
+          <input type="checkbox" id="chk-layer-districts" onchange="toggleGISLayer('districts')">
+          <div class="layer-color-swatch" style="background:#10B981;"></div>
+          <label for="chk-layer-districts">Districts (जिले)</label>
+        </div>
+        <div class="gis-layer-item">
+          <input type="checkbox" id="chk-layer-blocks" onchange="toggleGISLayer('blocks')">
+          <div class="layer-color-swatch" style="background:#F59E0B;"></div>
+          <label for="chk-layer-blocks">Blocks / Tehsils</label>
+        </div>
+        <div class="gis-layer-item">
+          <input type="checkbox" id="chk-layer-gp" onchange="toggleGISLayer('gp')">
+          <div class="layer-color-swatch" style="background:#8B5CF6;"></div>
+          <label for="chk-layer-gp">Gram Panchayats</label>
+        </div>
+        <div class="gis-layer-group-title">Data Source</div>
+        <div style="font-size:10px;color:#64748B;line-height:1.4;padding:2px 0;">
+          NIC Bharat Maps<br>
+          Survey of India (Census 2011)<br>
+          <a href="https://mapservice.gov.in/" target="_blank" rel="noopener" style="color:#2563EB;">mapservice.gov.in</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- GIS LOADING INDICATOR -->
+    <div class="gis-loading-overlay" id="gis-loading">
+      <div class="gis-spinner"></div>
+      <span id="gis-loading-text">Loading GIS data...</span>
+    </div>
+
+    <!-- COORDINATES DISPLAY -->
+    <div class="gis-coords-display" id="gis-coords-display">26.9855° N, 75.8507° E</div>
+
+    <!-- MAP CONTROLS -->
+    <div class="gis-map-controls">
+      <button class="gis-ctrl-btn" onclick="resetMapView()" title="Reset to India view">🏠</button>
+      <button class="gis-ctrl-btn" onclick="goToCurrentLocation()" title="My location">📍</button>
+      <button class="gis-ctrl-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+    </div>
+
+    <!-- GIS ATTRIBUTION -->
+    <div class="gis-attribution" id="gis-attribution">
+      Administrative boundaries © NIC Bharat Maps | Survey of India (Census 2011) | Base map © Google / OSM
+    </div>
+
 
     <!-- LEFT FLOATING CARD 1: CADASTRAL MAP (GIS) INSPECTOR -->
     <div class="floating-card left-telemetry-card" id="card-cadastral">
@@ -2302,6 +2610,509 @@
       ? 'http://127.0.0.1:8000'
       : '';
 
+
+    // ============================================================
+    // REAL GIS DATA LAYERS (NIC Bharat Maps)
+    // ============================================================
+    let gisStateBoundaryLayer = null;
+    let gisDistrictLayer = null;
+    let gisBlockLayer = null;
+    let gisGPLayer = null;
+    let gisSelectedState = null;
+    let gisSelectedDistrict = null;
+    let gisSelectedBlock = null;
+    let gisHighlightLayer = null;
+    let gisSearchDebounceTimer = null;
+
+    // GIS Layer Styles
+    const GIS_STYLES = {
+      state: {
+        default: { color: '#3B82F6', weight: 2, fillColor: '#3B82F6', fillOpacity: 0.05, dashArray: '5, 5' },
+        hover:   { color: '#2563EB', weight: 3, fillColor: '#3B82F6', fillOpacity: 0.15 },
+        selected:{ color: '#1D4ED8', weight: 4, fillColor: '#3B82F6', fillOpacity: 0.20 }
+      },
+      district: {
+        default: { color: '#10B981', weight: 1.5, fillColor: '#10B981', fillOpacity: 0.05 },
+        hover:   { color: '#059669', weight: 2.5, fillColor: '#10B981', fillOpacity: 0.15 },
+        selected:{ color: '#047857', weight: 3.5, fillColor: '#10B981', fillOpacity: 0.20 }
+      },
+      block: {
+        default: { color: '#F59E0B', weight: 1.5, fillColor: '#F59E0B', fillOpacity: 0.05 },
+        hover:   { color: '#D97706', weight: 2.5, fillColor: '#F59E0B', fillOpacity: 0.15 },
+        selected:{ color: '#B45309', weight: 3, fillColor: '#F59E0B', fillOpacity: 0.20 }
+      },
+      gp: {
+        default: { color: '#8B5CF6', weight: 1, fillColor: '#8B5CF6', fillOpacity: 0.05 },
+        hover:   { color: '#7C3AED', weight: 2, fillColor: '#8B5CF6', fillOpacity: 0.15 },
+        selected:{ color: '#6D28D9', weight: 3, fillColor: '#8B5CF6', fillOpacity: 0.20 }
+      }
+    };
+
+    function showGISLoading(text) {
+      const el = document.getElementById('gis-loading');
+      const txt = document.getElementById('gis-loading-text');
+      if (el) { el.classList.add('active'); }
+      if (txt) { txt.innerText = text || 'Loading GIS data...'; }
+    }
+
+    function hideGISLoading() {
+      const el = document.getElementById('gis-loading');
+      if (el) { el.classList.remove('active'); }
+    }
+
+    function toggleGISLayerPanel() {
+      const panel = document.getElementById('gis-layer-panel');
+      const icon = document.getElementById('gis-panel-toggle-icon');
+      if (panel) {
+        panel.classList.toggle('collapsed');
+        if (icon) icon.innerText = panel.classList.contains('collapsed') ? '▶' : '▼';
+      }
+    }
+
+    function toggleGISLayer(layerKey) {
+      if (layerKey === 'states' && gisStateBoundaryLayer) {
+        const chk = document.getElementById('chk-layer-states');
+        if (chk && chk.checked) { map.addLayer(gisStateBoundaryLayer); }
+        else { map.removeLayer(gisStateBoundaryLayer); }
+      }
+      if (layerKey === 'districts' && gisDistrictLayer) {
+        const chk = document.getElementById('chk-layer-districts');
+        if (chk && chk.checked) { map.addLayer(gisDistrictLayer); }
+        else { map.removeLayer(gisDistrictLayer); }
+      }
+      if (layerKey === 'blocks' && gisBlockLayer) {
+        const chk = document.getElementById('chk-layer-blocks');
+        if (chk && chk.checked) { map.addLayer(gisBlockLayer); }
+        else { map.removeLayer(gisBlockLayer); }
+      }
+      if (layerKey === 'gp' && gisGPLayer) {
+        const chk = document.getElementById('chk-layer-gp');
+        if (chk && chk.checked) { map.addLayer(gisGPLayer); }
+        else { map.removeLayer(gisGPLayer); }
+      }
+    }
+
+    function resetMapView() {
+      if (map) {
+        map.flyTo([22.5, 82.5], 5, { duration: 1.5 });
+      }
+    }
+
+    function goToCurrentLocation() {
+      if (!navigator.geolocation) {
+        showToast(currentLang === 'hi' ? 'भू-स्थान सेवा उपलब्ध नहीं है।' : 'Geolocation is not supported.');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        if (map) {
+          map.flyTo([lat, lon], 14, { duration: 1.5 });
+          inspectLocation(lat, lon, null, 14, true);
+        }
+      }, function(err) {
+        showToast(currentLang === 'hi' ? 'स्थान प्राप्त नहीं हो सका।' : 'Could not get your location.');
+      });
+    }
+
+    function toggleFullscreen() {
+      const mapEl = document.getElementById('cadastral-map');
+      if (!mapEl) return;
+      if (!document.fullscreenElement) {
+        mapEl.parentElement.requestFullscreen().catch(function() {});
+      } else {
+        document.exitFullscreen().catch(function() {});
+      }
+    }
+
+    function buildGISFeaturePopup(properties, layerType) {
+      let title = '';
+      let rows = [];
+
+      if (layerType === 'state') {
+        title = '🏛️ ' + (properties.STNAME || 'State');
+        rows.push({ label: 'State', value: properties.STNAME || '' });
+        rows.push({ label: 'Census Code', value: properties.STCODE11 || '' });
+        rows.push({ label: 'LGD Code', value: properties.State_LGD || '' });
+      } else if (layerType === 'district') {
+        title = '🏘️ ' + (properties.D_Pan_Name || 'District');
+        rows.push({ label: 'District', value: properties.D_Pan_Name || '' });
+        rows.push({ label: 'State', value: properties.stname || '' });
+        rows.push({ label: 'Census Code', value: properties.dtcode11 || '' });
+        rows.push({ label: 'LGD Code', value: properties.Dist_LGD || '' });
+      } else if (layerType === 'block') {
+        title = '📐 ' + (properties.B_Pan_Name || properties.block_name || 'Block');
+        rows.push({ label: 'Block', value: properties.B_Pan_Name || properties.block_name || '' });
+        rows.push({ label: 'District', value: properties.D_Pan_Name || properties.district || '' });
+        rows.push({ label: 'State', value: properties.state || '' });
+        rows.push({ label: 'Block LGD', value: properties.block_lgd || '' });
+      } else if (layerType === 'gp') {
+        title = '🏡 ' + (properties.GPNAME || 'Gram Panchayat');
+        rows.push({ label: 'Gram Panchayat', value: properties.GPNAME || '' });
+        rows.push({ label: 'Village', value: properties.VILNAME11 || '' });
+        rows.push({ label: 'Sub-District', value: properties.SDTNAME || '' });
+        rows.push({ label: 'District', value: properties.DTNAME || '' });
+        rows.push({ label: 'State', value: properties.STNAME || '' });
+        rows.push({ label: 'GP Code', value: properties.GPCODE || '' });
+      }
+
+      // Filter out empty rows
+      rows = rows.filter(function(r) { return r.value && String(r.value).trim() && String(r.value) !== '0'; });
+
+      let html = '<div class="gis-feature-popup">';
+      html += '<div class="popup-header">' + title + '</div>';
+      html += '<div class="popup-body">';
+      rows.forEach(function(r) {
+        html += '<div class="popup-row"><span class="popup-label">' + r.label + '</span><span class="popup-value">' + r.value + '</span></div>';
+      });
+      html += '<div style="margin-top:6px;font-size:10px;color:#94A3B8;">Source: NIC Bharat Maps (Census 2011)</div>';
+      html += '</div></div>';
+      return html;
+    }
+
+    // Load real state boundaries on map init
+    async function loadGISStateBoundaries() {
+      if (!window.BhoomiGIS) { console.warn('[GIS] BhoomiGIS service not loaded'); return; }
+      showGISLoading('Loading state boundaries...');
+
+      const data = await BhoomiGIS.fetchStates();
+      hideGISLoading();
+      if (!data || !data.features || data.features.length === 0) {
+        console.warn('[GIS] No state boundary data returned');
+        return;
+      }
+
+      if (gisStateBoundaryLayer && map.hasLayer(gisStateBoundaryLayer)) {
+        map.removeLayer(gisStateBoundaryLayer);
+      }
+
+      gisStateBoundaryLayer = L.geoJSON(data, {
+        style: function() { return GIS_STYLES.state.default; },
+        onEachFeature: function(feature, layer) {
+          const name = feature.properties.STNAME || 'Unknown';
+          layer.bindTooltip(name, { sticky: true, className: 'leaflet-tooltip' });
+
+          layer.on('mouseover', function(e) {
+            if (gisSelectedState !== name) {
+              e.target.setStyle(GIS_STYLES.state.hover);
+            }
+          });
+          layer.on('mouseout', function(e) {
+            if (gisSelectedState !== name) {
+              e.target.setStyle(GIS_STYLES.state.default);
+            }
+          });
+          layer.on('click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            selectGISState(name, layer);
+          });
+        }
+      }).addTo(map);
+
+      console.log('[GIS] Loaded ' + data.features.length + ' state boundaries');
+    }
+
+    async function selectGISState(stateName, stateLayer) {
+      gisSelectedState = stateName;
+      showToast((currentLang === 'hi' ? 'राज्य चयनित: ' : 'State selected: ') + stateName);
+
+      // Reset all state styles, highlight selected
+      if (gisStateBoundaryLayer) {
+        gisStateBoundaryLayer.eachLayer(function(layer) {
+          const name = layer.feature && layer.feature.properties ? layer.feature.properties.STNAME : '';
+          if (name === stateName) {
+            layer.setStyle(GIS_STYLES.state.selected);
+          } else {
+            layer.setStyle(GIS_STYLES.state.default);
+          }
+        });
+      }
+
+      // Zoom to state
+      if (stateLayer && stateLayer.getBounds) {
+        map.flyToBounds(stateLayer.getBounds(), { padding: [40, 40], duration: 1.2 });
+      }
+
+      // Sync dropdowns
+      for (var sKey in INDIA_ADMIN_DATA) {
+        if (sKey.toUpperCase() === stateName.toUpperCase() || (INDIA_ADMIN_DATA[sKey].nameEn && INDIA_ADMIN_DATA[sKey].nameEn.toUpperCase() === stateName.toUpperCase())) {
+          var selState = document.getElementById('sel-state');
+          if (selState) { selState.value = sKey; populateDistrictsForSelectedState(); }
+          break;
+        }
+      }
+
+      // Load districts for this state
+      await loadGISDistricts(stateName);
+    }
+
+    async function loadGISDistricts(stateName) {
+      if (!window.BhoomiGIS) return;
+      showGISLoading('Loading districts for ' + stateName + '...');
+
+      // Remove previous district layer
+      if (gisDistrictLayer && map.hasLayer(gisDistrictLayer)) {
+        map.removeLayer(gisDistrictLayer);
+      }
+      // Remove previous block/GP layers
+      if (gisBlockLayer && map.hasLayer(gisBlockLayer)) { map.removeLayer(gisBlockLayer); }
+      if (gisGPLayer && map.hasLayer(gisGPLayer)) { map.removeLayer(gisGPLayer); }
+
+      const data = await BhoomiGIS.fetchDistricts(stateName);
+      hideGISLoading();
+      if (!data || !data.features || data.features.length === 0) {
+        showToast(currentLang === 'hi' ? 'जिला सीमा डेटा उपलब्ध नहीं है।' : 'District boundary data not available.');
+        return;
+      }
+
+      gisDistrictLayer = L.geoJSON(data, {
+        style: function() { return GIS_STYLES.district.default; },
+        onEachFeature: function(feature, layer) {
+          const name = feature.properties.D_Pan_Name || 'Unknown';
+          layer.bindTooltip(name, { sticky: true });
+
+          layer.on('mouseover', function(e) {
+            if (gisSelectedDistrict !== name) e.target.setStyle(GIS_STYLES.district.hover);
+          });
+          layer.on('mouseout', function(e) {
+            if (gisSelectedDistrict !== name) e.target.setStyle(GIS_STYLES.district.default);
+          });
+          layer.on('click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            selectGISDistrict(name, stateName, layer);
+          });
+        }
+      }).addTo(map);
+
+      // Auto-check the districts checkbox
+      var chk = document.getElementById('chk-layer-districts');
+      if (chk) chk.checked = true;
+
+      console.log('[GIS] Loaded ' + data.features.length + ' districts for ' + stateName);
+    }
+
+    async function selectGISDistrict(districtName, stateName, districtLayer) {
+      gisSelectedDistrict = districtName;
+      showToast((currentLang === 'hi' ? 'जिला चयनित: ' : 'District selected: ') + districtName);
+
+      // Highlight selected district
+      if (gisDistrictLayer) {
+        gisDistrictLayer.eachLayer(function(layer) {
+          var name = layer.feature && layer.feature.properties ? layer.feature.properties.D_Pan_Name : '';
+          if (name === districtName) {
+            layer.setStyle(GIS_STYLES.district.selected);
+            layer.bindPopup(buildGISFeaturePopup(layer.feature.properties, 'district'), { maxWidth: 300 }).openPopup();
+          } else {
+            layer.setStyle(GIS_STYLES.district.default);
+          }
+        });
+      }
+
+      // Zoom to district
+      if (districtLayer && districtLayer.getBounds) {
+        map.flyToBounds(districtLayer.getBounds(), { padding: [40, 40], duration: 1.2 });
+      }
+
+      // Load blocks
+      await loadGISBlocks(districtName, stateName);
+    }
+
+    async function loadGISBlocks(districtName, stateName) {
+      if (!window.BhoomiGIS) return;
+      showGISLoading('Loading blocks for ' + districtName + '...');
+
+      if (gisBlockLayer && map.hasLayer(gisBlockLayer)) { map.removeLayer(gisBlockLayer); }
+      if (gisGPLayer && map.hasLayer(gisGPLayer)) { map.removeLayer(gisGPLayer); }
+
+      var data = await BhoomiGIS.fetchBlocks(districtName, stateName);
+      hideGISLoading();
+      if (!data || !data.features || data.features.length === 0) {
+        showToast(currentLang === 'hi' ? 'ब्लॉक सीमा डेटा उपलब्ध नहीं है।' : 'Block boundary data not available for this district.');
+        return;
+      }
+
+      gisBlockLayer = L.geoJSON(data, {
+        style: function() { return GIS_STYLES.block.default; },
+        onEachFeature: function(feature, layer) {
+          var name = feature.properties.B_Pan_Name || feature.properties.block_name || 'Unknown';
+          layer.bindTooltip(name, { sticky: true });
+
+          layer.on('mouseover', function(e) {
+            if (gisSelectedBlock !== name) e.target.setStyle(GIS_STYLES.block.hover);
+          });
+          layer.on('mouseout', function(e) {
+            if (gisSelectedBlock !== name) e.target.setStyle(GIS_STYLES.block.default);
+          });
+          layer.on('click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            selectGISBlock(name, districtName, stateName, layer);
+          });
+        }
+      }).addTo(map);
+
+      var chk = document.getElementById('chk-layer-blocks');
+      if (chk) chk.checked = true;
+      console.log('[GIS] Loaded ' + data.features.length + ' blocks for ' + districtName);
+    }
+
+    async function selectGISBlock(blockName, districtName, stateName, blockLayer) {
+      gisSelectedBlock = blockName;
+      showToast((currentLang === 'hi' ? 'ब्लॉक चयनित: ' : 'Block selected: ') + blockName);
+
+      if (gisBlockLayer) {
+        gisBlockLayer.eachLayer(function(layer) {
+          var name = layer.feature && layer.feature.properties ? (layer.feature.properties.B_Pan_Name || layer.feature.properties.block_name) : '';
+          if (name === blockName) {
+            layer.setStyle(GIS_STYLES.block.selected);
+            layer.bindPopup(buildGISFeaturePopup(layer.feature.properties, 'block'), { maxWidth: 300 }).openPopup();
+          } else {
+            layer.setStyle(GIS_STYLES.block.default);
+          }
+        });
+      }
+
+      if (blockLayer && blockLayer.getBounds) {
+        map.flyToBounds(blockLayer.getBounds(), { padding: [40, 40], duration: 1.2 });
+      }
+
+      // Load GPs
+      await loadGISGramPanchayats(blockName, districtName, stateName);
+    }
+
+    async function loadGISGramPanchayats(blockName, districtName, stateName) {
+      if (!window.BhoomiGIS) return;
+      showGISLoading('Loading Gram Panchayats...');
+
+      if (gisGPLayer && map.hasLayer(gisGPLayer)) { map.removeLayer(gisGPLayer); }
+
+      var data = await BhoomiGIS.fetchGramPanchayats(blockName, districtName, stateName);
+      hideGISLoading();
+      if (!data || !data.features || data.features.length === 0) {
+        showToast(currentLang === 'hi' ? 'ग्राम पंचायत डेटा उपलब्ध नहीं है।' : 'Gram Panchayat data not available for this block.');
+        return;
+      }
+
+      gisGPLayer = L.geoJSON(data, {
+        style: function() { return GIS_STYLES.gp.default; },
+        onEachFeature: function(feature, layer) {
+          var name = feature.properties.GPNAME || 'Unknown';
+          layer.bindTooltip(name, { sticky: true });
+
+          layer.on('mouseover', function(e) { e.target.setStyle(GIS_STYLES.gp.hover); });
+          layer.on('mouseout', function(e) { e.target.setStyle(GIS_STYLES.gp.default); });
+          layer.on('click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            e.target.setStyle(GIS_STYLES.gp.selected);
+            layer.bindPopup(buildGISFeaturePopup(feature.properties, 'gp'), { maxWidth: 300 }).openPopup();
+          });
+        }
+      }).addTo(map);
+
+      var chk = document.getElementById('chk-layer-gp');
+      if (chk) chk.checked = true;
+      console.log('[GIS] Loaded ' + data.features.length + ' GPs for ' + blockName);
+    }
+
+    // GIS-powered search with debouncing
+    function setupGISSearch() {
+      var input = document.getElementById('input-khasra-search');
+      if (!input) return;
+
+      input.addEventListener('input', function() {
+        clearTimeout(gisSearchDebounceTimer);
+        var q = input.value.trim();
+        if (q.length < 2) {
+          hideGISSearchResults();
+          return;
+        }
+        gisSearchDebounceTimer = setTimeout(function() {
+          performGISSearch(q);
+        }, 400);
+      });
+
+      // Hide results on click outside
+      document.addEventListener('click', function(e) {
+        var container = document.getElementById('gis-search-results');
+        if (container && !container.contains(e.target) && e.target.id !== 'input-khasra-search') {
+          hideGISSearchResults();
+        }
+      });
+    }
+
+    async function performGISSearch(query) {
+      if (!window.BhoomiGIS) return;
+      var results = await BhoomiGIS.searchByName(query);
+      var container = document.getElementById('gis-search-results');
+      if (!container) return;
+
+      if (!results || results.length === 0) {
+        container.innerHTML = '<div class="gis-search-item" style="color:#94A3B8;justify-content:center;cursor:default;">No results found</div>';
+        container.classList.add('active');
+        return;
+      }
+
+      var html = '';
+      results.forEach(function(r, idx) {
+        var badgeClass = r.type.toLowerCase();
+        html += '<div class="gis-search-item" onclick="selectGISSearchResult(' + idx + ')" data-idx="' + idx + '">';
+        html += '<span class="search-type-badge ' + badgeClass + '">' + r.type + '</span>';
+        html += '<span>' + r.name + '</span>';
+        html += '</div>';
+      });
+      container.innerHTML = html;
+      container.classList.add('active');
+
+      // Store results globally for selection
+      window._gisSearchResults = results;
+    }
+
+    function selectGISSearchResult(idx) {
+      var results = window._gisSearchResults;
+      if (!results || !results[idx]) return;
+      var r = results[idx];
+      hideGISSearchResults();
+
+      // Clear search input
+      var input = document.getElementById('input-khasra-search');
+      if (input) input.value = r.name;
+
+      // Add temporary highlight layer
+      if (gisHighlightLayer && map.hasLayer(gisHighlightLayer)) {
+        map.removeLayer(gisHighlightLayer);
+      }
+
+      if (r.geometry) {
+        gisHighlightLayer = L.geoJSON(r.geometry, {
+          style: { color: '#EF4444', weight: 4, fillColor: '#EF4444', fillOpacity: 0.15, dashArray: '8, 4' }
+        }).addTo(map);
+
+        map.flyToBounds(gisHighlightLayer.getBounds(), { padding: [60, 60], duration: 1.2 });
+
+        // Auto-drill into the selected feature
+        if (r.type === 'State') {
+          selectGISState(r.properties.STNAME, gisHighlightLayer.getLayers()[0]);
+        } else if (r.type === 'District') {
+          loadGISDistricts(r.properties.stname).then(function() {
+            selectGISDistrict(r.properties.D_Pan_Name, r.properties.stname, gisHighlightLayer.getLayers()[0]);
+          });
+        }
+
+        // Remove highlight after 5 seconds
+        setTimeout(function() {
+          if (gisHighlightLayer && map.hasLayer(gisHighlightLayer)) {
+            map.removeLayer(gisHighlightLayer);
+          }
+        }, 5000);
+      }
+
+      showToast((currentLang === 'hi' ? 'स्थान मिला: ' : 'Located: ') + r.name);
+    }
+
+    function hideGISSearchResults() {
+      var container = document.getElementById('gis-search-results');
+      if (container) container.classList.remove('active');
+    }
+
     // Application state
     let currentLang = localStorage.getItem("bhoomi_lang") || "hi";
     let map = null;
@@ -2969,6 +3780,23 @@
         inspectLocation(e.latlng.lat, e.latlng.lng, null, null, true);
       });
 
+      // Scale bar
+      L.control.scale({ position: 'bottomleft', metric: true, imperial: false }).addTo(map);
+
+      // Coordinates display on mouse move
+      map.on('mousemove', function(e) {
+        var coordsEl = document.getElementById('gis-coords-display');
+        if (coordsEl) {
+          coordsEl.innerText = e.latlng.lat.toFixed(4) + '° N, ' + e.latlng.lng.toFixed(4) + '° E';
+        }
+      });
+
+      // Load real GIS state boundaries from NIC Bharat Maps
+      loadGISStateBoundaries();
+
+      // Setup GIS-powered search
+      setupGISSearch();
+
       // Initial inspection at default location (Jaipur/Amer)
       inspectLocation(currentLat, currentLon, "Amer, Jaipur Parcel 7829", 11, false);
     }
@@ -3176,18 +4004,18 @@
           // Robust client-side fallback using nearest admin calculation
           const nearest = findNearestAdmin(lat, lon);
           geoData = {
-            house_number: `Plot #${Math.floor(100 + (Math.abs(lat) * 100) % 899)}`,
-            road: `राजस्व मुख्य मार्ग (${nearest.tehsil} Survey Road)`,
-            village: customTitle || `${nearest.tehsil} Cadastral Mouza`,
+            house_number: customTitle || (currentLang === 'hi' ? 'भू-अभिलेख निरीक्षण बिंदु' : 'Land Record Inspection Point'),
+            road: nearest.tehsil ? nearest.tehsil + ' (' + nearest.district + ')' : (currentLang === 'hi' ? 'प्रशासनिक क्षेत्र' : 'Administrative Area'),
+            village: nearest.tehsil || (currentLang === 'hi' ? 'क्षेत्र' : 'Area'),
             tehsil: nearest.tehsil,
             district: nearest.district,
             state: nearest.state,
             postcode: nearest.postcode,
-            khasra_no: `KHA-${Math.floor(1000 + (Math.abs(lat) * 1000) % 8999)}-${nearest.state.substring(0,2).toUpperCase()}`,
-            cadastral_area_ha: 45.0,
-            cadastral_area_acres: 111.2,
-            land_classification: currentLang === 'hi' ? "कृषि (चाही-1 / सिंचित)" : "Agriculture (Irrigated)",
-            geometry_status: "✓ 100% संवृत (Closed Polygon)"
+            khasra_no: currentLang === 'hi' ? 'कैडस्ट्रल डेटा भू-नक्शा से उपलब्ध' : 'Cadastral data via Bhu-Naksha',
+            cadastral_area_ha: currentLang === 'hi' ? 'भू-नक्शा से प्राप्य' : 'Available via Bhu-Naksha',
+            cadastral_area_acres: '',
+            land_classification: currentLang === 'hi' ? 'राज्य भू-अभिलेख विभाग से प्राप्य' : 'Available from State Revenue Dept.',
+            geometry_status: currentLang === 'hi' ? 'ℹ️ कैडस्ट्रल सीमा भू-नक्शा पोर्टल पर' : 'ℹ️ Cadastral boundary on Bhu-Naksha portal'
           };
         }
 
@@ -3225,50 +4053,61 @@
     }
 
     function redrawParcelAt(lat, lon) {
-      const dLat = 0.0035;
-      const dLon = 0.0045;
-      const parcelCoords = [
-        [lat - dLat * 0.8, lon - dLon * 0.9],
-        [lat + dLat * 0.9, lon - dLon * 0.7],
-        [lat + dLat * 0.7, lon + dLon * 1.1],
-        [lat - dLat * 1.0, lon + dLon * 0.8]
-      ];
+      // NOTE: Official cadastral/plot boundaries require access to state
+      // Bhu-Naksha services (e.g., bhunaksha.rajasthan.gov.in) which use
+      // CAPTCHA/session-based authentication. We do not fabricate fake
+      // plot boundaries. Instead, we show real administrative data from
+      // NIC Bharat Maps and indicate cadastral data availability honestly.
 
+      // Use real GIS identification to find admin hierarchy at this point
+      if (window.BhoomiGIS) {
+        BhoomiGIS.identifyLocation(lat, lon).then(function(result) {
+          if (result && result.state) {
+            var stateName = result.state.STNAME || '';
+            var distName = result.district ? (result.district.D_Pan_Name || '') : '';
+            var blockName = result.block ? (result.block.B_Pan_Name || '') : '';
+
+            // Update cadastral inspector with real admin hierarchy
+            var elAdmin = document.getElementById('disp-cadastral-admin');
+            if (elAdmin && stateName) {
+              elAdmin.innerText = (blockName ? blockName + ', ' : '') + (distName ? distName + ', ' : '') + stateName;
+            }
+          }
+        });
+      }
+
+      // Show inspection circle (not a fake parcel polygon)
       if (parcelPolygon && map && map.hasLayer(parcelPolygon)) {
         map.removeLayer(parcelPolygon);
       }
-      parcelPolygon = L.polygon(parcelCoords, {
+      parcelPolygon = L.circle([lat, lon], {
+        radius: 200,
         color: "#EAB308",
-        weight: 3,
+        weight: 2,
         fillColor: "#EAB308",
-        fillOpacity: 0.22
+        fillOpacity: 0.12,
+        dashArray: "6, 4"
       }).addTo(map);
 
       parcelPolygon.bindTooltip(
-        currentLang === 'hi' ? "खसरा सीमा (Khasra Parcel Boundary)" : "Khasra Survey Parcel Boundary",
+        currentLang === 'hi' ? "निरीक्षण क्षेत्र (Inspection Area)" : "Inspection Area (Official cadastral data requires Bhu-Naksha access)",
         { permanent: false }
       );
-      parcelPolygon.on("click", () => {
+      parcelPolygon.on("click", function() {
         activateTab(document.getElementById("tab-btn-cadastral"), 'cadastral');
       });
 
-      const divLat = dLat * 0.55;
-      const divLon = dLon * 0.55;
-      const divertCoords = [
-        [lat - divLat * 0.7, lon - divLon * 0.8],
-        [lat + divLat * 0.8, lon - divLon * 0.6],
-        [lat + divLat * 0.6, lon + divLon * 0.7],
-        [lat - divLat * 0.8, lon + divLon * 0.6]
-      ];
-
+      // Diversion area indicator (for Section 90-A calculator — illustrative only)
       if (divertPolygon && map && map.hasLayer(divertPolygon)) {
         map.removeLayer(divertPolygon);
       }
-      divertPolygon = L.polygon(divertCoords, {
+      divertPolygon = L.circle([lat, lon], {
+        radius: 120,
         color: "#EF4444",
-        weight: 2.5,
+        weight: 2,
         fillColor: "#EF4444",
-        fillOpacity: 0.38
+        fillOpacity: 0.18,
+        dashArray: "4, 4"
       }).addTo(map);
 
       divertPolygon.bindTooltip(
