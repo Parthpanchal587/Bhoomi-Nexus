@@ -505,7 +505,7 @@
     #cadastral-map {
       width: 100%;
       height: 100%;
-      background: #1E293B;
+      background: #07172B !important;
       z-index: 1;
     }
 
@@ -1719,6 +1719,9 @@
 
     <!-- Map Tile Layer Selector -->
     <div class="layer-selector-group">
+      <button class="layer-pill-btn" id="btn-toggle-pipeline-monitor" onclick="toggleGISDebugPipeline()" title="GIS Pipeline Monitor" style="background:#0F172A; color:#38BDF8; border:1px solid #0284C7; font-size:11px; font-weight:700;">
+        <span>🛠️</span> <span>Pipeline Monitor</span>
+      </button>
       <button class="layer-pill-btn active" id="btn-layer-hybrid" onclick="setMapLayer('hybrid')" data-i18n="layer_hybrid">Google Hybrid (उपग्रह)</button>
       <button class="layer-pill-btn" id="btn-layer-road" onclick="setMapLayer('road')" data-i18n="layer_road">Google Road (सड़क)</button>
       <button class="layer-pill-btn" id="btn-layer-terrain" onclick="setMapLayer('terrain')" data-i18n="layer_terrain">Google Terrain (भू-भाग)</button>
@@ -1812,6 +1815,10 @@
       </div>
 
       <table class="telemetry-meta-table">
+        <tr style="background: #F8FAFC;">
+          <td class="label" style="font-weight: 700; color: #0369A1;">📍 चयनित निर्देशांक (Selected Point):</td>
+          <td class="value" id="disp-cadastral-coords" style="font-family: var(--font-mono); font-weight: 700; color: #0C3258;">26.98550° N, 75.85070° E (EPSG:4326)</td>
+        </tr>
         <tr>
           <td class="label" data-i18n="lbl_cadastral_house">भवन / भूखंड (House / Plot):</td>
           <td class="value" id="disp-cadastral-house" style="color: #0C3258;">निरीक्षण बिंदु (Click Map to Inspect)</td>
@@ -2753,25 +2760,24 @@
     }
 
     
-    // Geographic Viewport Bounds Clamp (Strict India Bounds)
+        // Geographic Viewport Bounds Clamp (Strict India Bounds, Instant Motion)
     function safeFlyToBounds(bounds, fallbackCenter, fallbackZoom) {
       if (!map) return;
       try {
-        if (bounds && bounds.isValid && bounds.isValid()) {
+        if (bounds && typeof bounds.isValid === 'function' && bounds.isValid()) {
           const sw = bounds.getSouthWest();
           const ne = bounds.getNorthEast();
-          // Ensure within sovereign India bounds: Lat [4.0, 38.5], Lon [65.0, 100.0]
-          if (sw.lat >= 4.0 && ne.lat <= 38.5 && sw.lng >= 65.0 && ne.lng <= 100.0) {
+          if (sw.lat >= 5.0 && ne.lat <= 38.5 && sw.lng >= 65.0 && ne.lng <= 99.5) {
             const latSpan = Math.abs(ne.lat - sw.lat);
             const lonSpan = Math.abs(ne.lng - sw.lng);
-            if (latSpan > 0.005 && latSpan < 22.0 && lonSpan > 0.005 && lonSpan < 22.0) {
-              map.flyToBounds(bounds, { padding: [40, 40], maxZoom: 15, duration: 1.2 });
+            if (latSpan > 0.01 && latSpan < 20.0 && lonSpan > 0.01 && lonSpan < 20.0) {
+              map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14, animate: false });
               return;
             }
           }
         }
       } catch (e) {}
-      map.flyTo(fallbackCenter || [currentLat, currentLon], fallbackZoom || 12, { duration: 1.2 });
+      map.setView(fallbackCenter || [currentLat, currentLon], fallbackZoom || 12, { animate: false });
     }
 
     async function selectGISState(stateName, stateLayer) {
@@ -3080,6 +3086,134 @@
     let map = null;
     let currentTileLayer = null;
     let inspectionMarker = null;
+    
+    // ============================================================
+    // CANONICAL GIS LOCATION STATE & ASYNC SEQUENCE CONTROL
+    // ============================================================
+    let selectedLocation = {
+      latitude: 26.9855,
+      longitude: 75.8507,
+      coordinateReferenceSystem: "EPSG:4326",
+      source: "initial-load",
+      selectionId: "init-0",
+      selectedAt: new Date().toISOString()
+    };
+
+    let currentSelectionId = 0;
+    let currentAbortController = null;
+    const telemetryCoordCache = new Map();
+    const soilCoordCache = new Map();
+
+    // Standardized Coordinate Converters and Validators (EPSG:4326 vs GeoJSON)
+    function toWGS84(coords) {
+      if (Array.isArray(coords)) {
+        return { latitude: coords[1], longitude: coords[0], crs: "EPSG:4326" };
+      }
+      if (coords && typeof coords.lat === 'number' && typeof coords.lng === 'number') {
+        return { latitude: coords.lat, longitude: coords.lng, crs: "EPSG:4326" };
+      }
+      if (coords && typeof coords.latitude === 'number' && typeof coords.longitude === 'number') {
+        return { latitude: coords.latitude, longitude: coords.longitude, crs: "EPSG:4326" };
+      }
+      return null;
+    }
+
+    function fromWGS84(lat, lon, format = "geojson") {
+      if (format === "geojson") {
+        return [lon, lat]; // GeoJSON standard [x, y] = [lon, lat]
+      }
+      if (format === "leaflet") {
+        return L.latLng(lat, lon);
+      }
+      if (format === "display") {
+        return `${lat.toFixed(5)}° N, ${lon.toFixed(5)}° E`;
+      }
+      return { latitude: lat, longitude: lon };
+    }
+
+    function validateCoordinate(lat, lon) {
+      if (typeof lat !== 'number' || typeof lon !== 'number') return false;
+      if (isNaN(lat) || isNaN(lon) || !isFinite(lat) || !isFinite(lon)) return false;
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return false;
+      return (lat >= 5.0 && lat <= 38.5 && lon >= 65.0 && lon <= 100.0);
+    }
+
+    function toggleGISDebugPipeline() {
+      const el = document.getElementById("gis-debug-pipeline");
+      if (el) {
+        el.style.display = (el.style.display === "none" || !el.style.display) ? "block" : "none";
+        updateDebugPipelineMapInfo();
+      }
+    }
+
+    function updateDebugPipelineStatus(selLoc, weatherStatus, soilStatus, cadStatus) {
+      const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+      setTxt("debug-pipe-pointer", `POINTER: ${selLoc.latitude.toFixed(6)}° N, ${selLoc.longitude.toFixed(6)}° E`);
+      setTxt("debug-pipe-selection", `SELECTION: ${selLoc.selectionId} (${selLoc.source})`);
+      setTxt("debug-pipe-weather", `WEATHER REQ: ${weatherStatus}`);
+      setTxt("debug-pipe-soil", `SOIL REQ: ${soilStatus}`);
+      setTxt("debug-pipe-cadastral", `CADASTRAL REQ: ${cadStatus}`);
+      updateDebugPipelineMapInfo();
+    }
+
+    function updateDebugPipelineMapInfo() {
+      if (!map) return;
+      const c = map.getCenter();
+      const z = map.getZoom();
+      const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+      setTxt("debug-pipe-map", `MAP: ${c.lat.toFixed(4)}, ${c.lng.toFixed(4)} | ZOOM ${z}`);
+    }
+
+    // Helper: Reset all UI panels immediately to Loading... state
+    function resetGISPanelsToLoading(lat, lon, requestId) {
+      const isHi = currentLang === 'hi';
+      const loadingStr = isHi ? "डेटा लोड हो रहा है..." : "Loading...";
+      const coordsFormatted = `${lat.toFixed(5)}° N, ${lon.toFixed(5)}° E (EPSG:4326)`;
+
+      const setEl = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = text;
+      };
+
+      // Selected Coords on both cards
+      setEl("disp-cadastral-coords", coordsFormatted);
+      setEl("disp-tele-coords", coordsFormatted);
+
+      // Telemetry Card
+      setEl("disp-tele-timestamp", loadingStr);
+      setEl("val-air-temp", loadingStr);
+      setEl("sub-apparent-temp", isHi ? "महसूस: " + loadingStr : "Feels: " + loadingStr);
+      setEl("val-humidity", loadingStr);
+      setEl("val-rain", loadingStr);
+      setEl("val-wind", loadingStr);
+      setEl("val-sm-0-7", loadingStr);
+      setEl("pct-sm-0-7", "");
+      setEl("val-sm-7-28", loadingStr);
+      setEl("val-sm-28-100", loadingStr);
+      setEl("val-sm-100-255", loadingStr);
+      setEl("val-st-0-7", loadingStr);
+      setEl("val-st-7-28", loadingStr);
+      setEl("val-st-28-100", loadingStr);
+      setEl("val-st-100-255", loadingStr);
+      setEl("val-soil-ph", loadingStr);
+      setEl("val-soil-soc", loadingStr);
+      setEl("val-soil-clay", loadingStr);
+      setEl("val-soil-sand", loadingStr);
+      setEl("val-soil-texture", isHi ? "संरचना: विश्लेषण जारी..." : "Texture: Analyzing...");
+      setEl("disp-suit-title", isHi ? "उपयुक्तता: विश्लेषण जारी..." : "Suitability: Analyzing...");
+      setEl("disp-suit-desc", isHi ? "वर्तमान निर्देशांक हेतु डेटा प्राप्त हो रहा है..." : "Fetching environmental readings for coordinates...");
+
+      // Cadastral Card
+      setEl("disp-cadastral-house", loadingStr);
+      setEl("disp-cadastral-road", loadingStr);
+      setEl("disp-cadastral-village", loadingStr);
+      setEl("disp-cadastral-khasra", loadingStr);
+      setEl("disp-cadastral-admin", coordsFormatted);
+      setEl("disp-cadastral-area", loadingStr);
+      setEl("disp-cadastral-class", loadingStr);
+      setEl("disp-cadastral-geom", loadingStr);
+    }
+
     let currentLat = 26.9855;
     let currentLon = 75.8507;
     let activeLayerType = "hybrid";
@@ -3743,19 +3877,21 @@
     }
 
     // ============================================================
-    function initMap() {
-      // Bounding Box strictly containing India territorial extent
-      const southWest = L.latLng(4.0, 65.0);
-      const northEast = L.latLng(38.5, 100.0);
+        function initMap() {
+      // Sovereign India bounding box [5.5, 66.0] to [38.0, 99.0]
+      const southWest = L.latLng(5.5, 66.0);
+      const northEast = L.latLng(38.0, 99.0);
       const indiaBounds = L.latLngBounds(southWest, northEast);
 
       map = L.map("cadastral-map", {
         center: [currentLat, currentLon],
         zoom: 11,
-        minZoom: 4,
+        minZoom: 5,
         maxZoom: 19,
         maxBounds: indiaBounds,
         maxBoundsViscosity: 1.0,
+        worldCopyJump: false,
+        bounceAtZoomLimits: false,
         zoomControl: false
       });
 
@@ -3764,24 +3900,29 @@
       // Default: Google Maps Hybrid (satellite + roads)
       setMapLayer("hybrid");
 
-      // Apply Sovereign India Mask: 100% solid mask covering all other countries
+      // Apply Sovereign India Mask
       applyIndiaOnlyMask();
 
-      // Place Cadastral Inspection Marker
+      // Inspection Marker
       inspectionMarker = L.marker([currentLat, currentLon]).addTo(map);
 
-      // Map Click Handler: Live Internet Cadastral & House Inspection
+      // Map Click Handler: Exact coordinate is the single source of truth
       map.on("click", (e) => {
-        // Enforce clicks only within India sovereign landmass (strictly reject non-India regions & oceans)
-        if (window.isPointInIndiaLand && !window.isPointInIndiaLand(e.latlng.lat, e.latlng.lng)) {
+        const clickLat = parseFloat(e.latlng.lat.toFixed(6));
+        const clickLon = parseFloat(e.latlng.lng.toFixed(6));
+
+        // Reject non-India territory and open sea
+        if (!validateCoordinate(clickLat, clickLon) || (window.isPointInIndiaLand && !window.isPointInIndiaLand(clickLat, clickLon))) {
           showToast(currentLang === 'hi'
             ? "⚠️ केवल भारत की भौगोलिक सीमा मान्य है (अन्य देश अवरुद्ध हैं)।"
             : "⚠️ Only Indian sovereign territory is accessible. Surrounding countries and non-Indian waters are masked.");
           if (inspectionMarker) inspectionMarker.closePopup();
           return;
         }
-        inspectLocation(e.latlng.lat, e.latlng.lng, null, null, true);
+        inspectLocation(clickLat, clickLon, null, null, true, "map-pointer");
       });
+
+      map.on('moveend zoomend', updateDebugPipelineMapInfo);
 
       // Scale bar
       L.control.scale({ position: 'bottomleft', metric: true, imperial: false }).addTo(map);
@@ -3790,51 +3931,55 @@
       map.on('mousemove', function(e) {
         var coordsEl = document.getElementById('gis-coords-display');
         if (coordsEl) {
-          coordsEl.innerText = e.latlng.lat.toFixed(4) + '° N, ' + e.latlng.lng.toFixed(4) + '° E';
+          coordsEl.innerText = e.latlng.lat.toFixed(5) + '° N, ' + e.latlng.lng.toFixed(5) + '° E';
         }
       });
 
-      // Load real GIS state boundaries from NIC Bharat Maps
       loadGISStateBoundaries();
-
-      // Setup GIS-powered search
       setupGISSearch();
 
-      // Initial inspection at default location (Jaipur/Amer)
-      inspectLocation(currentLat, currentLon, "निरीक्षण बिंदु / Inspection Point", 11, false);
+      // Initial inspection at Jaipur/Amer
+      inspectLocation(currentLat, currentLon, "निरीक्षण बिंदु / Inspection Point", 11, false, "initial-load");
     }
 
     function setMapLayer(type) {
       activeLayerType = type;
       if (currentTileLayer) map.removeLayer(currentTileLayer);
 
-      // Update button states
       document.querySelectorAll(".layer-pill-btn").forEach(btn => {
         if (btn.id && btn.id.startsWith("btn-layer-")) btn.classList.remove("active");
       });
       const activeBtn = document.getElementById(`btn-layer-${type}`);
       if (activeBtn) activeBtn.classList.add("active");
 
+      const southWest = L.latLng(5.5, 66.0);
+      const northEast = L.latLng(38.0, 99.0);
+      const indiaBounds = L.latLngBounds(southWest, northEast);
+
+      const tileOpts = {
+        maxZoom: 20,
+        bounds: indiaBounds,
+        noWrap: true,
+        keepBuffer: 4
+      };
+
       if (type === "hybrid") {
-        currentTileLayer = L.tileLayer("https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
-          maxZoom: 20,
+        currentTileLayer = L.tileLayer("https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", Object.assign({
           attribution: "Google Maps Satellite Hybrid | Bhoomi-Nexus NIC GIS"
-        });
+        }, tileOpts));
       } else if (type === "road") {
-        currentTileLayer = L.tileLayer("https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
-          maxZoom: 20,
+        currentTileLayer = L.tileLayer("https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", Object.assign({
           attribution: "Google Maps Road | Bhoomi-Nexus NIC GIS"
-        });
+        }, tileOpts));
       } else if (type === "terrain") {
-        currentTileLayer = L.tileLayer("https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}", {
-          maxZoom: 20,
+        currentTileLayer = L.tileLayer("https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}", Object.assign({
           attribution: "Google Maps Terrain | Bhoomi-Nexus NIC GIS"
-        });
+        }, tileOpts));
       } else {
-        currentTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        currentTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", Object.assign({
           maxZoom: 19,
           attribution: "OpenStreetMap Carto | Bhoomi-Nexus"
-        });
+        }, tileOpts));
       }
 
       currentTileLayer.addTo(map);
@@ -3956,83 +4101,106 @@
       refreshTelemetry();
     }
 
-    async function inspectLocation(lat, lon, customTitle = null, targetZoom = null, shouldSyncDropdowns = false) {
-      // 1. Strict Land Verification: Reject water bodies, sea, and outside-India coordinates
-      if (window.isPointInIndiaLand && !window.isPointInIndiaLand(lat, lon)) {
+        async function inspectLocation(lat, lon, customTitle = null, targetZoom = null, shouldSyncDropdowns = false, source = "map-pointer") {
+      // 1. Strict Land Verification
+      if (!validateCoordinate(lat, lon) || (window.isPointInIndiaLand && !window.isPointInIndiaLand(lat, lon))) {
         showToast(currentLang === 'hi' 
-          ? "🌊 जलीय क्षेत्र / बाहर: यहाँ कोई कैडस्ट्रल भूमि अथवा भूखंड पंजीकृत नहीं है।" 
+          ? "🌊 जलीय क्षेत्र / बाहर: यहाँ कोई कैडस्ट्रल भूमि पंजीकृत नहीं है।" 
           : "🌊 Water Body / Outside Boundary: No cadastral land plot registered here.");
-        
-        if (inspectionMarker) inspectionMarker.closePopup();
-        if (parcelPolygon && map) map.removeLayer(parcelPolygon);
-        if (sec90aPolygon && map) map.removeLayer(sec90aPolygon);
-
-        const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-        setEl("disp-cadastral-house", currentLang === 'hi' ? "🌊 जलीय क्षेत्र (Water Body)" : "🌊 Water / Sea Area");
-        setEl("disp-cadastral-road", currentLang === 'hi' ? "समुद्र / जल निकाय (Maritime Zone)" : "Sea / Open Water Body");
-        setEl("disp-cadastral-village", currentLang === 'hi' ? "कोई राजस्व ग्राम नहीं (No Revenue Village)" : "No Cadastral Village");
-        setEl("disp-cadastral-khasra", currentLang === 'hi' ? "गैर-कैडस्ट्रल (Unsurveyed Sea)" : "Non-Cadastral");
-        setEl("disp-cadastral-admin", currentLang === 'hi' ? "भारतीय प्रादेशिक जल (Territorial Waters)" : "Indian Territorial Waters");
-        setEl("disp-cadastral-area", "0.00 Ha (0.0 Acres)");
-        setEl("disp-cadastral-class", currentLang === 'hi' ? "जल निकाय / समुद्र (Open Water)" : "Water Body / Sea");
-        setEl("disp-cadastral-geom", currentLang === 'hi' ? "❌ कोई भूमि भूखंड नहीं (No Land Parcel)" : "❌ No Land Parcel");
         return;
       }
 
+      // 2. Increment selection sequence and abort previous in-flight requests
+      currentSelectionId++;
+      const thisSelectionId = currentSelectionId;
+      const thisRequestId = `sel-${thisSelectionId}-${Date.now().toString(36)}`;
+
+      if (currentAbortController) {
+        try { currentAbortController.abort(); } catch (e) {}
+      }
+      currentAbortController = new AbortController();
+      const signal = currentAbortController.signal;
+
+      // 3. Create canonical selectedLocation
+      selectedLocation = {
+        latitude: lat,
+        longitude: lon,
+        coordinateReferenceSystem: "EPSG:4326",
+        source: source,
+        selectionId: thisRequestId,
+        selectedAt: new Date().toISOString()
+      };
       currentLat = lat;
       currentLon = lon;
 
+      // 4. Update Map Marker
       if (inspectionMarker) {
         inspectionMarker.setLatLng([lat, lon]);
       }
-
       if (targetZoom && map) {
-        map.flyTo([lat, lon], targetZoom, { duration: 1.2 });
+        map.setView([lat, lon], targetZoom, { animate: false });
       } else if (map && !map.getBounds().contains([lat, lon])) {
-        map.panTo([lat, lon]);
+        map.panTo([lat, lon], { animate: false });
       }
 
-      const coordsText = `${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`;
-      const dispCoords = document.getElementById("disp-tele-coords");
-      if (dispCoords) dispCoords.innerText = coordsText;
+      // 5. Update Debug Pipeline
+      updateDebugPipelineStatus(selectedLocation, "FETCHING", "FETCHING", "FETCHING");
 
+      // 6. IMMEDIATELY RESET OLD DATA IN DOM -> SHOW "Loading..."
+      resetGISPanelsToLoading(lat, lon, thisRequestId);
       redrawParcelAt(lat, lon);
       animateTelemetryPulse();
 
+      const coordsFormatted = `${lat.toFixed(5)}° N, ${lon.toFixed(5)}° E`;
+
       if (inspectionMarker) {
         inspectionMarker.bindPopup(`
-          <div style="font-family: var(--font-main); font-size: 12px; padding: 6px; min-width: 220px; text-align: center;">
+          <div style="font-family: var(--font-main); font-size: 12px; padding: 6px; min-width: 230px; text-align: center;">
             <div style="font-size: 16px; margin-bottom: 4px;">📡</div>
-            <strong style="color: #0C3258;">${currentLang === 'hi' ? 'वास्तविक भू-स्थानिक व टेलीमेट्री डेटा लोड हो रहा है...' : 'Fetching Live GIS & Environmental Data...'}</strong>
-            <div style="color: #64748B; font-size: 11px; margin-top: 2px;">${coordsText}</div>
+            <strong style="color: #0C3258;">${currentLang === 'hi' ? 'डेटा लोड हो रहा है...' : 'Fetching Live GIS & Environmental Data...'}</strong>
+            <div style="color: #64748B; font-size: 11px; font-family: var(--font-mono); margin-top: 3px;">${coordsFormatted}</div>
           </div>
         `).openPopup();
       }
 
       try {
-        // Fetch Live Reverse Geocoding, Real Weather & Soil Telemetry, and ISRIC SoilGrids in parallel with direct fallback
+        // 7. Parallel fetch with signal
         const [geoRes, teleData, soilData] = await Promise.all([
-          fetch(`${API_BASE}/api/geo/reverse?lat=${lat}&lon=${lon}`).then(r => r.ok ? r.json() : null).catch(() => null),
-          fetchTelemetryData(lat, lon),
-          fetchSoilData(lat, lon)
+          fetch(`${API_BASE}/api/geo/reverse?lat=${lat}&lon=${lon}`, { signal }).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetchTelemetryData(lat, lon, signal),
+          fetchSoilData(lat, lon, signal)
         ]);
+
+        // 8. ASYNC RACE CONDITION GUARD: Discard if user clicked another location!
+        if (thisSelectionId !== currentSelectionId) {
+          console.log(`[GIS] Discarding stale response for selection ${thisSelectionId} (current is ${currentSelectionId})`);
+          return;
+        }
+
+        // 9. COORDINATE VALIDATION: Verify response matches requested coordinate
+        if (teleData && teleData.latitude != null) {
+          if (Math.abs(teleData.latitude - lat) > 0.5 || Math.abs(teleData.longitude - lon) > 0.5) {
+            console.warn("[GIS] Telemetry coordinate mismatch discarded:", teleData);
+            return;
+          }
+        }
 
         let geoData = geoRes;
         if (!geoData) {
           const nearest = findNearestAdmin(lat, lon);
           geoData = {
-            house_number: customTitle || (currentLang === 'hi' ? 'भू-अभिलेख निरीक्षण बिंदु' : 'Land Record Inspection Point'),
-            road: nearest.tehsil ? nearest.tehsil + ' (' + nearest.district + ')' : (currentLang === 'hi' ? 'प्रशासनिक क्षेत्र' : 'Administrative Area'),
-            village: nearest.tehsil || (currentLang === 'hi' ? 'क्षेत्र' : 'Area'),
+            house_number: customTitle || (currentLang === 'hi' ? 'निरीक्षण बिंदु' : 'Inspection Point'),
+            road: nearest.tehsil ? `${nearest.tehsil} (${nearest.district})` : '—',
+            village: nearest.tehsil || '—',
             tehsil: nearest.tehsil,
             district: nearest.district,
             state: nearest.state,
             postcode: nearest.postcode,
-            khasra_no: currentLang === 'hi' ? 'भू-नक्शा पोर्टल से प्राप्य' : 'Available via Bhu-Naksha',
+            khasra_no: null,
             cadastral_area_ha: null,
             cadastral_area_acres: null,
-            land_classification: currentLang === 'hi' ? 'राज्य राजस्व अभिलेख से सत्यापन योग्य' : 'Verify via State Revenue Dept.',
-            geometry_status: currentLang === 'hi' ? 'अभिलेख भू-नक्शा पोर्टल पर उपलब्ध' : 'Cadastral boundary on Bhu-Naksha portal'
+            land_classification: null,
+            geometry_status: null
           };
         }
 
@@ -4040,16 +4208,19 @@
           syncDropdownsWithLocation(geoData, lat, lon);
         }
 
-        updateCadastralInspectorDOM(geoData, coordsText);
-        updateTelemetryDOM(teleData, soilData);
+        // 10. Update DOM with exact validated data
+        updateCadastralInspectorDOM(geoData, coordsFormatted, selectedLocation);
+        updateTelemetryDOM(teleData, soilData, selectedLocation);
 
-        if (inspectionMarker) {
-          const popupHtml = buildRichMarkerPopup(geoData, teleData, soilData, coordsText);
-          inspectionMarker.bindPopup(popupHtml, { maxWidth: 340 }).openPopup();
+        if (inspectionMarker && thisSelectionId === currentSelectionId) {
+          const popupHtml = buildRichMarkerPopup(geoData, teleData, soilData, coordsFormatted, selectedLocation);
+          inspectionMarker.bindPopup(popupHtml, { maxWidth: 350 }).openPopup();
         }
 
-        showToast(`${currentLang === 'hi' ? 'स्थानिक डेटा लोड हुआ: ' : 'Spatial data loaded: '}${geoData.tehsil || geoData.district || 'India'}`);
+        updateDebugPipelineStatus(selectedLocation, teleData ? "SUCCESS" : "UNAVAILABLE", soilData ? "SUCCESS" : "UNAVAILABLE", "UNAVAILABLE (NO_API)");
+        showToast(`${currentLang === 'hi' ? 'डेटा अद्यतन: ' : 'Data updated: '}${coordsFormatted}`);
       } catch (err) {
+        if (err.name === 'AbortError') return;
         console.error("Inspect location error:", err);
       }
     }
@@ -4082,94 +4253,80 @@
       }
     }
 
-        function buildRichMarkerPopup(geo, tele, soil, coordsText) {
+            function buildRichMarkerPopup(geo, tele, soil, coordsText, selLoc) {
       const isHi = currentLang === 'hi';
+      const qLat = (selLoc && selLoc.latitude != null) ? selLoc.latitude.toFixed(5) : currentLat.toFixed(5);
+      const qLon = (selLoc && selLoc.longitude != null) ? selLoc.longitude.toFixed(5) : currentLon.toFixed(5);
+      const queryLocStr = `${qLat}° N, ${qLon}° E`;
+
       const airTemp = tele && tele.ambient_temperature_c != null ? `${tele.ambient_temperature_c} °C` : 'Unavailable';
-      const humid = tele && tele.relative_humidity_pct != null ? `${tele.relative_humidity_pct} %` : 'Unavailable';
+      const humid = tele && tele.relative_humidity_pct != null ? `${Math.round(tele.relative_humidity_pct)} %` : 'Unavailable';
       const rain = tele && tele.precipitation_mm != null ? `${tele.precipitation_mm} mm` : '0.0 mm';
-      const sm0_7 = tele && tele.soil_moisture_depths && tele.soil_moisture_depths['0_7cm'] != null
-        ? `${tele.soil_moisture_depths['0_7cm']} m³/m³`
-        : (tele && tele.soil_moisture_volumetric != null ? `${tele.soil_moisture_volumetric} m³/m³` : 'Unavailable');
-      const st0_7 = tele && tele.soil_temperature_depths && tele.soil_temperature_depths['0_7cm'] != null
-        ? `${tele.soil_temperature_depths['0_7cm']} °C`
-        : 'Unavailable';
+      
+      const smDepths = tele ? (tele.soil_moisture_depths || {}) : {};
+      const sm0_7_val = smDepths.layer_0_to_7cm != null ? smDepths.layer_0_to_7cm : (smDepths['0_7cm'] != null ? smDepths['0_7cm'] : tele?.soil_moisture_volumetric);
+      const sm0_7 = sm0_7_val != null ? `${sm0_7_val} m³/m³` : 'Unavailable';
 
-      const soilPh = soil && soil.ph_h2o_topsoil != null
-        ? soil.ph_h2o_topsoil
-        : (soil && soil.summary_0_5cm && soil.summary_0_5cm.ph != null ? soil.summary_0_5cm.ph : 'Unavailable');
-      const soc = soil && soil.soc_g_per_kg_topsoil != null
-        ? `${soil.soc_g_per_kg_topsoil} g/kg`
-        : (soil && soil.summary_0_5cm && soil.summary_0_5cm.soil_organic_carbon_g_per_kg != null ? `${soil.summary_0_5cm.soil_organic_carbon_g_per_kg} g/kg` : 'Unavailable');
-      const clay = soil && soil.clay_percent_topsoil != null
-        ? `${soil.clay_percent_topsoil} %`
-        : (soil && soil.summary_0_5cm && soil.summary_0_5cm.clay_pct != null ? `${soil.summary_0_5cm.clay_pct} %` : 'Unavailable');
-      const sand = soil && soil.sand_percent_topsoil != null
-        ? `${soil.sand_percent_topsoil} %`
-        : (soil && soil.summary_0_5cm && soil.summary_0_5cm.sand_pct != null ? `${soil.summary_0_5cm.sand_pct} %` : 'Unavailable');
+      const stDepths = tele ? (tele.soil_temperature_depths || {}) : {};
+      const st0_7_val = stDepths.layer_0_to_7cm != null ? stDepths.layer_0_to_7cm : stDepths['0_7cm'];
+      const st0_7 = st0_7_val != null ? `${st0_7_val} °C` : 'Unavailable';
 
-      const parcelId = geo.parcel_id || 'Not resolved';
-      const khasra = geo.khasra_no && !geo.khasra_no.includes('Bhu-Naksha') && !geo.khasra_no.includes('प्राप्य') ? geo.khasra_no : 'Unavailable';
-      const area = geo.cadastral_area_ha != null ? `${geo.cadastral_area_ha} Ha` : 'Unavailable';
-      const landClass = geo.land_classification && !geo.land_classification.includes('Verify') && !geo.land_classification.includes('सत्यापन') ? geo.land_classification : 'Unavailable';
-      const boundaryStatus = 'Unavailable from authoritative cadastral source';
-      const cadastralSource = 'Authoritative cadastral record unavailable';
-      const lastUpdated = tele && tele.timestamp
-        ? new Date(tele.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST'
-        : new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST';
+      const phVal = soil?.ph_h2o_topsoil != null ? soil.ph_h2o_topsoil : (soil?.summary_0_5cm?.ph);
+      const soilPh = phVal != null ? String(phVal) : 'Unavailable';
+
+      const socVal = soil?.soc_g_per_kg_topsoil != null ? soil.soc_g_per_kg_topsoil : (soil?.summary_0_5cm?.soil_organic_carbon_g_per_kg);
+      const soc = socVal != null ? `${socVal} g/kg` : 'Unavailable';
+
+      const clayVal = soil?.clay_percent_topsoil != null ? soil.clay_percent_topsoil : (soil?.summary_0_5cm?.clay_pct);
+      const clay = clayVal != null ? `${clayVal} %` : 'Unavailable';
+
+      const sandVal = soil?.sand_percent_topsoil != null ? soil.sand_percent_topsoil : (soil?.summary_0_5cm?.sand_pct);
+      const sand = sandVal != null ? `${sandVal} %` : 'Unavailable';
+
+      const lastUpdated = tele?.timestamp ? new Date(tele.timestamp).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST' : 'Live';
 
       return `
-        <div style="font-family: var(--font-main); font-size: 11.5px; color: #0F172A; min-width: 285px; line-height: 1.45;">
-          <div style="background: #0C3258; color: #FFF; padding: 6px 10px; border-radius: 4px 4px 0 0; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; justify-content: space-between;">
-            <span>🏛️ CADASTRAL PARCEL GIS ANALYSIS</span>
-            <span style="font-size: 9.5px; background: #1E3A8A; padding: 1px 5px; border-radius: 3px;">${isDemoMode ? 'DEMO' : 'LIVE DATA'}</span>
+        <div style="font-family: var(--font-main); font-size: 11.5px; line-height: 1.45; color: #1E293B; max-width: 320px;">
+          <!-- HEADER -->
+          <div style="background: linear-gradient(135deg, #0C3258, #07172B); color: #FFF; padding: 8px 10px; border-radius: 6px 6px 0 0; margin: -1px -1px 8px -1px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 13px;">📍</span>
+              <span style="font-size: 10px; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 3px; font-weight: 700; letter-spacing: 0.5px;">${selLoc ? selLoc.source : 'Map Pointer'}</span>
+            </div>
+            <div style="font-weight: 800; font-size: 12.5px; margin-top: 3px;">${geo.house_number || 'Inspection Location'}</div>
+            <div style="font-size: 10px; opacity: 0.85; font-family: var(--font-mono); margin-top: 1px;">QUERY: ${queryLocStr} (EPSG:4326)</div>
           </div>
-          <div style="padding: 8px 10px; background: #FFFFFF; border: 1px solid #CBD5E1; border-top: none; border-radius: 0 0 4px 4px; max-height: 380px; overflow-y: auto;">
-            
-            <!-- 1. LOCATION -->
-            <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0;">
-              <div style="font-size: 10px; color: #64748B; font-weight: 800; text-transform: uppercase;">📍 LOCATION</div>
-              <div style="font-size: 12px; color: #0C3258; font-weight: 800;">${geo.tehsil || 'Amer'}, ${geo.district || 'Jaipur'}</div>
-              <div style="font-size: 11px; color: #334155;">${geo.state || 'Rajasthan'}, India</div>
-              <div style="font-size: 10px; color: #64748B; font-family: var(--font-mono); margin-top: 2px;">Coordinates: ${coordsText}</div>
+
+          <div style="padding: 0 4px 6px 4px;">
+            <!-- 1. ADMINISTRATIVE HIERARCHY -->
+            <div style="margin-bottom: 6px; font-size: 11px;">
+              <div style="color: #64748B; font-size: 9.5px; font-weight: 700;">ADMINISTRATIVE REGION:</div>
+              <div style="font-weight: 700; color: #0C3258;">${[geo.tehsil, geo.district, geo.state].filter(Boolean).join(', ') || 'India'}</div>
+              <div style="color: #475569; font-size: 10px;">Postal: ${geo.postcode || '—'}</div>
             </div>
 
-            <!-- 2. CADASTRAL -->
-            <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; font-size: 10.5px;">
-              <div style="font-size: 10px; color: #64748B; font-weight: 800; text-transform: uppercase;">🗺️ CADASTRAL</div>
-              <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 2px;">
-                <div>Parcel ID: <strong>${parcelId}</strong></div>
-                <div>Khasra: <strong>${khasra}</strong></div>
-                <div>Area: <strong>${area}</strong></div>
-                <div>Land Class: <strong>${landClass}</strong></div>
-              </div>
-              <div style="margin-top: 2px; color: #94A3B8; font-size: 10px;">Boundary: ${boundaryStatus}</div>
-              <div style="color: #64748B; font-size: 10px;">Source: ${cadastralSource}</div>
+            <!-- 2. CADASTRAL STATUS -->
+            <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 4px; padding: 4px 7px; margin-bottom: 6px; font-size: 10px;">
+              <span style="font-weight: 800; color: #92400E;">खसरा / पार्सल (Cadastral Status):</span>
+              <div style="color: #78350F;">${geo.khasra_no || 'Authoritative cadastral record unavailable'}</div>
             </div>
 
-            <!-- 3. ENVIRONMENT -->
-            <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0;">
-              <div style="font-size: 10px; color: #64748B; font-weight: 800; text-transform: uppercase;">🌤️ ENVIRONMENT</div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px;">
-                <div style="background: #F8FAFC; padding: 3px 5px; border-radius: 3px; border: 1px solid #E2E8F0;">
-                  <span style="font-size: 9px; color: #64748B;">Air Temp:</span> <strong style="color: #0C3258;">${airTemp}</strong>
-                </div>
-                <div style="background: #F8FAFC; padding: 3px 5px; border-radius: 3px; border: 1px solid #E2E8F0;">
-                  <span style="font-size: 9px; color: #64748B;">Humidity:</span> <strong style="color: #0284C7;">${humid}</strong>
-                </div>
-                <div style="background: #F8FAFC; padding: 3px 5px; border-radius: 3px; border: 1px solid #E2E8F0;">
-                  <span style="font-size: 9px; color: #64748B;">Rainfall:</span> <strong style="color: #0284C7;">${rain}</strong>
-                </div>
-                <div style="background: #F0FDF4; padding: 3px 5px; border-radius: 3px; border: 1px solid #DCFCE7;">
-                  <span style="font-size: 9px; color: #166534;">Soil Moisture:</span> <strong style="color: #15803D;">${sm0_7}</strong>
-                </div>
+            <!-- 3. LIVE WEATHER -->
+            <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 4px; padding: 5px 7px; margin-bottom: 6px;">
+              <div style="font-weight: 800; color: #166534; font-size: 10px; margin-bottom: 3px;">🌤️ WEATHER (Open-Meteo ECMWF Modelled):</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10.5px;">
+                <div>Air Temp: <strong>${airTemp}</strong></div>
+                <div>Humidity: <strong>${humid}</strong></div>
+                <div>Rain: <strong>${rain}</strong></div>
+                <div>Wind: <strong>${tele?.wind_speed_kmh != null ? tele.wind_speed_kmh + ' km/h' : '—'}</strong></div>
               </div>
             </div>
 
-            <!-- 4. SOIL -->
-            <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; font-size: 10.5px;">
-              <div style="font-size: 10px; color: #64748B; font-weight: 800; text-transform: uppercase;">🌱 SOIL (ISRIC 250m)</div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 2px;">
-                <div>pH (0-5cm): <strong>${soilPh}</strong></div>
+            <!-- 4. SOIL & MOISTURE -->
+            <div style="background: #FAF5FF; border: 1px solid #E9D5FF; border-radius: 4px; padding: 5px 7px; margin-bottom: 6px;">
+              <div style="font-weight: 800; color: #6B21A8; font-size: 10px; margin-bottom: 3px;">🔬 SOIL INTELLIGENCE (ISRIC 250m Spatial Model):</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10.5px;">
+                <div>Soil pH: <strong>${soilPh}</strong></div>
                 <div>SOC: <strong>${soc}</strong></div>
                 <div>Clay: <strong>${clay}</strong></div>
                 <div>Sand: <strong>${sand}</strong></div>
@@ -4201,16 +4358,25 @@
       `;
     }
 
-        function updateCadastralInspectorDOM(geo, coordsText) {
+            function updateCadastralInspectorDOM(geo, coordsText, selLoc) {
       const isHi = currentLang === 'hi';
+      const qLat = (selLoc && selLoc.latitude != null) ? selLoc.latitude.toFixed(5) : currentLat.toFixed(5);
+      const qLon = (selLoc && selLoc.longitude != null) ? selLoc.longitude.toFixed(5) : currentLon.toFixed(5);
+      const coordsFormatted = `${qLat}° N, ${qLon}° E (EPSG:4326 | ${selLoc ? selLoc.source : 'Map Pointer'})`;
+
+      const elCadCoords = document.getElementById("disp-cadastral-coords");
+      if (elCadCoords) elCadCoords.innerText = coordsFormatted;
+
       const elHouse = document.getElementById("disp-cadastral-house");
-      if (elHouse) elHouse.innerText = `${geo.tehsil || 'Amer'}, ${geo.district || 'Jaipur'}`;
+      if (elHouse) {
+        elHouse.innerText = geo.house_number || (geo.tehsil ? `${geo.tehsil}, ${geo.district || ''}` : `Point (${qLat}, ${qLon})`);
+      }
 
       const elRoad = document.getElementById("disp-cadastral-road");
-      if (elRoad) elRoad.innerText = geo.road || "राजस्व संपर्क मार्ग";
+      if (elRoad) elRoad.innerText = geo.road || "—";
 
       const elVillage = document.getElementById("disp-cadastral-village");
-      if (elVillage) elVillage.innerText = geo.village || `${geo.tehsil || 'Amer'}`;
+      if (elVillage) elVillage.innerText = geo.village || (geo.tehsil || "—");
 
       const elKhasra = document.getElementById("disp-cadastral-khasra");
       if (elKhasra) {
@@ -4220,7 +4386,10 @@
       }
 
       const elAdmin = document.getElementById("disp-cadastral-admin");
-      if (elAdmin) elAdmin.innerText = `${geo.tehsil || 'Amer'}, ${geo.district || 'Jaipur'} (${geo.state || 'Rajasthan'})`;
+      if (elAdmin) {
+        const parts = [geo.tehsil, geo.district, geo.state].filter(Boolean);
+        elAdmin.innerText = parts.length > 0 ? parts.join(', ') : "India";
+      }
 
       const elArea = document.getElementById("disp-cadastral-area");
       if (elArea) {
@@ -4244,99 +4413,115 @@
       }
     }
 
-    function updateTelemetryDOM(teleData, soilData) {
+        function updateTelemetryDOM(teleData, soilData, selLoc) {
+      const qLat = (selLoc && selLoc.latitude != null) ? selLoc.latitude.toFixed(5) : currentLat.toFixed(5);
+      const qLon = (selLoc && selLoc.longitude != null) ? selLoc.longitude.toFixed(5) : currentLon.toFixed(5);
+      const coordsText = `${qLat}° N, ${qLon}° E (EPSG:4326 | ${selLoc ? selLoc.source : 'Map Pointer'})`;
+
       // 1. Coordinates & Timestamp
       const elCoords = document.getElementById("disp-tele-coords");
-      if (elCoords && teleData) {
-        elCoords.innerText = `${teleData.latitude.toFixed(4)}° N, ${teleData.longitude.toFixed(4)}° E`;
-      }
+      if (elCoords) elCoords.innerText = coordsText;
+
       const elTime = document.getElementById("disp-tele-timestamp");
-      if (elTime && teleData && teleData.timestamp) {
-        try {
-          const d = new Date(teleData.timestamp);
-          elTime.innerText = d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST';
-        } catch(e) {
-          elTime.innerText = teleData.timestamp;
+      if (elTime) {
+        if (teleData && teleData.timestamp) {
+          try {
+            const d = new Date(teleData.timestamp);
+            elTime.innerText = d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST';
+          } catch(e) {
+            elTime.innerText = teleData.timestamp;
+          }
+        } else {
+          elTime.innerText = "Unavailable";
         }
       }
 
       // 2. Weather
-      if (teleData) {
-        const elAir = document.getElementById("val-air-temp");
-        if (elAir) elAir.innerText = teleData.ambient_temperature_c != null ? `${teleData.ambient_temperature_c} °C` : '—';
+      const setVal = (id, v, unit = "") => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = (v != null && !isNaN(v)) ? `${v} ${unit}`.trim() : 'Unavailable';
+      };
 
+      if (teleData) {
+        setVal("val-air-temp", teleData.ambient_temperature_c, "°C");
         const elApp = document.getElementById("sub-apparent-temp");
         if (elApp) {
           const appTemp = teleData.surface_temperature_c != null ? teleData.surface_temperature_c : teleData.ambient_temperature_c;
-          elApp.innerText = appTemp != null ? `महसूस: ${appTemp} °C` : 'महसूस: —';
+          elApp.innerText = (appTemp != null && !isNaN(appTemp)) ? `महसूस: ${appTemp} °C` : 'महसूस: Unavailable';
         }
 
-        const elHumid = document.getElementById("val-humidity");
-        if (elHumid) elHumid.innerText = teleData.relative_humidity_pct != null ? `${Math.round(teleData.relative_humidity_pct)} %` : '—';
-
-        const elRain = document.getElementById("val-rain");
-        if (elRain) elRain.innerText = `${teleData.precipitation_mm ?? 0.0} mm`;
-
-        const elWind = document.getElementById("val-wind");
-        if (elWind) elWind.innerText = teleData.wind_speed_kmh != null ? `${teleData.wind_speed_kmh} km/h` : '—';
+        setVal("val-humidity", teleData.relative_humidity_pct != null ? Math.round(teleData.relative_humidity_pct) : null, "%");
+        setVal("val-rain", teleData.precipitation_mm ?? 0.0, "mm");
+        setVal("val-wind", teleData.wind_speed_kmh, "km/h");
 
         const elWindDir = document.getElementById("sub-wind-dir");
         if (elWindDir && teleData.wind_direction_deg != null) {
           elWindDir.innerText = `दिशा: ${teleData.wind_direction_deg}°`;
         }
 
-        // 3. Multi-Depth Soil Moisture
+        // 3. Multi-Depth Soil Moisture (supports both layer_ and depth_ keys)
         const smDepths = teleData.soil_moisture_depths || {};
-        const setVal = (id, v, unit = "") => {
-          const el = document.getElementById(id);
-          if (el) el.innerText = v != null ? `${v} ${unit}`.trim() : '—';
-        };
+        const sm0_7 = smDepths.layer_0_to_7cm != null ? smDepths.layer_0_to_7cm : (smDepths['0_7cm'] != null ? smDepths['0_7cm'] : teleData.soil_moisture_volumetric);
+        const sm7_28 = smDepths.layer_7_to_28cm != null ? smDepths.layer_7_to_28cm : smDepths['7_28cm'];
+        const sm28_100 = smDepths.layer_28_to_100cm != null ? smDepths.layer_28_to_100cm : smDepths['28_100cm'];
+        const sm100_255 = smDepths.layer_100_to_255cm != null ? smDepths.layer_100_to_255cm : smDepths['100_255cm'];
 
-        setVal("val-sm-0-7", smDepths.layer_0_to_7cm, "m³/m³");
-        setVal("pct-sm-0-7", smDepths.percentage_0_to_7cm, "%");
-        setVal("val-sm-7-28", smDepths.layer_7_to_28cm, "m³/m³");
-        setVal("val-sm-28-100", smDepths.layer_28_to_100cm, "m³/m³");
-        setVal("val-sm-100-255", smDepths.layer_100_to_255cm, "m³/m³");
+        setVal("val-sm-0-7", sm0_7, "m³/m³");
+        const pctSm = sm0_7 != null ? Math.round(sm0_7 * 100) : null;
+        setVal("pct-sm-0-7", pctSm, "% Volumetric");
+        setVal("val-sm-7-28", sm7_28, "m³/m³");
+        setVal("val-sm-28-100", sm28_100, "m³/m³");
+        setVal("val-sm-100-255", sm100_255, "m³/m³");
 
         // 4. Multi-Depth Soil Temperature
         const stDepths = teleData.soil_temperature_depths || {};
-        setVal("val-st-0-7", stDepths.layer_0_to_7cm, "°C");
-        setVal("val-st-7-28", stDepths.layer_7_to_28cm, "°C");
-        setVal("val-st-28-100", stDepths.layer_28_to_100cm, "°C");
-        setVal("val-st-100-255", stDepths.layer_100_to_255cm, "°C");
+        const st0_7 = stDepths.layer_0_to_7cm != null ? stDepths.layer_0_to_7cm : stDepths['0_7cm'];
+        const st7_28 = stDepths.layer_7_to_28cm != null ? stDepths.layer_7_to_28cm : stDepths['7_28cm'];
+        const st28_100 = stDepths.layer_28_to_100cm != null ? stDepths.layer_28_to_100cm : stDepths['28_100cm'];
+        const st100_255 = stDepths.layer_100_to_255cm != null ? stDepths.layer_100_to_255cm : stDepths['100_255cm'];
+
+        setVal("val-st-0-7", st0_7, "°C");
+        setVal("val-st-7-28", st7_28, "°C");
+        setVal("val-st-28-100", st28_100, "°C");
+        setVal("val-st-100-255", st100_255, "°C");
 
         // 5. Suitability
         const elSuitTitle = document.getElementById("disp-suit-title");
-        if (elSuitTitle) elSuitTitle.innerText = `उपयुक्तता: ${teleData.aridity_status || 'सामान्य'}`;
+        if (elSuitTitle) elSuitTitle.innerText = `उपयुक्तता: ${teleData.aridity_status || 'विश्लेषित'}`;
 
         const elSuitDesc = document.getElementById("disp-suit-desc");
-        if (elSuitDesc) elSuitDesc.innerText = teleData.cadastral_crop_suitability || 'मृदा नमी का विश्लेषण सक्रिय।';
+        if (elSuitDesc) elSuitDesc.innerText = teleData.cadastral_crop_suitability || 'मृदा नमी एवं तापीय विश्लेषण सक्रिय।';
+      } else {
+        setVal("val-air-temp", null);
+        setVal("val-humidity", null);
+        setVal("val-rain", null);
+        setVal("val-wind", null);
+        setVal("val-sm-0-7", null);
+        setVal("val-st-0-7", null);
       }
 
-      // 6. ISRIC SoilGrids
-      if (soilData && soilData.summary_0_5cm) {
-        const s = soilData.summary_0_5cm;
-        const setVal = (id, v, suffix = "") => {
-          const el = document.getElementById(id);
-          if (el) el.innerText = v != null ? `${v}${suffix}` : '—';
-        };
-        setVal("val-soil-ph", s.ph);
-        setVal("val-soil-soc", s.soil_organic_carbon_g_per_kg, " g/kg");
-        setVal("val-soil-clay", s.clay_pct, " %");
-        setVal("val-soil-sand", s.sand_pct, " %");
+      // 6. ISRIC SoilGrids (supports ph_h2o_topsoil AND summary_0_5cm)
+      if (soilData) {
+        const ph = soilData.ph_h2o_topsoil != null ? soilData.ph_h2o_topsoil : (soilData.summary_0_5cm?.ph);
+        const soc = soilData.soc_g_per_kg_topsoil != null ? soilData.soc_g_per_kg_topsoil : (soilData.summary_0_5cm?.soil_organic_carbon_g_per_kg);
+        const clay = soilData.clay_percent_topsoil != null ? soilData.clay_percent_topsoil : (soilData.summary_0_5cm?.clay_pct);
+        const sand = soilData.sand_percent_topsoil != null ? soilData.sand_percent_topsoil : (soilData.summary_0_5cm?.sand_pct);
+
+        setVal("val-soil-ph", ph);
+        setVal("val-soil-soc", soc, "g/kg");
+        setVal("val-soil-clay", clay, "%");
+        setVal("val-soil-sand", sand, "%");
 
         const elTex = document.getElementById("val-soil-texture");
-        if (elTex && s.estimated_texture) {
-          elTex.innerText = `संरचना: ${s.estimated_texture}`;
+        if (elTex) {
+          const tex = soilData.ph_classification || soilData.summary_0_5cm?.estimated_texture;
+          elTex.innerText = tex ? `संरचना: ${tex}` : 'संरचना: उपलब्ध (ISRIC 250m)';
         }
-      } else if (soilData && soilData.status === 'unavailable') {
-        const setVal = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
-        setVal("val-soil-ph", "N/A");
-        setVal("val-soil-soc", "N/A");
-        setVal("val-soil-clay", "N/A");
-        setVal("val-soil-sand", "N/A");
-        const elTex = document.getElementById("val-soil-texture");
-        if (elTex) elTex.innerText = "संरचना: अनमैप्ड / जलीय या शहरी क्षेत्र";
+      } else {
+        setVal("val-soil-ph", null);
+        setVal("val-soil-soc", null);
+        setVal("val-soil-clay", null);
+        setVal("val-soil-sand", null);
       }
     }
 
@@ -4454,19 +4639,29 @@
     // ============================================================
     // ROBUST REAL DATA FETCHERS (Backend + Direct Open API Fallback)
     // ============================================================
-    async function fetchTelemetryData(lat, lon) {
+        async function fetchTelemetryData(lat, lon, signal = null) {
+      const cacheKey = `tele:${lat.toFixed(4)}:${lon.toFixed(4)}`;
+      if (telemetryCoordCache.has(cacheKey)) {
+        const cached = telemetryCoordCache.get(cacheKey);
+        if (Date.now() - cached._ts < 300000) return cached.data; // 5 min cache
+      }
+
       try {
-        const res = await fetch(`${API_BASE}/api/telemetry/live?lat=${lat}&lon=${lon}`);
+        const res = await fetch(`${API_BASE}/api/v1/env/telemetry?lat=${lat}&lon=${lon}`, { signal });
         if (res.ok) {
           const d = await res.json();
-          if (d && d.status === "success") return d;
+          if (d && d.status === "success") {
+            telemetryCoordCache.set(cacheKey, { _ts: Date.now(), data: d });
+            return d;
+          }
         }
       } catch (e) {
-        console.warn("Backend telemetry fetch failed, falling back to direct Open-Meteo:", e);
+        if (e.name === 'AbortError') throw e;
       }
+
       try {
-        const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,soil_temperature_0_to_7cm,soil_temperature_7_to_28cm,soil_temperature_28_to_100cm,soil_temperature_100_to_255cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,soil_moisture_100_to_255cm&timezone=Asia%2FKolkata`;
-        const omResp = await fetch(omUrl);
+        const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m,soil_temperature_0_to_7cm,soil_temperature_7_to_28cm,soil_temperature_28_to_100cm,soil_temperature_100_to_255cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,soil_moisture_100_to_255cm&timezone=Asia%2FKolkata`;
+        const omResp = await fetch(omUrl, { signal });
         if (omResp.ok) {
           const omData = await omResp.json();
           const cur = omData.current || {};
@@ -4479,7 +4674,7 @@
             else if (sm07 < 0.35) { aridity = "OPTIMAL / ADEQUATE"; note = "Favorable root-zone moisture for staple cereals and cash crops."; }
             else { aridity = "SATURATED / HIGH MOISTURE"; note = "Waterlogged / high moisture conditions."; }
           }
-          return {
+          const result = {
             status: "success",
             latitude: lat,
             longitude: lon,
@@ -4491,12 +4686,20 @@
             wind_speed_kmh: cur.wind_speed_10m,
             wind_direction_deg: cur.wind_direction_10m,
             soil_moisture_depths: {
+              "layer_0_to_7cm": cur.soil_moisture_0_to_7cm,
+              "layer_7_to_28cm": cur.soil_moisture_7_to_28cm,
+              "layer_28_to_100cm": cur.soil_moisture_28_to_100cm,
+              "layer_100_to_255cm": cur.soil_moisture_100_to_255cm,
               "0_7cm": cur.soil_moisture_0_to_7cm,
               "7_28cm": cur.soil_moisture_7_to_28cm,
               "28_100cm": cur.soil_moisture_28_to_100cm,
               "100_255cm": cur.soil_moisture_100_to_255cm
             },
             soil_temperature_depths: {
+              "layer_0_to_7cm": cur.soil_temperature_0_to_7cm,
+              "layer_7_to_28cm": cur.soil_temperature_7_to_28cm,
+              "layer_28_to_100cm": cur.soil_temperature_28_to_100cm,
+              "layer_100_to_255cm": cur.soil_temperature_100_to_255cm,
               "0_7cm": cur.soil_temperature_0_to_7cm,
               "7_28cm": cur.soil_temperature_7_to_28cm,
               "28_100cm": cur.soil_temperature_28_to_100cm,
@@ -4514,26 +4717,38 @@
               station_lon: omData.longitude
             }
           };
+          telemetryCoordCache.set(cacheKey, { _ts: Date.now(), data: result });
+          return result;
         }
       } catch (err) {
-        console.warn("Direct Open-Meteo fetch failed:", err);
+        if (err.name === 'AbortError') throw err;
       }
       return null;
     }
 
-    async function fetchSoilData(lat, lon) {
+    async function fetchSoilData(lat, lon, signal = null) {
+      const cacheKey = `soil:${lat.toFixed(4)}:${lon.toFixed(4)}`;
+      if (soilCoordCache.has(cacheKey)) {
+        const cached = soilCoordCache.get(cacheKey);
+        if (Date.now() - cached._ts < 600000) return cached.data; // 10 min cache
+      }
+
       try {
-        const res = await fetch(`${API_BASE}/api/v1/env/soil?lat=${lat}&lon=${lon}`);
+        const res = await fetch(`${API_BASE}/api/v1/env/soil?lat=${lat}&lon=${lon}`, { signal });
         if (res.ok) {
           const d = await res.json();
-          if (d && d.status === "success") return d;
+          if (d && d.status === "success") {
+            soilCoordCache.set(cacheKey, { _ts: Date.now(), data: d });
+            return d;
+          }
         }
       } catch (e) {
-        console.warn("Backend soil fetch failed, falling back to ISRIC SoilGrids:", e);
+        if (e.name === 'AbortError') throw e;
       }
+
       try {
         const sgUrl = `https://rest.isric.org/soilgrids/v2.0/properties/query?lat=${lat}&lon=${lon}&property=phh2o&property=clay&property=sand&property=silt&property=soc&property=nitrogen&property=cec&depth=0-5cm&depth=5-15cm&value=mean&value=uncertainty`;
-        const sgResp = await fetch(sgUrl, { headers: { "Accept": "application/json" } });
+        const sgResp = await fetch(sgUrl, { headers: { "Accept": "application/json" }, signal });
         if (sgResp.ok) {
           const sgJson = await sgResp.json();
           const layers = sgJson.properties?.layers || [];
@@ -4556,10 +4771,10 @@
             if (phTop < 5.5) phClass = 'Strongly Acidic';
             else if (phTop < 6.5) phClass = 'Moderately Acidic';
             else if (phTop <= 7.5) phClass = 'Neutral / Optimal';
-            else if (phTop <= 8.5) phClass = 'Moderately Alkaline (Calcareous)';
-            else phClass = 'Strongly Alkaline (Saline-Sodic)';
+            else if (phTop <= 8.5) phClass = 'Moderately Alkaline';
+            else phClass = 'Strongly Alkaline';
           }
-          return {
+          const result = {
             status: "success",
             latitude: lat,
             longitude: lon,
@@ -4571,15 +4786,24 @@
             soc_g_per_kg_topsoil: parsed.soc?.['0-5cm']?.mean,
             nitrogen_g_per_kg_topsoil: parsed.nitrogen?.['0-5cm']?.mean,
             cec_cmolc_per_kg_topsoil: parsed.cec?.['0-5cm']?.mean,
+            summary_0_5cm: {
+              ph: phTop,
+              soil_organic_carbon_g_per_kg: parsed.soc?.['0-5cm']?.mean,
+              clay_pct: parsed.clay?.['0-5cm']?.mean,
+              sand_pct: parsed.sand?.['0-5cm']?.mean,
+              estimated_texture: phClass
+            },
             provenance: {
               provider: "ISRIC - World Soil Information (SoilGrids 2.0)",
               badge: "SPATIAL ESTIMATE (250m)",
               disclaimer: "SoilGrids predictions represent spatial estimates (250m). Not a substitute for laboratory Soil Health Card testing."
             }
           };
+          soilCoordCache.set(cacheKey, { _ts: Date.now(), data: result });
+          return result;
         }
       } catch (err) {
-        console.warn("Direct ISRIC SoilGrids fetch failed:", err);
+        if (err.name === 'AbortError') throw err;
       }
       return null;
     }
@@ -4761,7 +4985,7 @@
             targetTitle = `${teh.nameEn}, ${dist.nameEn}`;
           }
         }
-        inspectLocation(targetLat, targetLon, targetTitle, targetZoom, false);
+        inspectLocation(targetLat, targetLon, targetTitle, targetZoom, false, "dropdown-selector");
         showToast(`${TRANSLATIONS[currentLang].toast_state_changed}${currentLang === 'hi' ? stateData.nameHindi : stateData.nameEn}`);
       }
     }
@@ -4792,7 +5016,7 @@
           targetZoom = 13;
           targetTitle = `${teh.nameEn}, ${dist.nameEn}`;
         }
-        inspectLocation(targetLat, targetLon, targetTitle, targetZoom, false);
+        inspectLocation(targetLat, targetLon, targetTitle, targetZoom, false, "dropdown-selector");
         showToast(`${currentLang === 'hi' ? 'जिला चयनित: ' : 'District Selected: '}${currentLang === 'hi' ? dist.nameHindi : dist.nameEn}`);
       }
     }
@@ -4809,7 +5033,7 @@
       if (stateData && stateData.districts && stateData.districts[dKey] && stateData.districts[dKey].tehsils && stateData.districts[dKey].tehsils[tKey]) {
         const dist = stateData.districts[dKey];
         const t = dist.tehsils[tKey];
-        inspectLocation(t.lat, t.lon, `${t.nameEn} Tehsil Parcel`, 13, false);
+        inspectLocation(t.lat, t.lon, `${t.nameEn} Tehsil Parcel`, 13, false, "dropdown-selector");
         showToast(`${currentLang === 'hi' ? 'तहसील चयनित: ' : 'Tehsil Selected: '}${currentLang === 'hi' ? t.nameHindi : t.nameEn}`);
       }
     }
@@ -4926,15 +5150,15 @@
       }
     }
 
-    function focusParcelOnMap() {
+        function focusParcelOnMap() {
       if (map) {
-        map.flyTo([currentLat, currentLon], 14, { duration: 1.2 });
+        map.setView([currentLat, currentLon], 14, { animate: false });
       }
     }
 
     function auditCadastralParcel() {
       if (map) {
-        map.flyTo([currentLat, currentLon], 14, { duration: 1.2 });
+        map.setView([currentLat, currentLon], 14, { animate: false });
         showToast(currentLang === 'hi' ? "निरीक्षण बिंदु निर्देशांक सत्यापित।" : "Inspection point coordinates verified.");
       }
     }
@@ -5933,6 +6157,23 @@
         <button class="gov-btn-action" onclick="closeModal('modal-data-methodology')" style="padding:6px 14px; background:#0C3258; color:#FFF; border:none; border-radius:4px; font-weight:700; cursor:pointer;">समझ गया / Close</button>
       </div>
     </div>
+  </div>
+
+
+  <!-- GIS DEBUG DATA PIPELINE MONITOR -->
+  <div id="gis-debug-pipeline" style="display:none; position:fixed; bottom:25px; right:15px; z-index:9999; background:rgba(7,23,43,0.96); border:1.5px solid #0284C7; border-radius:8px; padding:12px 14px; font-family:monospace; font-size:11px; color:#38BDF8; width:340px; line-height:1.5; box-shadow:0 8px 24px rgba(0,0,0,0.6); backdrop-filter:blur(8px);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1E293B; padding-bottom:5px; margin-bottom:8px;">
+      <strong style="color:#FFF; font-size:12px;">🛠️ GIS PIPELINE MONITOR</strong>
+      <span style="cursor:pointer; color:#94A3B8; font-size:14px;" onclick="toggleGISDebugPipeline()">✕</span>
+    </div>
+    <div id="debug-pipe-pointer" style="font-weight:700; color:#F59E0B;">POINTER: —</div>
+    <div id="debug-pipe-selection" style="color:#94A3B8;">SELECTION ID: —</div>
+    <div id="debug-pipe-crs" style="color:#94A3B8;">CRS: EPSG:4326 (WGS84)</div>
+    <div id="debug-pipe-weather" style="color:#60A5FA;">WEATHER REQ: IDLE</div>
+    <div id="debug-pipe-soil" style="color:#A78BFA;">SOIL REQ: IDLE</div>
+    <div id="debug-pipe-cadastral" style="color:#F43F5E;">CADASTRAL REQ: IDLE</div>
+    <div id="debug-pipe-map" style="color:#10B981;">MAP: CENTER —, ZOOM —</div>
+    <div id="debug-pipe-bounds" style="color:#64748B; font-size:9.5px; margin-top:4px; border-top:1px solid #1E293B; padding-top:4px;">INDIA BOUNDS: [5.5, 66.0] to [38.0, 99.0] | noWrap: TRUE</div>
   </div>
 
 </body>
