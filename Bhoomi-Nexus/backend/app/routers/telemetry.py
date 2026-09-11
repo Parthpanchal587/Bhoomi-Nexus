@@ -96,6 +96,16 @@ async def get_soil_profile(lat: float = Query(...), lon: float = Query(...)):
     return await fetch_real_soilgrids_data(lat, lon)
 
 
+@router.get("/api/v1/env/soil/health")
+async def get_soil_service_health():
+    """
+    Diagnostic health check for the ISRIC SoilGrids pipeline.
+    Reports provider method (WCS vs REST), online status, query metrics, and supported properties.
+    """
+    from app.services.soil_provider import soil_service
+    return soil_service.get_health_status()
+
+
 @router.get("/api/v1/env/composite")
 async def get_composite_environment(lat: float = Query(...), lon: float = Query(...)):
     """

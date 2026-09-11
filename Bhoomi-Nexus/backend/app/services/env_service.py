@@ -228,7 +228,8 @@ async def fetch_real_weather_and_soil_telemetry(lat: float, lon: float) -> Dict[
 async def fetch_real_soilgrids_data(lat: float, lon: float) -> Dict[str, Any]:
     """
     Fetches real spatial soil predictions from ISRIC SoilGrids 2.0 (250m resolution).
-    Retrieves pH, clay, sand, silt, organic carbon, nitrogen, and cation exchange capacity (CEC).
+    Retrieves pH, clay, sand, silt, organic carbon, nitrogen, and cation exchange capacity (CEC)
+    via official WCS 2.0.1 raster coverage extraction.
     """
     if not validate_coordinates(lat, lon):
         return {
@@ -243,140 +244,11 @@ async def fetch_real_soilgrids_data(lat: float, lon: float) -> Dict[str, Any]:
         cached["is_cached"] = True
         return cached
 
-    url = "https://rest.isric.org/soilgrids/v2.0/properties/query"
-    params = [
-        ("lat", str(lat)),
-        ("lon", str(lon)),
-        ("property", "phh2o"),
-        ("property", "clay"),
-        ("property", "sand"),
-        ("property", "silt"),
-        ("property", "soc"),
-        ("property", "nitrogen"),
-        ("property", "cec"),
-        ("depth", "0-5cm"),
-        ("depth", "5-15cm"),
-        ("value", "mean"),
-        ("value", "uncertainty"),
-    ]
-
-    try:
-        async with httpx.AsyncClient(timeout=8.0) as client:
-            resp = await client.get(url, params=params, headers={"User-Agent": "BhoomiNexus/1.0", "Accept": "application/json"})
-            if resp.status_code == 200:
-                data = resp.json()
-                layers = data.get("properties", {}).get("layers", [])
-
-                parsed_properties: Dict[str, Any] = {}
-                for layer in layers:
-                    prop_name = layer.get("name")
-                    u_measure = layer.get("unit_measure", {})
-                    d_factor = u_measure.get("d_factor", 1) or 1
-                    target_units = u_measure.get("target_units", "")
-                    
-                    depth_values = {}
-                    for d in layer.get("depths", []):
-                        d_label = d.get("label")
-                        raw_mean = d.get("values", {}).get("mean")
-                        raw_uncertainty = d.get("values", {}).get("uncertainty")
-                        
-                        actual_mean = round(raw_mean / d_factor, 2) if raw_mean is not None else None
-                        actual_unc = round(raw_uncertainty / d_factor, 2) if raw_uncertainty is not None else None
-                        
-                        depth_values[d_label] = {
-                            "mean": actual_mean,
-                            "uncertainty": actual_unc,
-                        }
-                    
-                    parsed_properties[prop_name] = {
-                        "unit": target_units,
-                        "depths": depth_values,
-                    }
-
-                # Check if values exist or if coordinate is unmapped (e.g. water/urban rock)
-                has_values = any(
-                    val["depths"].get("0-5cm", {}).get("mean") is not None
-                    for val in parsed_properties.values()
-                )
-
-                if not has_values:
-                    return {
-                        "status": "unavailable",
-                        "reason": "Location is in an unmapped/sealed soil area (urban core, water surface, or rocky outcrop).",
-                        "latitude": lat,
-                        "longitude": lon,
-                        "provenance": {
-                            "provider": "ISRIC SoilGrids 2.0",
-                            "badge": "UNMAPPED / URBAN",
-                            "spatial_resolution": "250 m",
-                        }
-                    }
-
-                # Soil Texture Classification from 0-5cm depth
-                clay_0_5 = parsed_properties.get("clay", {}).get("depths", {}).get("0-5cm", {}).get("mean")
-                sand_0_5 = parsed_properties.get("sand", {}).get("depths", {}).get("0-5cm", {}).get("mean")
-                silt_0_5 = parsed_properties.get("silt", {}).get("depths", {}).get("0-5cm", {}).get("mean")
-                
-                texture_class = "Loam / Mixed Arable"
-                if clay_0_5 is not None and sand_0_5 is not None:
-                    if sand_0_5 > 70:
-                        texture_class = "Sandy / Arid Soil"
-                    elif clay_0_5 > 40:
-                        texture_class = "Clayey Soil"
-                    elif sand_0_5 > 45 and clay_0_5 < 20:
-                        texture_class = "Sandy Loam"
-                    elif clay_0_5 >= 27 and clay_0_5 <= 40:
-                        texture_class = "Clay Loam"
-                    else:
-                        texture_class = "Loam / Alluvial"
-
-                result = {
-                    "status": "success",
-                    "latitude": lat,
-                    "longitude": lon,
-                    "properties": parsed_properties,
-                    "summary_0_5cm": {
-                        "ph": parsed_properties.get("phh2o", {}).get("depths", {}).get("0-5cm", {}).get("mean"),
-                        "clay_pct": clay_0_5,
-                        "sand_pct": sand_0_5,
-                        "silt_pct": silt_0_5,
-                        "soil_organic_carbon_g_per_kg": parsed_properties.get("soc", {}).get("depths", {}).get("0-5cm", {}).get("mean"),
-                        "nitrogen_g_per_kg": parsed_properties.get("nitrogen", {}).get("depths", {}).get("0-5cm", {}).get("mean"),
-                        "estimated_texture": texture_class,
-                    },
-                    "disclaimer": (
-                        "Spatial soil estimate. Not a substitute for laboratory Soil Health Card testing. "
-                        "Values represent statistical predictions at 250m resolution."
-                    ),
-                    "provenance": {
-                        "provider": "ISRIC - World Soil Information (SoilGrids 2020)",
-                        "badge": "SPATIAL ESTIMATE",
-                        "spatial_resolution": "250 m",
-                        "depths": ["0-5cm", "5-15cm"],
-                        "license": "CC-BY 4.0",
-                        "retrieved_at": datetime.now(timezone.utc).isoformat(),
-                    },
-                    "is_cached": False,
-                }
-                cache.set("soilgrids", lat, lon, result, ttl_seconds=86400 * 30)
-                return result
-            else:
-                logger.warning("ISRIC SoilGrids returned status %d", resp.status_code)
-    except Exception as ex:
-        logger.error("SoilGrids query error for (%f, %f): %s", lat, lon, ex)
-
-    return {
-        "status": "unavailable",
-        "error": "ISRIC SoilGrids spatial soil data temporarily unavailable.",
-        "latitude": lat,
-        "longitude": lon,
-        "disclaimer": "Spatial soil estimate unavailable from global repository.",
-        "provenance": {
-            "provider": "ISRIC SoilGrids",
-            "badge": "UNAVAILABLE",
-            "last_attempt": datetime.now(timezone.utc).isoformat(),
-        }
-    }
+    from app.services.soil_provider import soil_service
+    result = await soil_service.get_soil_properties(lat, lon, depth="0-5cm")
+    if result.get("status") == "success":
+        cache.set("soilgrids", lat, lon, result, ttl_seconds=86400 * 30)
+    return result
 
 
 # ── Composite Environmental Query ─────────────────────────────────────────

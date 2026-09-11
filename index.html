@@ -1995,7 +1995,8 @@
           <span style="font-size:11px; font-weight:800; color:#581C87;">🔬 मृदा संरचना (ISRIC SoilGrids 250m)</span>
           <span style="font-size:9.5px; background:#F3E8FF; color:#6B21A8; padding:2px 5px; border-radius:3px; font-weight:700;">[SPATIAL ESTIMATE]</span>
         </div>
-        <div style="font-size:9.5px; color:#64748B; margin-bottom:6px;">अनुमानित भौतिक व रासायनिक गुण (0–5 cm गहराई)</div>
+        <div style="font-size:9.5px; color:#64748B; margin-bottom:3px;">अनुमानित भौतिक व रासायनिक गुण (Physical & Chemical Properties)</div>
+        <div style="font-size:9px; color:#6B21A8; font-weight:700; margin-bottom:6px; font-family:var(--font-mono);" id="disp-soil-meta">गहराई: 0–5 cm (Depth: 0–5 cm) • ISRIC SoilGrids 250m (WCS)</div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
           <div style="background:#FFF; border:1px solid #F3E8FF; border-radius:4px; padding:4px 6px;">
             <div style="font-size:9.5px; color:#64748B;">मृदा pH (H₂O)</div>
@@ -4324,7 +4325,8 @@
 
             <!-- 4. SOIL & MOISTURE -->
             <div style="background: #FAF5FF; border: 1px solid #E9D5FF; border-radius: 4px; padding: 5px 7px; margin-bottom: 6px;">
-              <div style="font-weight: 800; color: #6B21A8; font-size: 10px; margin-bottom: 3px;">🔬 SOIL INTELLIGENCE (ISRIC 250m Spatial Model):</div>
+              <div style="font-weight: 800; color: #6B21A8; font-size: 10px; margin-bottom: 2px;">🔬 SOIL INTELLIGENCE (ISRIC 250m Spatial Model):</div>
+              <div style="font-size: 9px; color: #7E22CE; font-family: var(--font-mono); margin-bottom: 4px;">Depth: 0–5 cm • Query: ${queryLocStr}</div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; font-size: 10.5px;">
                 <div>Soil pH: <strong>${soilPh}</strong></div>
                 <div>SOC: <strong>${soc}</strong></div>
@@ -4514,8 +4516,13 @@
 
         const elTex = document.getElementById("val-soil-texture");
         if (elTex) {
-          const tex = soilData.ph_classification || soilData.summary_0_5cm?.estimated_texture;
-          elTex.innerText = tex ? `संरचना: ${tex}` : 'संरचना: उपलब्ध (ISRIC 250m)';
+          const tex = soilData.summary_0_5cm?.estimated_texture || soilData.ph_classification;
+          elTex.innerText = tex ? `संरचना (Texture): ${tex}` : 'संरचना: उपलब्ध (ISRIC 250m)';
+        }
+
+        const elSoilMeta = document.getElementById("disp-soil-meta");
+        if (elSoilMeta) {
+          elSoilMeta.innerText = `Depth: 0–5 cm • ISRIC SoilGrids 250m (WCS) • ${coordsText}`;
         }
       } else {
         setVal("val-soil-ph", null);
