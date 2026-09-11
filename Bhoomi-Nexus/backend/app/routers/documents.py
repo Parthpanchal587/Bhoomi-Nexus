@@ -117,12 +117,14 @@ async def upload_document(
 @router.post("/verify", response_model=DocumentVerifyResponse)
 async def verify_document_endpoint(
     file: UploadFile = File(..., description="PDF document to verify against the ledger"),
+    authorization: Optional[str] = Header(None, description="Bearer Session Token"),
 ):
     """
     Verify a document against the verification ledger.
 
     Computes the document's SHA-256 binary hash and text fingerprint,
     then checks for matches in the in-memory ledger.
+    Requires an authenticated session with VERIFY_DOCUMENT permission.
 
     Returns:
     - VERIFIED_REAL: if the document matches a registered record exactly.
@@ -142,6 +144,24 @@ async def verify_document_endpoint(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File security rejection: Uploaded file does not contain a valid %PDF magic byte header.",
+        )
+
+    # Server-side authentication check
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Please sign in or use an authorized demonstration session to verify property documents.",
+        )
+    user = auth_service.validate_token(authorization)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session token. Please sign in again.",
+        )
+    if not auth_service.authorize(user, Permission.VERIFY_DOCUMENT):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access Denied: Role '{user.role.value}' is not authorized to verify property documents.",
         )
 
     raw_name = file.filename or "unknown.pdf"
@@ -173,10 +193,9 @@ async def verify_document_endpoint(
             if result.record.registered_at
             else None
         )
-        # Validity proof: hash chain
         if result.status == "VERIFIED_REAL":
             response.validity_proof = (
-                f"PROOF::SHA256({result.binary_hash[:16]}...)==LEDGER_RECORD({result.record.id})::MATCH_TYPE({result.match_type})"
+                f"FILE_INTEGRITY_MATCH::SHA256({result.binary_hash[:16]}...)==LEDGER({result.record.id})::CONFIRM_LEGAL_RECORDS"
             )
 
     return response

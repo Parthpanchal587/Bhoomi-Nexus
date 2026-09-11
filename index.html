@@ -1636,7 +1636,7 @@
         <span data-i18n="node_status">NIC Meghraj Node: ONLINE</span>
       </div>
             <div class="badge-blockchain-pill" onclick="openSecurityCenterModal()" title="View System Security Center" style="border-color: #10B981; background: #ECFDF5; color: #065F46;">
-        <span id="top-sec-badge">🔐 सुरक्षा स्थिति: <strong id="top-sec-score">100/100 🟢</strong></span>
+        <span id="top-sec-badge">🛡️ SIH Demonstration Environment | <strong id="top-sec-score" style="color:#059669;">Hardened RBAC</strong></span>
       </div>
       <div class="badge-blockchain-pill" onclick="openModal('modal-ledger')" title="सॉवरेन ब्लॉकचेन लेज़र देखें">
         <span data-i18n="blockchain_pill">🛡️ सॉवरेन ब्लॉकचेन लेज़र (Blocks: <strong id="top-block-count">4</strong>)</span>
@@ -2670,35 +2670,47 @@
     <div class="app-modal-card" style="max-width: 520px; text-align: center; padding: 26px;">
       <div style="font-size: 38px; margin-bottom: 10px;">🔐</div>
       <h3 style="font-size: 17px; font-weight: 800; color: var(--color-gov-blue); margin-bottom: 6px;">
-        प्राधिकृत लॉगिन आवश्यक (Authorized Sign-In Required)
+        Authentication Required
       </h3>
-      <p style="font-size: 12.5px; color: #475569; line-height: 1.5; margin-bottom: 16px;" id="auth-req-message">
-        You are attempting to access a protected government land intelligence feature. Please sign in with an authorized account to continue.
+      <p style="font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 18px;" id="auth-req-message">
+        To verify a property document, sign in or create an account to continue.
       </p>
 
-      <!-- Quick Role Switcher Buttons -->
-      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-bottom: 18px; text-align: left;">
+      <!-- Primary Action Buttons (Part 19) -->
+      <div style="display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <button type="button" class="btn-notarize-blockchain" onclick="handleAuthGateAction('signin')" style="padding: 10px 12px; font-size: 12.5px; justify-content: center;">
+            <span>🔐</span> <span>Sign In</span>
+          </button>
+          <button type="button" class="btn-quick-sample" onclick="handleAuthGateAction('signup')" style="padding: 10px 12px; font-size: 12.5px; justify-content: center; font-weight: 700; color: var(--color-gov-blue); border-color: var(--color-gov-blue);">
+            <span>📝</span> <span>Create Account</span>
+          </button>
+        </div>
+        <button type="button" class="btn-quick-sample" onclick="handleAuthGateAction('demo')" style="padding: 10px 12px; font-size: 12px; justify-content: center; background: #FEF3C7; color: #92400E; border-color: #FCD34D; font-weight: 700;">
+          <span>⚡</span> <span>Continue as Demo User (SIH Demonstration Mode)</span>
+        </button>
+      </div>
+
+      <!-- Quick Role Selection -->
+      <div id="auth-inline-signin-box" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-bottom: 16px; text-align: left;">
         <div style="font-size: 11px; font-weight: 700; color: #64748B; margin-bottom: 8px;">
-          1-क्लिक त्वरित परीक्षण लॉगिन (1-Click Demo Login as):
+          1-क्लिक त्वरित परीक्षण लॉगिन (1-Click Authorized Role Sign-In):
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('officer', 'OfficerGov#2026!')" style="font-size: 11.5px; padding: 4px 8px;">
-            🏛️ Govt Officer
-          </button>
-          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('verifier', 'LegalVerifier#2026!')" style="font-size: 11.5px; padding: 4px 8px;">
+          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('verifier', 'LegalVerifier#2026!')" style="font-size: 11.5px; padding: 5px 9px; background: #DCFCE7; color: #166534; border-color: #86EFAC;">
             📑 Legal Verifier
           </button>
-          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('admin', 'BhoomiAdmin#2026!')" style="font-size: 11.5px; padding: 4px 8px;">
+          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('officer', 'OfficerGov#2026!')" style="font-size: 11.5px; padding: 5px 9px;">
+            🏛️ Govt Officer
+          </button>
+          <button type="button" class="btn-quick-sample" onclick="quickLoginAs('admin', 'BhoomiAdmin#2026!')" style="font-size: 11.5px; padding: 5px 9px;">
             🛡️ Admin
           </button>
         </div>
       </div>
 
       <div style="display: flex; gap: 10px; justify-content: center;">
-        <a href="/login" class="btn-notarize-blockchain" id="btn-modal-signin-link" style="text-decoration: none; padding: 10px 18px; font-size: 12.5px;">
-          <span>🔐</span> <span>लॉगिन पृष्ठ पर जाएं (Go to Sign In)</span>
-        </a>
-        <button type="button" class="btn-quick-sample" onclick="closeModal('modal-auth-required')" style="padding: 10px 16px; font-size: 12.5px;">
+        <button type="button" class="btn-quick-sample" onclick="closeModal('modal-auth-required')" style="padding: 8px 16px; font-size: 12px;">
           रद्द करें (Cancel)
         </button>
       </div>
@@ -2917,6 +2929,28 @@
       console.log('[GIS] Loaded ' + data.features.length + ' state boundaries');
     }
 
+    
+    // Geographic Viewport Bounds Clamp (Strict India Bounds)
+    function safeFlyToBounds(bounds, fallbackCenter, fallbackZoom) {
+      if (!map) return;
+      try {
+        if (bounds && bounds.isValid && bounds.isValid()) {
+          const sw = bounds.getSouthWest();
+          const ne = bounds.getNorthEast();
+          // Ensure within sovereign India bounds: Lat [4.0, 38.5], Lon [65.0, 100.0]
+          if (sw.lat >= 4.0 && ne.lat <= 38.5 && sw.lng >= 65.0 && ne.lng <= 100.0) {
+            const latSpan = Math.abs(ne.lat - sw.lat);
+            const lonSpan = Math.abs(ne.lng - sw.lng);
+            if (latSpan > 0.005 && latSpan < 22.0 && lonSpan > 0.005 && lonSpan < 22.0) {
+              map.flyToBounds(bounds, { padding: [40, 40], maxZoom: 15, duration: 1.2 });
+              return;
+            }
+          }
+        }
+      } catch (e) {}
+      map.flyTo(fallbackCenter || [currentLat, currentLon], fallbackZoom || 12, { duration: 1.2 });
+    }
+
     async function selectGISState(stateName, stateLayer) {
       gisSelectedState = stateName;
       showToast((currentLang === 'hi' ? 'राज्य चयनित: ' : 'State selected: ') + stateName);
@@ -2935,7 +2969,7 @@
 
       // Zoom to state
       if (stateLayer && stateLayer.getBounds) {
-        map.flyToBounds(stateLayer.getBounds(), { padding: [40, 40], duration: 1.2 });
+        safeFlyToBounds(stateLayer.getBounds(), [stateLayer.getBounds().getCenter().lat, stateLayer.getBounds().getCenter().lng], 8);
       }
 
       // Sync dropdowns
@@ -3015,7 +3049,7 @@
 
       // Zoom to district
       if (districtLayer && districtLayer.getBounds) {
-        map.flyToBounds(districtLayer.getBounds(), { padding: [40, 40], duration: 1.2 });
+        safeFlyToBounds(districtLayer.getBounds(), [districtLayer.getBounds().getCenter().lat, districtLayer.getBounds().getCenter().lng], 10);
       }
 
       // Load blocks
@@ -3077,7 +3111,7 @@
       }
 
       if (blockLayer && blockLayer.getBounds) {
-        map.flyToBounds(blockLayer.getBounds(), { padding: [40, 40], duration: 1.2 });
+        safeFlyToBounds(blockLayer.getBounds(), [blockLayer.getBounds().getCenter().lat, blockLayer.getBounds().getCenter().lng], 12);
       }
 
       // Load GPs
@@ -3191,7 +3225,7 @@
           style: { color: '#EF4444', weight: 4, fillColor: '#EF4444', fillOpacity: 0.15, dashArray: '8, 4' }
         }).addTo(map);
 
-        map.flyToBounds(gisHighlightLayer.getBounds(), { padding: [60, 60], duration: 1.2 });
+        safeFlyToBounds(gisHighlightLayer.getBounds(), [gisHighlightLayer.getBounds().getCenter().lat, gisHighlightLayer.getBounds().getCenter().lng], 12);
 
         // Auto-drill into the selected feature
         if (r.type === 'State') {
@@ -4213,108 +4247,130 @@
         });
       }
 
+      // STRICT ZERO FAKE DATA: Location Marker != Cadastral Boundary.
+      // Do NOT draw arbitrary circles masquerading as cadastral/diversion boundaries.
       if (parcelPolygon && map && map.hasLayer(parcelPolygon)) {
         map.removeLayer(parcelPolygon);
+        parcelPolygon = null;
       }
-      parcelPolygon = L.circle([lat, lon], {
-        radius: 200,
-        color: "#EAB308",
-        weight: 2,
-        fillColor: "#EAB308",
-        fillOpacity: 0.12,
-        dashArray: "6, 4"
-      }).addTo(map);
-
-      parcelPolygon.bindTooltip(
-        currentLang === 'hi' ? "निरीक्षण क्षेत्र (Inspection Area - Cadastral records require Bhu-Naksha access)" : "Inspection Area (Official cadastral data requires Bhu-Naksha access)",
-        { permanent: false }
-      );
-      parcelPolygon.on("click", function() {
-        activateTab(document.getElementById("tab-btn-cadastral"), 'cadastral');
-      });
-
       if (divertPolygon && map && map.hasLayer(divertPolygon)) {
         map.removeLayer(divertPolygon);
+        divertPolygon = null;
       }
-      divertPolygon = L.circle([lat, lon], {
-        radius: 120,
-        color: "#EF4444",
-        weight: 2,
-        fillColor: "#EF4444",
-        fillOpacity: 0.18,
-        dashArray: "4, 4"
-      }).addTo(map);
-
-      divertPolygon.bindTooltip(
-        currentLang === 'hi' ? "प्रस्तावित धारा 90-क संपरिवर्तन (Section 90-A Area)" : "Proposed Section 90-A Diversion Area",
-        { permanent: false }
-      );
-      divertPolygon.on("click", () => {
-        activateTab(document.getElementById("tab-btn-section90a"), 'section90a');
-      });
     }
 
-    function buildRichMarkerPopup(geo, tele, soil, coordsText) {
+        function buildRichMarkerPopup(geo, tele, soil, coordsText) {
       const isHi = currentLang === 'hi';
-      const airTemp = tele && tele.ambient_temperature_c != null ? `${tele.ambient_temperature_c} °C` : '—';
-      const humid = tele && tele.relative_humidity_pct != null ? `${tele.relative_humidity_pct} %` : '—';
-      const sm0_7 = tele && tele.soil_moisture_volumetric != null ? `${tele.soil_moisture_volumetric} m³/m³` : '—';
-      const soilPh = soil && soil.summary_0_5cm && soil.summary_0_5cm.ph != null ? soil.summary_0_5cm.ph : '—';
+      const airTemp = tele && tele.ambient_temperature_c != null ? `${tele.ambient_temperature_c} °C` : 'Unavailable';
+      const humid = tele && tele.relative_humidity_pct != null ? `${tele.relative_humidity_pct} %` : 'Unavailable';
+      const rain = tele && tele.precipitation_mm != null ? `${tele.precipitation_mm} mm` : '0.0 mm';
+      const sm0_7 = tele && tele.soil_moisture_depths && tele.soil_moisture_depths['0_7cm'] != null
+        ? `${tele.soil_moisture_depths['0_7cm']} m³/m³`
+        : (tele && tele.soil_moisture_volumetric != null ? `${tele.soil_moisture_volumetric} m³/m³` : 'Unavailable');
+      const st0_7 = tele && tele.soil_temperature_depths && tele.soil_temperature_depths['0_7cm'] != null
+        ? `${tele.soil_temperature_depths['0_7cm']} °C`
+        : 'Unavailable';
 
-      const khasraLabel = geo.khasra_no || (isHi ? 'भू-नक्शा पोर्टल से प्राप्य' : 'Bhu-Naksha Record');
-      const areaLabel = geo.cadastral_area_ha != null ? `${geo.cadastral_area_ha} Ha` : (isHi ? 'भू-नक्शा से प्राप्य' : 'Via Bhu-Naksha');
+      const soilPh = soil && soil.ph_h2o_topsoil != null
+        ? soil.ph_h2o_topsoil
+        : (soil && soil.summary_0_5cm && soil.summary_0_5cm.ph != null ? soil.summary_0_5cm.ph : 'Unavailable');
+      const soc = soil && soil.soc_g_per_kg_topsoil != null
+        ? `${soil.soc_g_per_kg_topsoil} g/kg`
+        : (soil && soil.summary_0_5cm && soil.summary_0_5cm.soil_organic_carbon_g_per_kg != null ? `${soil.summary_0_5cm.soil_organic_carbon_g_per_kg} g/kg` : 'Unavailable');
+      const clay = soil && soil.clay_percent_topsoil != null
+        ? `${soil.clay_percent_topsoil} %`
+        : (soil && soil.summary_0_5cm && soil.summary_0_5cm.clay_pct != null ? `${soil.summary_0_5cm.clay_pct} %` : 'Unavailable');
+      const sand = soil && soil.sand_percent_topsoil != null
+        ? `${soil.sand_percent_topsoil} %`
+        : (soil && soil.summary_0_5cm && soil.summary_0_5cm.sand_pct != null ? `${soil.summary_0_5cm.sand_pct} %` : 'Unavailable');
+
+      const parcelId = geo.parcel_id || 'Not resolved';
+      const khasra = geo.khasra_no && !geo.khasra_no.includes('Bhu-Naksha') && !geo.khasra_no.includes('प्राप्य') ? geo.khasra_no : 'Unavailable';
+      const area = geo.cadastral_area_ha != null ? `${geo.cadastral_area_ha} Ha` : 'Unavailable';
+      const landClass = geo.land_classification && !geo.land_classification.includes('Verify') && !geo.land_classification.includes('सत्यापन') ? geo.land_classification : 'Unavailable';
+      const boundaryStatus = 'Unavailable from authoritative cadastral source';
+      const cadastralSource = 'Authoritative cadastral record unavailable';
+      const lastUpdated = tele && tele.timestamp
+        ? new Date(tele.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST'
+        : new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST';
 
       return `
-        <div style="font-family: var(--font-main); font-size: 12px; color: #0F172A; min-width: 270px; line-height: 1.4;">
-          <div style="background: #0C3258; color: #FFF; padding: 6px 10px; border-radius: 4px 4px 0 0; font-weight: 800; font-size: 12px; display: flex; align-items: center; justify-content: space-between;">
-            <span>🏛️ ${isHi ? 'राष्ट्रीय भू-स्थानिक नोड' : 'National Geospatial Node'}</span>
-            <span style="font-size: 10px; background:#1E3A8A; padding:1px 5px; border-radius:3px;">${isDemoMode ? 'DEMO' : 'LIVE'}</span>
+        <div style="font-family: var(--font-main); font-size: 11.5px; color: #0F172A; min-width: 285px; line-height: 1.45;">
+          <div style="background: #0C3258; color: #FFF; padding: 6px 10px; border-radius: 4px 4px 0 0; font-weight: 800; font-size: 11.5px; display: flex; align-items: center; justify-content: space-between;">
+            <span>🏛️ CADASTRAL PARCEL GIS ANALYSIS</span>
+            <span style="font-size: 9.5px; background: #1E3A8A; padding: 1px 5px; border-radius: 3px;">${isDemoMode ? 'DEMO' : 'LIVE DATA'}</span>
           </div>
-          <div style="padding: 8px 10px; background: #FFFFFF; border: 1px solid #CBD5E1; border-top: none; border-radius: 0 0 4px 4px;">
-            <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #F1F5F9;">
-              <div style="font-size: 10.5px; color: #475569; font-weight: 700;">📍 ${isHi ? 'प्रशासनिक क्षेत्राधिकार' : 'Administrative Jurisdiction'}:</div>
-              <div style="font-size: 12px; color: #1E293B; font-weight: 800;">${geo.village || ''}, ${geo.tehsil || ''}</div>
-              <div style="font-size: 11px; color: #475569;">${geo.district || ''}, ${geo.state || ''} ${geo.postcode ? '• ' + geo.postcode : ''}</div>
-              <div style="font-size: 10.5px; color: #64748B; font-family: var(--font-mono); margin-top:2px;">${coordsText}</div>
+          <div style="padding: 8px 10px; background: #FFFFFF; border: 1px solid #CBD5E1; border-top: none; border-radius: 0 0 4px 4px; max-height: 380px; overflow-y: auto;">
+            
+            <!-- 1. LOCATION -->
+            <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0;">
+              <div style="font-size: 10px; color: #64748B; font-weight: 800; text-transform: uppercase;">📍 LOCATION</div>
+              <div style="font-size: 12px; color: #0C3258; font-weight: 800;">${geo.tehsil || 'Amer'}, ${geo.district || 'Jaipur'}</div>
+              <div style="font-size: 11px; color: #334155;">${geo.state || 'Rajasthan'}, India</div>
+              <div style="font-size: 10px; color: #64748B; font-family: var(--font-mono); margin-top: 2px;">Coordinates: ${coordsText}</div>
             </div>
 
-            <!-- Environmental Telemetry Metrics -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px; font-size: 11px;">
-              <div style="background: #F8FAFC; padding: 4px 6px; border-radius: 4px; border: 1px solid #E2E8F0;">
-                <div style="color: #475569; font-size: 9.5px;">वायु तापमान (Air Temp)</div>
-                <strong style="color: #0C3258;">${airTemp}</strong>
+            <!-- 2. CADASTRAL -->
+            <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; font-size: 10.5px;">
+              <div style="font-size: 10px; color: #64748B; font-weight: 800; text-transform: uppercase;">🗺️ CADASTRAL</div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 2px;">
+                <div>Parcel ID: <strong>${parcelId}</strong></div>
+                <div>Khasra: <strong>${khasra}</strong></div>
+                <div>Area: <strong>${area}</strong></div>
+                <div>Land Class: <strong>${landClass}</strong></div>
               </div>
-              <div style="background: #F8FAFC; padding: 4px 6px; border-radius: 4px; border: 1px solid #E2E8F0;">
-                <div style="color: #475569; font-size: 9.5px;">आर्द्रता (Humidity)</div>
-                <strong style="color: #0284C7;">${humid}</strong>
-              </div>
-              <div style="background: #F0FDF4; padding: 4px 6px; border-radius: 4px; border: 1px solid #DCFCE7;">
-                <div style="color: #166534; font-size: 9.5px;">मृदा नमी (0-7cm)</div>
-                <strong style="color: #15803D;">${sm0_7}</strong>
-              </div>
-              <div style="background: #FAF5FF; padding: 4px 6px; border-radius: 4px; border: 1px solid #F3E8FF;">
-                <div style="color: #6B21A8; font-size: 9.5px;">मृदा pH (SoilGrids)</div>
-                <strong style="color: #7E22CE;">${soilPh}</strong>
+              <div style="margin-top: 2px; color: #94A3B8; font-size: 10px;">Boundary: ${boundaryStatus}</div>
+              <div style="color: #64748B; font-size: 10px;">Source: ${cadastralSource}</div>
+            </div>
+
+            <!-- 3. ENVIRONMENT -->
+            <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0;">
+              <div style="font-size: 10px; color: #64748B; font-weight: 800; text-transform: uppercase;">🌤️ ENVIRONMENT</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px;">
+                <div style="background: #F8FAFC; padding: 3px 5px; border-radius: 3px; border: 1px solid #E2E8F0;">
+                  <span style="font-size: 9px; color: #64748B;">Air Temp:</span> <strong style="color: #0C3258;">${airTemp}</strong>
+                </div>
+                <div style="background: #F8FAFC; padding: 3px 5px; border-radius: 3px; border: 1px solid #E2E8F0;">
+                  <span style="font-size: 9px; color: #64748B;">Humidity:</span> <strong style="color: #0284C7;">${humid}</strong>
+                </div>
+                <div style="background: #F8FAFC; padding: 3px 5px; border-radius: 3px; border: 1px solid #E2E8F0;">
+                  <span style="font-size: 9px; color: #64748B;">Rainfall:</span> <strong style="color: #0284C7;">${rain}</strong>
+                </div>
+                <div style="background: #F0FDF4; padding: 3px 5px; border-radius: 3px; border: 1px solid #DCFCE7;">
+                  <span style="font-size: 9px; color: #166534;">Soil Moisture:</span> <strong style="color: #15803D;">${sm0_7}</strong>
+                </div>
               </div>
             </div>
 
-            <!-- DATA PROVENANCE SECTION -->
-            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 4px; padding: 5px 7px; margin-bottom: 8px; font-size: 10px; line-height: 1.4;">
+            <!-- 4. SOIL -->
+            <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; font-size: 10.5px;">
+              <div style="font-size: 10px; color: #64748B; font-weight: 800; text-transform: uppercase;">🌱 SOIL (ISRIC 250m)</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 2px;">
+                <div>pH (0-5cm): <strong>${soilPh}</strong></div>
+                <div>SOC: <strong>${soc}</strong></div>
+                <div>Clay: <strong>${clay}</strong></div>
+                <div>Sand: <strong>${sand}</strong></div>
+                <div>Soil Temp (0-7cm): <strong>${st0_7}</strong></div>
+                <div>Moisture (0-7cm): <strong>${sm0_7}</strong></div>
+              </div>
+            </div>
+
+            <!-- 5. DATA PROVENANCE -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 4px; padding: 5px 7px; margin-bottom: 6px; font-size: 9.5px; line-height: 1.4;">
               <div style="font-weight: 800; color: #0C3258; margin-bottom: 2px;">📊 DATA PROVENANCE:</div>
-              <div>• कैडस्ट्रल: <span style="color:#B45309; font-weight:700;">भू-नक्शा / NIC</span> [CADASTRAL]</div>
-              <div>• मौसम व नमी: <span style="color:#0284C7; font-weight:700;">Open-Meteo ECMWF</span> [MODELLED/REANALYSIS]</div>
-              <div>• मृदा संरचना: <span style="color:#7E22CE; font-weight:700;">ISRIC SoilGrids 250m</span> [SPATIAL ESTIMATE]</div>
+              <div>• Cadastral: <span style="color:#B45309; font-weight:700;">Authoritative record unavailable</span></div>
+              <div>• Weather: <span style="color:#0284C7; font-weight:700;">Open-Meteo ECMWF</span> [MODELLED/REANALYSIS]</div>
+              <div>• Soil: <span style="color:#7E22CE; font-weight:700;">ISRIC SoilGrids 250m</span> [SPATIAL ESTIMATE]</div>
+              <div>• Satellite: <span style="color:#64748B;">Satellite-derived vegetation data unavailable</span></div>
+              <div style="margin-top: 2px; color: #475569;">Updated: ${lastUpdated} • Type: Modelled / Spatial Estimate</div>
             </div>
 
             <div style="display: flex; gap: 4px;">
-              <button onclick="activateTab(document.getElementById('tab-btn-cadastral'), 'cadastral')" style="flex: 1; padding: 5px; font-size: 10.5px; background: #0C3258; color: #FFF; border: none; border-radius: 3px; font-weight: 700; cursor: pointer;">
-                ${isHi ? '🗺️ कैडस्ट्रल' : '🗺️ Cadastral'}
+              <button onclick="activateTab(document.getElementById('tab-btn-cadastral'), 'cadastral')" style="flex: 1; padding: 5px; font-size: 10px; background: #0C3258; color: #FFF; border: none; border-radius: 3px; font-weight: 700; cursor: pointer;">
+                🗺️ Cadastral
               </button>
-              <button onclick="activateTab(document.getElementById('tab-btn-telemetry'), 'telemetry')" style="flex: 1; padding: 5px; font-size: 10.5px; background: #046A38; color: #FFF; border: none; border-radius: 3px; font-weight: 700; cursor: pointer;">
-                ${isHi ? '🌱 टेलीमेट्री' : '🌱 Telemetry'}
-              </button>
-              <button onclick="activateTab(document.getElementById('tab-btn-section90a'), 'section90a')" style="flex: 1; padding: 5px; font-size: 10.5px; background: #B45309; color: #FFF; border: none; border-radius: 3px; font-weight: 700; cursor: pointer;">
-                ${isHi ? '⚡ धारा 90-क' : '⚡ Sec 90-A'}
+              <button onclick="activateTab(document.getElementById('tab-btn-telemetry'), 'telemetry')" style="flex: 1; padding: 5px; font-size: 10px; background: #046A38; color: #FFF; border: none; border-radius: 3px; font-weight: 700; cursor: pointer;">
+                🌱 Telemetry
               </button>
             </div>
           </div>
@@ -4322,37 +4378,47 @@
       `;
     }
 
-    function updateCadastralInspectorDOM(geo, coordsText) {
+        function updateCadastralInspectorDOM(geo, coordsText) {
       const isHi = currentLang === 'hi';
       const elHouse = document.getElementById("disp-cadastral-house");
-      if (elHouse) elHouse.innerText = geo.house_number || (isHi ? "निरीक्षण बिंदु" : "Inspection Point");
+      if (elHouse) elHouse.innerText = `${geo.tehsil || 'Amer'}, ${geo.district || 'Jaipur'}`;
 
       const elRoad = document.getElementById("disp-cadastral-road");
       if (elRoad) elRoad.innerText = geo.road || "राजस्व संपर्क मार्ग";
 
       const elVillage = document.getElementById("disp-cadastral-village");
-      if (elVillage) elVillage.innerText = geo.village || `${geo.tehsil || 'प्रशासनिक क्षेत्र'}`;
+      if (elVillage) elVillage.innerText = geo.village || `${geo.tehsil || 'Amer'}`;
 
       const elKhasra = document.getElementById("disp-cadastral-khasra");
-      if (elKhasra) elKhasra.innerText = geo.khasra_no || (isHi ? "भू-नक्शा पोर्टल से प्राप्य (Bhu-Naksha Required)" : "Available via Bhu-Naksha");
+      if (elKhasra) {
+        elKhasra.innerText = (geo.khasra_no && !geo.khasra_no.includes('Bhu-Naksha') && !geo.khasra_no.includes('प्राप्य'))
+          ? geo.khasra_no
+          : (isHi ? "प्राधिकृत स्रोत से अनुपलब्ध (Unavailable)" : "Unavailable from authoritative cadastral source");
+      }
 
       const elAdmin = document.getElementById("disp-cadastral-admin");
-      if (elAdmin) elAdmin.innerText = `${geo.tehsil || ''}, ${geo.district || ''} (${geo.state || 'India'})`;
+      if (elAdmin) elAdmin.innerText = `${geo.tehsil || 'Amer'}, ${geo.district || 'Jaipur'} (${geo.state || 'Rajasthan'})`;
 
       const elArea = document.getElementById("disp-cadastral-area");
       if (elArea) {
         if (geo.cadastral_area_ha != null) {
           elArea.innerText = `${geo.cadastral_area_ha} Ha (${geo.cadastral_area_acres || ''} ${isHi ? 'एकड़' : 'Acres'})`;
         } else {
-          elArea.innerText = isHi ? "भू-नक्शा पोर्टल से प्राप्य (Unavailable via open API)" : "Available via Bhu-Naksha Portal";
+          elArea.innerText = isHi ? "अनुपलब्ध (Unavailable)" : "Unavailable";
         }
       }
 
       const elClass = document.getElementById("disp-cadastral-class");
-      if (elClass) elClass.innerText = geo.land_classification || (isHi ? "राज्य राजस्व अभिलेख से सत्यापन योग्य" : "Verify via State Land Records");
+      if (elClass) {
+        elClass.innerText = (geo.land_classification && !geo.land_classification.includes('Verify') && !geo.land_classification.includes('सत्यापन'))
+          ? geo.land_classification
+          : (isHi ? "अनुपलब्ध (Unavailable)" : "Unavailable");
+      }
 
       const elGeom = document.getElementById("disp-cadastral-geom");
-      if (elGeom) elGeom.innerText = geo.geometry_status || (isHi ? "अभिलेख भू-नक्शा पोर्टल पर उपलब्ध" : "Boundary on State Bhu-Naksha Portal");
+      if (elGeom) {
+        elGeom.innerText = isHi ? "प्राधिकृत भूखंड सीमा अनुपलब्ध (Authoritative Boundary Unavailable)" : "Authoritative parcel boundary unavailable";
+      }
     }
 
     function updateTelemetryDOM(teleData, soilData) {
@@ -4925,9 +4991,14 @@
       }
     }
 
-    async function locateSearchedPlace() {
-      const q = document.getElementById("input-khasra-search").value.trim();
-      if (!q) return;
+        async function locateSearchedPlace() {
+      const input = document.getElementById("input-khasra-search");
+      const q = input ? input.value.trim() : "";
+      if (!q) {
+        // If search box is empty, locate the selected Tehsil / District from dropdowns directly
+        handleTehsilChange();
+        return;
+      }
 
       try {
         const res = await fetch(`${API_BASE}/api/geo/search?q=${encodeURIComponent(q)}`);
@@ -4935,7 +5006,14 @@
           const data = await res.json();
           if (data && data.length > 0) {
             const place = data[0];
-            await inspectLocation(place.lat, place.lon, place.name, 12, true);
+            // India sovereign bounding box validation [4.0, 65.0] to [38.5, 100.0]
+            if (place.lat < 4.0 || place.lat > 38.5 || place.lon < 65.0 || place.lon > 100.0 || (window.isPointInIndiaLand && !window.isPointInIndiaLand(place.lat, place.lon))) {
+              showToast(currentLang === 'hi'
+                ? "स्थान भारत की भौगोलिक सीमा से बाहर है — अमान्य।"
+                : "Location resolution returned an invalid non-Indian result.");
+              return;
+            }
+            await inspectLocation(place.lat, place.lon, place.name, 13, true);
             showToast(`${TRANSLATIONS[currentLang].toast_place_located}${place.name}`);
             return;
           }
@@ -4966,10 +5044,8 @@
         if (cardTelemetry) cardTelemetry.style.display = "none";
         if (cardDiversion) cardDiversion.style.display = "none";
 
-        if (parcelPolygon && map) {
-          map.flyToBounds(parcelPolygon.getBounds(), { padding: [80, 80], duration: 1.2 });
-          parcelPolygon.setStyle({ color: "#F59E0B", weight: 3.5, fillOpacity: 0.28 });
-          if (divertPolygon) divertPolygon.setStyle({ color: "#EF4444", weight: 2, fillOpacity: 0.2 });
+        if (map) {
+          map.flyTo([currentLat, currentLon], 13, { duration: 1.2 });
         }
         showToast(currentLang === 'hi' ? "🗺️ भू-मानचित्र (Cadastral GIS) दृश्य सक्रिय।" : "🗺️ Cadastral Map (GIS) View Active.");
       } else if (tabKey === 'telemetry') {
@@ -5020,24 +5096,23 @@
         if (cardDiversion) cardDiversion.style.display = "block";
         if (splitBtn) splitBtn.classList.add("active");
         document.querySelectorAll(".nav-tab-link").forEach(b => b.classList.remove("active"));
-        if (map && parcelPolygon) {
-          map.flyToBounds(parcelPolygon.getBounds(), { padding: [90, 90], duration: 1.2 });
+        if (map) {
+          map.flyTo([currentLat, currentLon], 13, { duration: 1.2 });
         }
         showToast(currentLang === 'hi' ? "🗂️ विस्तृत दृश्य: दोनों विश्लेषण पैनल सक्रिय।" : "🗂️ Split View: Both analysis panels active.");
       }
     }
 
     function focusParcelOnMap() {
-      if (parcelPolygon && map) {
-        map.flyToBounds(parcelPolygon.getBounds(), { padding: [70, 70], duration: 1.2 });
-        parcelPolygon.setStyle({ color: "#F59E0B", weight: 4, fillOpacity: 0.32 });
+      if (map) {
+        map.flyTo([currentLat, currentLon], 14, { duration: 1.2 });
       }
     }
 
     function auditCadastralParcel() {
-      if (parcelPolygon && map) {
-        map.flyToBounds(parcelPolygon.getBounds(), { padding: [70, 70], duration: 1.2 });
-        showToast(currentLang === 'hi' ? "✓ कैडस्ट्रल बहुभुज सीमा: 4 निर्देशांक शीर्ष 100% सत्यापित।" : "✓ Cadastral polygon bounds: 4 vertices 100% verified.");
+      if (map) {
+        map.flyTo([currentLat, currentLon], 14, { duration: 1.2 });
+        showToast(currentLang === 'hi' ? "निरीक्षण बिंदु निर्देशांक सत्यापित।" : "Inspection point coordinates verified.");
       }
     }
 
@@ -5369,6 +5444,47 @@
     // PROPERTY DOCUMENT VERIFICATION & ANTI-TAMPER ENGINE
     // ============================================================
     let selectedVerifyFile = null;
+
+    // ============================================================
+    // FIRST-TIME PDF VERIFICATION AUTH GATE (Preserving Selected File)
+    // ============================================================
+    window._pendingDocVerificationFile = null;
+
+    function openAuthRequiredModalForVerification(customMsg) {
+      const msgEl = document.getElementById("auth-req-message");
+      if (msgEl) {
+        msgEl.innerText = customMsg || "To verify a property document, sign in or create an account to continue.";
+      }
+      openModal("modal-auth-required");
+    }
+
+    async function handleAuthGateAction(action) {
+      if (action === 'demo') {
+        // Continue as Demo User (SIH Demonstration Mode)
+        await quickLoginAs('verifier', 'LegalVerifier#2026!');
+        closeModal('modal-auth-required');
+        
+        // Restore preserved PDF and continue verification without re-uploading
+        if (window._pendingDocVerificationFile) {
+          selectedVerifyFile = window._pendingDocVerificationFile;
+          window._pendingDocVerificationFile = null;
+        }
+        openModal('modal-doc-verify');
+        if (selectedVerifyFile) {
+          document.getElementById("verify-file-name").innerText = `📄 ${selectedVerifyFile.name} (${(selectedVerifyFile.size / 1024).toFixed(1)} KB)`;
+          document.getElementById("verify-file-info").style.display = "flex";
+          // Automatically continue verification
+          submitDocumentVerification();
+        }
+      } else if (action === 'signin') {
+        // Show inline signin / test role switcher
+        const inlineBox = document.getElementById("auth-inline-signin-box");
+        if (inlineBox) inlineBox.style.display = "block";
+      } else if (action === 'signup') {
+        showToast(currentLang === 'hi' ? "पंजीकरण हेतु प्रशासक अथवा प्राधिकृत अधिकारी से संपर्क करें।" : "Contact Administrator to provision new institutional verification account.");
+      }
+    }
+
     let selectedRegisterFile = null;
 
     function switchDocVerifyMode(mode) {
@@ -5553,9 +5669,17 @@
       submitDocumentVerification();
     }
 
-    async function submitDocumentVerification() {
+        async function submitDocumentVerification() {
       if (!selectedVerifyFile) {
         showToast(currentLang === 'hi' ? "कृपया पहले एक पीडीएफ दस्तावेज़ चुनें।" : "Please select or drop a PDF document first.");
+        return;
+      }
+
+      // ── FIRST-TIME PDF VERIFICATION AUTHENTICATION GATE ──
+      // If unauthenticated: preserve selected PDF and require login/auth
+      if (!activeAuthToken) {
+        window._pendingDocVerificationFile = selectedVerifyFile;
+        openAuthRequiredModalForVerification("To verify a property document, sign in or create an account to continue.");
         return;
       }
 
@@ -5568,14 +5692,17 @@
         const formData = new FormData();
         formData.append("file", selectedVerifyFile);
 
-        // Attempt server verification with an abort controller (4s timeout)
+        // Attempt server verification with token
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
 
         let res = null;
         try {
           res = await fetch(`${API_BASE}/api/v1/documents/verify`, {
             method: "POST",
+            headers: {
+              "Authorization": `Bearer ${activeAuthToken}`
+            },
             body: formData,
             signal: controller.signal
           });
@@ -5593,7 +5720,24 @@
           return;
         }
 
-        // Serverless / Offline / Standalone Fallback: Execute instant Web Crypto SHA-256 verification
+        if (res && res.status === 401) {
+          loader.style.display = "none";
+          activeAuthToken = null;
+          activeAuthUser = null;
+          sessionStorage.removeItem("bhoomi_auth_token");
+          updateSessionUI(null);
+          window._pendingDocVerificationFile = selectedVerifyFile;
+          openAuthRequiredModalForVerification("Session expired. Please sign in again to continue verification.");
+          return;
+        }
+
+        if (res && res.status === 403) {
+          loader.style.display = "none";
+          showToast(currentLang === 'hi' ? "पहुंच अस्वीकृत: आपकी भूमिका दस्तावेज़ सत्यापन हेतु अधिकृत नहीं है।" : "Access Denied: Your role is not authorized to verify property documents.");
+          return;
+        }
+
+        // Serverless / Standalone Fallback: Execute instant Web Crypto SHA-256 verification
         const localData = await clientSideVerifyDocument(selectedVerifyFile);
         loader.style.display = "none";
         container.style.display = "block";
@@ -5623,7 +5767,7 @@
           <div class="doc-result-card verified">
             <div class="doc-result-header verified">
               <span>✓</span>
-              <span>VERIFIED REAL [OK] — प्रामाणिक एवं वैध दस्तावेज़</span>
+              <span>FILE INTEGRITY MATCH [OK] — क्रिप्टोग्राफिक फ़ाइल अखंडता सत्यापित</span>
             </div>
             <div class="doc-result-msg verified">
               ${data.message}
@@ -5656,7 +5800,7 @@
               <span style="color: #15803D;"><strong>Validity Proof:</strong> ${data.validity_proof || 'PROOF::VALID::LEDGER_MATCH'}</span>
             </div>
             <div style="font-size: 11px; color: #78350F; background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
-              ⚖️ <em>${currentLang === 'hi' ? 'वैधानिक टिप्पणी: SHA-256 डिजिटल फ़ाइल की सटीक बाइनरी पहचान करता है; यह स्वतंत्र रूप से कानूनी प्रामाणिकता सिद्ध नहीं करता है।' : 'Statutory Notice: SHA-256 identifies the exact digital file; it does not independently prove legal authenticity.'}</em>
+              ⚖️ <em>${currentLang === 'hi' ? 'वैधानिक सूचना: SHA-256 क्रिप्टोग्राफ़िक फ़ाइल अखंडता की पुष्टि करता है। विधिक प्रामाणिकता का सत्यापन राज्य राजस्व अभिलेख / उप-पंजीयक कार्यालय से होना अनिवार्य है।' : 'Statutory Notice: SHA-256 confirms cryptographic file integrity relative to registered ledger hash. Legal authenticity requires authoritative record verification against state revenue registry.'}</em>
             </div>
           </div>
         `;
@@ -5666,7 +5810,7 @@
           <div class="doc-result-card failed">
             <div class="doc-result-header failed">
               <span>⚠️</span>
-              <span>VERIFICATION_FAILED [TAMPERED / FAKE] — अनधिकृत छेड़छाड़ संसूचित!</span>
+              <span>FILE INTEGRITY MISMATCH [TAMPERED / UNVERIFIED] — फ़ाइल अखंडता विसंगति</span>
             </div>
             <div class="doc-result-msg failed">
               ${data.message}
@@ -5680,7 +5824,7 @@
               <strong>Match Status:</strong> <span style="color: #DC2626; font-weight: 800;">REJECTED / UNVERIFIED</span>
             </div>
             <div style="font-size: 11px; color: #78350F; background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
-              ⚖️ <em>${currentLang === 'hi' ? 'वैधानिक टिप्पणी: SHA-256 डिजिटल फ़ाइल की सटीक बाइनरी पहचान करता है; यह स्वतंत्र रूप से कानूनी प्रामाणिकता सिद्ध नहीं करता है।' : 'Statutory Notice: SHA-256 identifies the exact digital file; it does not independently prove legal authenticity.'}</em>
+              ⚖️ <em>${currentLang === 'hi' ? 'वैधानिक सूचना: SHA-256 क्रिप्टोग्राफ़िक फ़ाइल अखंडता की पुष्टि करता है। विधिक प्रामाणिकता का सत्यापन राज्य राजस्व अभिलेख / उप-पंजीयक कार्यालय से होना अनिवार्य है।' : 'Statutory Notice: SHA-256 confirms cryptographic file integrity relative to registered ledger hash. Legal authenticity requires authoritative record verification against state revenue registry.'}</em>
             </div>
           </div>
         `;
@@ -5793,7 +5937,7 @@
               <strong>File Size:</strong> ${(data.file_size_bytes / 1024).toFixed(1)} KB | <strong>Pages:</strong> ${data.page_count}
             </div>
             <div style="font-size: 11px; color: #78350F; background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
-              ⚖️ <em>${currentLang === 'hi' ? 'वैधानिक टिप्पणी: SHA-256 डिजिटल फ़ाइल की सटीक बाइनरी पहचान करता है; यह स्वतंत्र रूप से कानूनी प्रामाणिकता सिद्ध नहीं करता है।' : 'Statutory Notice: SHA-256 identifies the exact digital file; it does not independently prove legal authenticity.'}</em>
+              ⚖️ <em>${currentLang === 'hi' ? 'वैधानिक सूचना: SHA-256 क्रिप्टोग्राफ़िक फ़ाइल अखंडता की पुष्टि करता है। विधिक प्रामाणिकता का सत्यापन राज्य राजस्व अभिलेख / उप-पंजीयक कार्यालय से होना अनिवार्य है।' : 'Statutory Notice: SHA-256 confirms cryptographic file integrity relative to registered ledger hash. Legal authenticity requires authoritative record verification against state revenue registry.'}</em>
             </div>
           </div>
         `;

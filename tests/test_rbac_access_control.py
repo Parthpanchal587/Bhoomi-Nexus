@@ -156,6 +156,35 @@ class TestBhoomiRBACAccessControl(unittest.TestCase):
         self.assertEqual(res_admin.status_code, 200)
         self.assertIsInstance(res_admin.json(), list)
 
+    # ─────────────────────────────────────────────────────────────
+    # 7. DOCUMENT VERIFICATION AUTHENTICATION ENFORCEMENT
+    # ─────────────────────────────────────────────────────────────
+    def test_unauthenticated_user_cannot_verify_documents(self):
+        """Unauthenticated user cannot verify documents without session token (HTTP 401)."""
+        valid_pdf = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF"
+        files = {"file": ("deed_check.pdf", io.BytesIO(valid_pdf), "application/pdf")}
+        res = self.client.post("/api/v1/documents/verify", files=files)
+        self.assertEqual(res.status_code, 401)
+        self.assertIn("Authentication required", res.json()["detail"])
+
+    def test_authorized_verifier_can_verify_documents(self):
+        """Authorized Legal Verifier can verify documents with valid token."""
+        verifier_login = self.client.post("/api/v1/auth/login", json={
+            "username": "verifier",
+            "password": "LegalVerifier#2026!"
+        })
+        token = verifier_login.json()["token"]
+        valid_pdf = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF"
+        files = {"file": ("deed_check.pdf", io.BytesIO(valid_pdf), "application/pdf")}
+        res = self.client.post(
+            "/api/v1/documents/verify",
+            files=files,
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("status", res.json())
+
 
 if __name__ == "__main__":
     unittest.main()
+

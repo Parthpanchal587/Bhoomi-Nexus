@@ -192,7 +192,7 @@
         where: "1=1",
         outFields: "STNAME,STCODE11,State_LGD",
         returnGeometry: "true",
-        maxAllowableOffset: "500", // Simplify geometry for overview
+        
       },
       "states_all"
     );
@@ -356,8 +356,7 @@
         where: "STNAME LIKE '%" + escapedQ + "%'",
         outFields: "STNAME,STCODE11,State_LGD",
         returnGeometry: "true",
-        maxAllowableOffset: "1000",
-      },
+        },
       "search_state_" + q
     );
 
@@ -380,7 +379,6 @@
         where: "D_Pan_Name LIKE '%" + escapedQ + "%'",
         outFields: "D_Pan_Name,stname,dtcode11,Dist_LGD",
         returnGeometry: "true",
-        maxAllowableOffset: "500",
         resultRecordCount: "20",
       },
       "search_district_" + q
@@ -405,7 +403,6 @@
         where: "B_Pan_Name LIKE '%" + escapedQ + "%'",
         outFields: "B_Pan_Name,D_Pan_Name,state,block_lgd",
         returnGeometry: "true",
-        maxAllowableOffset: "200",
         resultRecordCount: "15",
       },
       "search_block_" + q

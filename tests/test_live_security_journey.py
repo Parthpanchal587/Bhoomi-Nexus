@@ -124,7 +124,10 @@ def test_full_journey():
     req = urllib.request.Request(
         f"{BASE_URL}/api/v1/documents/verify",
         data=valid_body,
-        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}
+        headers={
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "Authorization": f"Bearer {officer_token}",
+        }
     )
     with urllib.request.urlopen(req) as res:
         ver_data = json.loads(res.read().decode("utf-8"))
