@@ -145,6 +145,28 @@ def get_india_boundary():
     return {"error": "Boundary not found"}
 
 
+@app.get("/gis_service.js", include_in_schema=False)
+def get_gis_service():
+    js_path = frontend_path / "gis_service.js"
+    if js_path.exists():
+        return FileResponse(js_path, media_type="application/javascript")
+    root_js = frontend_path.parent.parent / "gis_service.js"
+    if root_js.exists():
+        return FileResponse(root_js, media_type="application/javascript")
+    return {"error": "gis_service.js not found"}
+
+
+@app.get("/india_mask_data.js", include_in_schema=False)
+def get_india_mask_data():
+    js_path = frontend_path / "india_mask_data.js"
+    if js_path.exists():
+        return FileResponse(js_path, media_type="application/javascript")
+    root_js = frontend_path.parent.parent / "india_mask_data.js"
+    if root_js.exists():
+        return FileResponse(root_js, media_type="application/javascript")
+    return {"error": "india_mask_data.js not found"}
+
+
 if frontend_path.exists():
     app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
 
