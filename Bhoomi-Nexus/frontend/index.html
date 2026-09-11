@@ -362,6 +362,12 @@
       font-weight: 500;
     }
 
+    @media (max-width: 1400px) {
+      .ticker-right {
+        display: none !important;
+      }
+    }
+
     /* 4. SUB-FILTER & LAYER CONTROL BAR */
     .sub-filter-strip {
       background: #EDF2F7;
@@ -1399,7 +1405,7 @@
         <span>⚡</span> <span data-i18n="tab_section90a">धारा 90-क संपरिवर्तन (Section 90-A)</span>
       </button>
       
-      <!-- New Document Upload & Verification Tab -->
+      <!-- Document Upload & Verification Tab -->
       <button class="nav-tab-link nav-tab-highlight" id="tab-btn-doc-verify" onclick="openModal('modal-doc-verify')">
         <span>📑</span> <span data-i18n="tab_doc_verify">दस्तावेज़ सत्यापन (Verify Document)</span>
       </button>
@@ -1407,12 +1413,13 @@
       <button class="nav-tab-link" onclick="openModal('modal-verify-ds')">
         <span>🛡️</span> <span data-i18n="tab_blockchain">डेटासेट ऑडिट (Dataset Audit)</span>
       </button>
+
       <button class="nav-tab-link" onclick="openModal('modal-ai-ask')">
-      <button class="nav-tab-link" id="tab-btn-security-center" onclick="openSecurityCenterModal()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 4px; color: #FFFFFF;" title="राष्ट्रीय साइबर एवं भू-डेटा सुरक्षा केंद्र">
-        <span>🔐</span> <span data-i18n="tab_security_center">सुरक्षा केंद्र (Security Center)</span>
+        <span>🧠</span> <span data-i18n="tab_ai_ask">एआई भूमि खोज (Ask BHOOMI)</span>
       </button>
 
-        <span>🧠</span> <span data-i18n="tab_ai_ask">एआई भूमि खोज (Ask BHOOMI)</span>
+      <button class="nav-tab-link" id="tab-btn-security-center" onclick="openSecurityCenterModal()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 4px; color: #FFFFFF;" title="राष्ट्रीय साइबर एवं भू-डेटा सुरक्षा केंद्र">
+        <span>🔐</span> <span data-i18n="tab_security_center">सुरक्षा केंद्र (Security Center)</span>
       </button>
     </div>
 
@@ -2943,16 +2950,8 @@
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      // Create dedicated high-priority Pane for India-Only Mask (covers all non-Indian territory)
-      map.createPane('indiaMaskPane');
-      map.getPane('indiaMaskPane').style.zIndex = 450;
-      map.getPane('indiaMaskPane').style.pointerEvents = 'none';
-
       // Default: Google Maps Hybrid (satellite + roads)
       setMapLayer("hybrid");
-
-      // Apply Sovereign India Mask: 100% solid mask covering all other countries
-      applyIndiaOnlyMask();
 
       // Place Cadastral Inspection Marker
       inspectionMarker = L.marker([currentLat, currentLon]).addTo(map);
@@ -2972,32 +2971,6 @@
 
       // Initial inspection at default location (Jaipur/Amer)
       inspectLocation(currentLat, currentLon, "Amer, Jaipur Parcel 7829", 11, false);
-    }
-
-    function applyIndiaOnlyMask() {
-      const renderMask = (geo) => {
-        if (!geo || !map) return;
-        L.geoJSON(geo, {
-          pane: 'indiaMaskPane',
-          style: {
-            fillColor: '#071F36', // Deep government navy - completely masks out other countries
-            fillOpacity: 1.0,     // 100% solid opaque - zero visibility of other nations
-            color: '#FF671F',     // Saffron National border outline
-            weight: 2.5,
-            opacity: 1.0
-          },
-          interactive: false
-        }).addTo(map);
-      };
-
-      if (window.INDIA_MASK_GEOJSON) {
-        renderMask(window.INDIA_MASK_GEOJSON);
-      } else {
-        fetch('india_mask.json')
-          .then(res => res.json())
-          .then(data => renderMask(data))
-          .catch(() => {});
-      }
     }
 
     function setMapLayer(type) {
