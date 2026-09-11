@@ -4109,17 +4109,15 @@
       }
 
       try {
-        // Fetch Live Reverse Geocoding, Real Weather & Soil Telemetry, and ISRIC SoilGrids in parallel
-        const [geoRes, teleRes, soilRes] = await Promise.allSettled([
-          fetch(`${API_BASE}/api/geo/reverse?lat=${lat}&lon=${lon}`),
-          fetch(`${API_BASE}/api/telemetry/live?lat=${lat}&lon=${lon}`),
-          fetch(`${API_BASE}/api/v1/env/soil?lat=${lat}&lon=${lon}`)
+        // Fetch Live Reverse Geocoding, Real Weather & Soil Telemetry, and ISRIC SoilGrids in parallel with direct fallback
+        const [geoRes, teleData, soilData] = await Promise.all([
+          fetch(`${API_BASE}/api/geo/reverse?lat=${lat}&lon=${lon}`).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetchTelemetryData(lat, lon),
+          fetchSoilData(lat, lon)
         ]);
 
-        let geoData = null;
-        if (geoRes.status === "fulfilled" && geoRes.value.ok) {
-          geoData = await geoRes.value.json();
-        } else {
+        let geoData = geoRes;
+        if (!geoData) {
           const nearest = findNearestAdmin(lat, lon);
           geoData = {
             house_number: customTitle || (currentLang === 'hi' ? 'भू-अभिलेख निरीक्षण बिंदु' : 'Land Record Inspection Point'),
@@ -4139,16 +4137,6 @@
 
         if (shouldSyncDropdowns) {
           syncDropdownsWithLocation(geoData, lat, lon);
-        }
-
-        let teleData = null;
-        if (teleRes.status === "fulfilled" && teleRes.value.ok) {
-          teleData = await teleRes.value.json();
-        }
-
-        let soilData = null;
-        if (soilRes.status === "fulfilled" && soilRes.value.ok) {
-          soilData = await soilRes.value.json();
         }
 
         updateCadastralInspectorDOM(geoData, coordsText);
@@ -4530,22 +4518,145 @@
     // ============================================================
     // TELEMETRY REFRESH
     // ============================================================
+    // ============================================================
+    // ROBUST REAL DATA FETCHERS (Backend + Direct Open API Fallback)
+    // ============================================================
+    async function fetchTelemetryData(lat, lon) {
+      try {
+        const res = await fetch(`${API_BASE}/api/telemetry/live?lat=${lat}&lon=${lon}`);
+        if (res.ok) {
+          const d = await res.json();
+          if (d && d.status === "success") return d;
+        }
+      } catch (e) {
+        console.warn("Backend telemetry fetch failed, falling back to direct Open-Meteo:", e);
+      }
+      try {
+        const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,soil_temperature_0_to_7cm,soil_temperature_7_to_28cm,soil_temperature_28_to_100cm,soil_temperature_100_to_255cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,soil_moisture_100_to_255cm&timezone=Asia%2FKolkata`;
+        const omResp = await fetch(omUrl);
+        if (omResp.ok) {
+          const omData = await omResp.json();
+          const cur = omData.current || {};
+          const sm07 = cur.soil_moisture_0_to_7cm;
+          let aridity = "MODERATE";
+          let note = "Standard multi-crop agricultural zone.";
+          if (sm07 != null) {
+            if (sm07 < 0.10) { aridity = "CRITICAL DEFICIT / ARID"; note = "Severe moisture stress. Drought-hardy crops or micro-irrigation required."; }
+            else if (sm07 < 0.20) { aridity = "SEMI-ARID / MODERATE DEFICIT"; note = "Suitable for mustard, pulses, guar, and rain-fed crops."; }
+            else if (sm07 < 0.35) { aridity = "OPTIMAL / ADEQUATE"; note = "Favorable root-zone moisture for staple cereals and cash crops."; }
+            else { aridity = "SATURATED / HIGH MOISTURE"; note = "Waterlogged / high moisture conditions."; }
+          }
+          return {
+            status: "success",
+            latitude: lat,
+            longitude: lon,
+            elevation_m: omData.elevation || 0.0,
+            ambient_temperature_c: cur.temperature_2m,
+            surface_temperature_c: cur.apparent_temperature,
+            relative_humidity_pct: cur.relative_humidity_2m,
+            precipitation_mm: cur.precipitation,
+            wind_speed_kmh: cur.wind_speed_10m,
+            wind_direction_deg: cur.wind_direction_10m,
+            soil_moisture_depths: {
+              "0_7cm": cur.soil_moisture_0_to_7cm,
+              "7_28cm": cur.soil_moisture_7_to_28cm,
+              "28_100cm": cur.soil_moisture_28_to_100cm,
+              "100_255cm": cur.soil_moisture_100_to_255cm
+            },
+            soil_temperature_depths: {
+              "0_7cm": cur.soil_temperature_0_to_7cm,
+              "7_28cm": cur.soil_temperature_7_to_28cm,
+              "28_100cm": cur.soil_temperature_28_to_100cm,
+              "100_255cm": cur.soil_temperature_100_to_255cm
+            },
+            agricultural_context: {
+              aridity_condition: aridity,
+              soil_suitability_note: note
+            },
+            timestamp: cur.time || new Date().toISOString(),
+            provenance: {
+              provider: "Open-Meteo ECMWF / DWD Reanalysis (Live Open Service)",
+              badge: "LIVE MODELLED",
+              station_lat: omData.latitude,
+              station_lon: omData.longitude
+            }
+          };
+        }
+      } catch (err) {
+        console.warn("Direct Open-Meteo fetch failed:", err);
+      }
+      return null;
+    }
+
+    async function fetchSoilData(lat, lon) {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/env/soil?lat=${lat}&lon=${lon}`);
+        if (res.ok) {
+          const d = await res.json();
+          if (d && d.status === "success") return d;
+        }
+      } catch (e) {
+        console.warn("Backend soil fetch failed, falling back to ISRIC SoilGrids:", e);
+      }
+      try {
+        const sgUrl = `https://rest.isric.org/soilgrids/v2.0/properties/query?lat=${lat}&lon=${lon}&property=phh2o&property=clay&property=sand&property=silt&property=soc&property=nitrogen&property=cec&depth=0-5cm&depth=5-15cm&value=mean&value=uncertainty`;
+        const sgResp = await fetch(sgUrl, { headers: { "Accept": "application/json" } });
+        if (sgResp.ok) {
+          const sgJson = await sgResp.json();
+          const layers = sgJson.properties?.layers || [];
+          const parsed = {};
+          for (const layer of layers) {
+            const pName = layer.name;
+            const dFactor = layer.unit_measure?.d_factor || 1;
+            const depths = {};
+            for (const d of layer.depths || []) {
+              const m = d.values?.mean;
+              depths[d.label] = {
+                mean: m != null ? Math.round((m / dFactor) * 100) / 100 : null
+              };
+            }
+            parsed[pName] = depths;
+          }
+          const phTop = parsed.phh2o?.['0-5cm']?.mean;
+          let phClass = 'Neutral';
+          if (phTop != null) {
+            if (phTop < 5.5) phClass = 'Strongly Acidic';
+            else if (phTop < 6.5) phClass = 'Moderately Acidic';
+            else if (phTop <= 7.5) phClass = 'Neutral / Optimal';
+            else if (phTop <= 8.5) phClass = 'Moderately Alkaline (Calcareous)';
+            else phClass = 'Strongly Alkaline (Saline-Sodic)';
+          }
+          return {
+            status: "success",
+            latitude: lat,
+            longitude: lon,
+            ph_h2o_topsoil: phTop,
+            ph_classification: phClass,
+            clay_percent_topsoil: parsed.clay?.['0-5cm']?.mean,
+            sand_percent_topsoil: parsed.sand?.['0-5cm']?.mean,
+            silt_percent_topsoil: parsed.silt?.['0-5cm']?.mean,
+            soc_g_per_kg_topsoil: parsed.soc?.['0-5cm']?.mean,
+            nitrogen_g_per_kg_topsoil: parsed.nitrogen?.['0-5cm']?.mean,
+            cec_cmolc_per_kg_topsoil: parsed.cec?.['0-5cm']?.mean,
+            provenance: {
+              provider: "ISRIC - World Soil Information (SoilGrids 2.0)",
+              badge: "SPATIAL ESTIMATE (250m)",
+              disclaimer: "SoilGrids predictions represent spatial estimates (250m). Not a substitute for laboratory Soil Health Card testing."
+            }
+          };
+        }
+      } catch (err) {
+        console.warn("Direct ISRIC SoilGrids fetch failed:", err);
+      }
+      return null;
+    }
+
     async function refreshTelemetry() {
       try {
-        const [teleRes, soilRes] = await Promise.allSettled([
-          fetch(`${API_BASE}/api/telemetry/live?lat=${currentLat}&lon=${currentLon}`),
-          fetch(`${API_BASE}/api/v1/env/soil?lat=${currentLat}&lon=${currentLon}`)
+        const [teleData, soilData] = await Promise.all([
+          fetchTelemetryData(currentLat, currentLon),
+          fetchSoilData(currentLat, currentLon)
         ]);
-
-        let teleData = null;
-        if (teleRes.status === "fulfilled" && teleRes.value.ok) {
-          teleData = await teleRes.value.json();
-        }
-
-        let soilData = null;
-        if (soilRes.status === "fulfilled" && soilRes.value.ok) {
-          soilData = await soilRes.value.json();
-        }
 
         updateTelemetryDOM(teleData, soilData);
         showToast(TRANSLATIONS[currentLang].toast_telemetry_refreshed);
