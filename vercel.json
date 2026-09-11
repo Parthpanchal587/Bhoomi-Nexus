@@ -1,35 +1,17 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+      "source": "/api/(.*)",
+      "destination": "/api"
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
+      "source": "/login",
+      "destination": "/login.html"
     },
     {
-      "src": "*.{png,jpg,jpeg,svg,ico,js,css}",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/login",
-      "dest": "/login.html"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "/dashboard.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
     }
   ]
 }
