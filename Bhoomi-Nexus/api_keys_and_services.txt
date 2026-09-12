@@ -1,0 +1,118 @@
+================================================================================
+BHOOMI-NEXUS: API SERVICES, ENDPOINTS & API KEYS SPECIFICATION
+Generated At: 2026-09-12
+Repository: mrparthpanchal007-art/Bhoomi-Nexus
+================================================================================
+
+--------------------------------------------------------------------------------
+1. GOOGLE GEMINI AI (Legal RAG, Ask BHOOMI & Research Intelligence)
+--------------------------------------------------------------------------------
+Service: Google Gemini Generative AI
+Purpose: Live legal research, cadastral query synthesis & deed RAG analysis
+Status: Optional / Configurable
+Environment Variable: GEMINI_API_KEY
+Endpoint: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}
+Key Configuration:
+  • Local: Set in .env as GEMINI_API_KEY=your_google_gemini_api_key
+  • Production: Configure in Vercel / Cloud Secret Manager as GEMINI_API_KEY
+  • Offline Fallback: If no API key is provided, the system automatically uses
+    the built-in offline heuristic and domain-specific knowledge engine.
+
+--------------------------------------------------------------------------------
+2. OPEN-METEO WEATHER & ATMOSPHERIC TELEMETRY API
+--------------------------------------------------------------------------------
+Service: Open-Meteo Weather Forecast (ECMWF IFS & DWD ICON Models)
+Purpose: Real-time air temperature, relative humidity, precipitation, wind speed & direction
+Status: Free Open Public API (No API Key Required)
+Endpoint: https://api.open-meteo.com/v1/forecast
+Parameters:
+  • latitude: {lat}
+  • longitude: {lon}
+  • current: temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,wind_speed_10m,wind_direction_10m
+  • timezone: Asia/Kolkata
+
+--------------------------------------------------------------------------------
+3. OPEN-METEO MULTI-DEPTH SOIL TELEMETRY API
+--------------------------------------------------------------------------------
+Service: Open-Meteo Land Surface Reanalysis (ECMWF Land Model)
+Purpose: Volumetric soil moisture (m3/m3) and soil temperature (°C) at 4 depth layers:
+  - 0 to 7 cm
+  - 7 to 28 cm
+  - 28 to 100 cm
+  - 100 to 255 cm
+Status: Free Open Public API (No API Key Required)
+Endpoint: https://api.open-meteo.com/v1/forecast
+Parameters:
+  • latitude: {lat}
+  • longitude: {lon}
+  • current: soil_temperature_0_to_7cm,soil_temperature_7_to_28cm,soil_temperature_28_to_100cm,soil_temperature_100_to_255cm,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,soil_moisture_100_to_255cm
+  • timezone: Asia/Kolkata
+
+--------------------------------------------------------------------------------
+4. ISRIC SOILGRIDS 2.0 (Global Soil Data)
+--------------------------------------------------------------------------------
+Service: ISRIC — World Soil Information
+Purpose: Physical and chemical soil properties at 250m resolution:
+  - pH in H2O (phh2o)
+  - Clay, Sand, Silt fractions
+  - Soil Organic Carbon (soc)
+  - Total Nitrogen
+  - Cation Exchange Capacity (cec)
+Status: Open Scientific Access (No API Key Required)
+Endpoints:
+  • Primary (OGC WCS 2.0.1 MapServer): https://maps.isric.org/mapserv?map=/map/{property}.map
+  • Secondary (REST API): https://rest.isric.org/soilgrids/v2.0/properties/query
+
+--------------------------------------------------------------------------------
+5. NIC BHARAT MAPS / PANCHAYAT ADMINISTRATIVE HIERARCHY
+--------------------------------------------------------------------------------
+Service: National Informatics Centre (NIC) Panchayati Raj GIS
+Purpose: Official Indian administrative hierarchy resolution (State -> District -> Block -> Gram Panchayat)
+Status: Public Government GIS MapServer (No API Key Required)
+Endpoint: https://mapservice.gov.in/mapserviceserv176/rest/services/Panchayat/AdminGPHierarchy/MapServer
+
+--------------------------------------------------------------------------------
+6. OPENSTREETMAP & NOMINATIM REVERSE GEOCODING
+--------------------------------------------------------------------------------
+Service: OpenStreetMap Foundation
+Purpose: Geographic reverse geocoding from coordinates to human-readable address
+Status: Free Open API with User-Agent header policy (No API Key Required)
+Endpoint: https://nominatim.openstreetmap.org/reverse
+Parameters:
+  • format: jsonv2
+  • lat: {lat}
+  • lon: {lon}
+
+--------------------------------------------------------------------------------
+7. GOOGLE & OPENSTREETMAP MAP TILE LAYERS
+--------------------------------------------------------------------------------
+Service: Tile Layer Providers for Leaflet Map
+Endpoints:
+  • Google Hybrid: https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}
+  • Google Roadmap: https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}
+  • Google Terrain: https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}
+  • OpenStreetMap Standard: https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+Status: Public Tile Server Endpoints
+
+--------------------------------------------------------------------------------
+8. ESA COPERNICUS SENTINEL-2 REMOTE SENSING (Optional Token)
+--------------------------------------------------------------------------------
+Service: Copernicus Data Space Ecosystem (European Space Agency)
+Purpose: 10m multispectral satellite imagery & live surface reflectance / NDVI
+Status: Requires User Bearer Token from dataspace.copernicus.eu
+Environment Variable: COPERNICUS_TOKEN / COPERNICUS_CLIENT_ID
+Authentication URL: https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token
+Status in App: When token is omitted, system safely displays [SATELLITE UNAVAILABLE] without fabricating data.
+
+--------------------------------------------------------------------------------
+9. SECURITY & APPLICATION KEYS
+--------------------------------------------------------------------------------
+Enclave Master Key Salt:
+  • Variable: ENCLAVE_MASTER_KEY_SALT (Optional Base64 32-byte string)
+  • Default: Generates cryptographically secure ephemeral salt at startup
+Session Expiry:
+  • Variable: AUTH_SESSION_EXPIRY_SECONDS=86400 (24 hours)
+
+================================================================================
+END OF API SPECIFICATION
+================================================================================
